@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: mms-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: member_management_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - mms-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d member_management_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: mms-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/member_management_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_PROFILES_ACTIVE=docker
+      - JAVA_OPTS=-Xmx512m -Xms256m
+    volumes:
+      - app_logs:/app/logs
+    networks:
+      - mms-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+
+volumes:
+  postgres_data:
+  app_logs:
+
+networks:
+  mms-network:
+    driver: bridge

@@ -1,0 +1,97 @@
+# Database Configuration
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/member_management_db
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+          batch_versioned_data: true
+        order_inserts: true
+        order_updates: true
+
+  # Web Configuration
+  web:
+    resources:
+      add-mappings: false
+  
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+  # MVC Configuration
+  mvc:
+    problemdetails:
+      enabled: true
+
+# JWT Configuration
+app:
+  jwt:
+    secret: mySecretKey12345678901234567890123456789012345678901234567890
+    expiration: 86400000
+    refresh-expiration: 604800000
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    whitelabel:
+      enabled: false
+    include-stacktrace: never
+    include-message: always
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Application Information
+info:
+  app:
+    name: Member Management System
+    description: Enterprise-grade Member Management System with JWT Authentication
+    version: 1.0.0
+    java:
+      version: '@java.version@'
+
+# Logging Configuration
+logging:
+  level:
+    "com.roots.mms": INFO
+    "org.springframework.security": WARN
+    "org.hibernate.SQL": WARN
+    "org.hibernate.type.descriptor.sql.BasicBinder": WARN

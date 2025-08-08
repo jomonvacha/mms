@@ -1,0 +1,30 @@
+# Test Database Configuration
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ""
+
+  # JPA Configuration for Tests
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+# JWT Configuration for Tests
+app:
+  jwt:
+    secret: testSecretKey12345678901234567890123456789012345678901234567890
+    expiration: 86400000
+    refresh-expiration: 604800000
+
+# Logging for Tests
+logging:
+  level:
+    "com.roots.mms": INFO
+    "org.springframework.security": WARN
