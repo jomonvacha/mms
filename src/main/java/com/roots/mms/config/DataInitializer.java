@@ -5,6 +5,7 @@ import com.roots.mms.entity.Role;
 import com.roots.mms.entity.User;
 import com.roots.mms.repository.RoleRepository;
 import com.roots.mms.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -16,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @Component
+@Slf4j
 public class DataInitializer implements CommandLineRunner {
 
     @Autowired
@@ -49,7 +51,7 @@ public class DataInitializer implements CommandLineRunner {
             if (roleRepository.findByName(eRole).isEmpty()) {
                 Role role = new Role(eRole);
                 roleRepository.save(role);
-                System.out.println("Created role: " + eRole.name());
+                log.info("Created role: {}", eRole.name());
             }
         }
     }
@@ -60,7 +62,7 @@ public class DataInitializer implements CommandLineRunner {
         Optional<User> existingByUsername = userRepository.findByUsername(adminUsername);
         Optional<User> existingByEmail = userRepository.findByEmail(adminEmail);
         if (existingByUsername.isPresent() || existingByEmail.isPresent()) {
-            System.out.println("Admin user already present. Skipping seed.");
+            log.info("Admin user already present. Skipping seed.");
             return;
         }
 
@@ -78,6 +80,6 @@ public class DataInitializer implements CommandLineRunner {
         admin.setRoles(roles);
 
         userRepository.save(admin);
-        System.out.println("Seeded default admin user: " + adminUsername);
+        log.info("Seeded default admin user: {}", adminUsername);
     }
 }

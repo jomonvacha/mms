@@ -1,7 +1,13 @@
 package com.roots.mms.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ValidationError {
 
     @JsonProperty("field")
@@ -15,53 +21,4 @@ public class ValidationError {
 
     @JsonProperty("code")
     private String code;
-
-    public ValidationError() {
-    }
-
-    public ValidationError(String field, Object rejectedValue, String message) {
-        this.field = field;
-        this.rejectedValue = rejectedValue;
-        this.message = message;
-    }
-
-    public ValidationError(String field, Object rejectedValue, String message, String code) {
-        this.field = field;
-        this.rejectedValue = rejectedValue;
-        this.message = message;
-        this.code = code;
-    }
-
-    // Getters and Setters
-    public String getField() {
-        return field;
-    }
-
-    public void setField(String field) {
-        this.field = field;
-    }
-
-    public Object getRejectedValue() {
-        return rejectedValue;
-    }
-
-    public void setRejectedValue(Object rejectedValue) {
-        this.rejectedValue = rejectedValue;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
 }

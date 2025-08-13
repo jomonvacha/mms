@@ -8,6 +8,7 @@ import com.roots.mms.exception.AuthorizationException;
 import com.roots.mms.security.SecurityUtils;
 import com.roots.mms.service.UserService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
+@Slf4j
 @RequestMapping("/api/users")
 public class UserController {
 
@@ -26,6 +28,7 @@ public class UserController {
     public ResponseEntity<UserResponse> getMe() {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) throw new AuthorizationException("User", "read_self");
+        log.debug("[User] Get profile for id={}", userId);
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
@@ -34,6 +37,7 @@ public class UserController {
     public ResponseEntity<UserResponse> updateMe(@Valid @RequestBody UpdateUserProfileRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) throw new AuthorizationException("User", "update_self");
+        log.info("[User] Update profile for id={}", userId);
         return ResponseEntity.ok(userService.updateProfile(userId, request));
     }
 
@@ -42,8 +46,8 @@ public class UserController {
     public ResponseEntity<MessageResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) throw new AuthorizationException("User", "change_password");
+        log.info("[User] Change password for id={}", userId);
         userService.changePassword(userId, request);
         return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
 }
-

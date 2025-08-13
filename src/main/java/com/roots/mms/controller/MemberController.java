@@ -10,6 +10,7 @@ import com.roots.mms.exception.AuthorizationException;
 import com.roots.mms.security.SecurityUtils;
 import com.roots.mms.service.MemberService;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
+@Slf4j
 @RequestMapping("/api/members")
 public class MemberController {
 
@@ -29,6 +31,7 @@ public class MemberController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
     public ResponseEntity<MemberResponse> createMember(@Valid @RequestBody CreateMemberRequest request) {
+        log.info("[Member] Create request userId={} type={} by principalId={}", request.getUserId(), request.getMembershipType(), SecurityUtils.getCurrentUserIdOrNull());
         MemberResponse member = memberService.createMember(request);
         return ResponseEntity.ok(member);
     }
@@ -36,6 +39,7 @@ public class MemberController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<MemberResponse> getMemberById(@PathVariable Long id) {
+        log.debug("[Member] Get by id={} requested by principalId={}", id, SecurityUtils.getCurrentUserIdOrNull());
         Optional<MemberResponse> member = memberService.getMemberById(id);
         if (member.isEmpty()) return ResponseEntity.notFound().build();
 
@@ -59,6 +63,7 @@ public class MemberController {
     @GetMapping("/membership/{membershipId}")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<MemberResponse> getMemberByMembershipId(@PathVariable String membershipId) {
+        log.debug("[Member] Get by membershipId={} requested by principalId={}", membershipId, SecurityUtils.getCurrentUserIdOrNull());
         Optional<MemberResponse> member = memberService.getMemberByMembershipId(membershipId);
         if (member.isEmpty()) return ResponseEntity.notFound().build();
 
@@ -82,6 +87,7 @@ public class MemberController {
     @GetMapping("/user/{userId}")
     @PreAuthorize("hasRole('USER') or hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('MANAGER')")
     public ResponseEntity<MemberResponse> getMemberByUserId(@PathVariable Long userId) {
+        log.debug("[Member] Get by userId={} requested by principalId={}", userId, SecurityUtils.getCurrentUserIdOrNull());
         Optional<MemberResponse> member = memberService.getMemberByUserId(userId);
         if (member.isEmpty()) return ResponseEntity.notFound().build();
 
@@ -109,7 +115,7 @@ public class MemberController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
-
+        log.debug("[Member] List page={} size={} sortBy={} sortDir={} by principalId={}", page, size, sortBy, sortDir, SecurityUtils.getCurrentUserIdOrNull());
         Page<MemberResponse> members = memberService.getAllMembers(page, size, sortBy, sortDir);
         return ResponseEntity.ok(members);
     }
@@ -120,7 +126,7 @@ public class MemberController {
             @PathVariable MembershipStatus status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
+        log.debug("[Member] List by status={} page={} size={} by principalId={}", status, page, size, SecurityUtils.getCurrentUserIdOrNull());
         Page<MemberResponse> members = memberService.getMembersByStatus(status, page, size);
         return ResponseEntity.ok(members);
     }
@@ -131,7 +137,7 @@ public class MemberController {
             @PathVariable MembershipType type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
+        log.debug("[Member] List by type={} page={} size={} by principalId={}", type, page, size, SecurityUtils.getCurrentUserIdOrNull());
         Page<MemberResponse> members = memberService.getMembersByType(type, page, size);
         return ResponseEntity.ok(members);
     }
@@ -142,7 +148,7 @@ public class MemberController {
             @RequestParam String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-
+        log.debug("[Member] Search keyword='{}' page={} size={} by principalId={}", keyword, page, size, SecurityUtils.getCurrentUserIdOrNull());
         Page<MemberResponse> members = memberService.searchMembers(keyword, page, size);
         return ResponseEntity.ok(members);
     }
@@ -151,6 +157,7 @@ public class MemberController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
     public ResponseEntity<MemberResponse> updateMember(@PathVariable Long id,
                                                        @Valid @RequestBody UpdateMemberRequest request) {
+        log.info("[Member] Update id={} by principalId={}", id, SecurityUtils.getCurrentUserIdOrNull());
         MemberResponse member = memberService.updateMember(id, request);
         return ResponseEntity.ok(member);
     }
@@ -158,6 +165,7 @@ public class MemberController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<MessageResponse> deleteMember(@PathVariable Long id) {
+        log.warn("[Member] Delete id={} by principalId={}", id, SecurityUtils.getCurrentUserIdOrNull());
         memberService.deleteMember(id);
         return ResponseEntity.ok(new MessageResponse("Member deleted successfully!"));
     }
@@ -165,6 +173,7 @@ public class MemberController {
     @PutMapping("/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
     public ResponseEntity<MessageResponse> deactivateMember(@PathVariable Long id) {
+        log.info("[Member] Deactivate id={} by principalId={}", id, SecurityUtils.getCurrentUserIdOrNull());
         memberService.deactivateMember(id);
         return ResponseEntity.ok(new MessageResponse("Member deactivated successfully!"));
     }
@@ -172,6 +181,7 @@ public class MemberController {
     @PutMapping("/{id}/activate")
     @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
     public ResponseEntity<MessageResponse> activateMember(@PathVariable Long id) {
+        log.info("[Member] Activate id={} by principalId={}", id, SecurityUtils.getCurrentUserIdOrNull());
         memberService.activateMember(id);
         return ResponseEntity.ok(new MessageResponse("Member activated successfully!"));
     }
@@ -179,6 +189,7 @@ public class MemberController {
     @GetMapping("/stats/active-count")
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
     public ResponseEntity<Long> getActiveMembers() {
+        log.debug("[Member] Stats active-count requested by principalId={}", SecurityUtils.getCurrentUserIdOrNull());
         Long count = memberService.getTotalActiveMembers();
         return ResponseEntity.ok(count);
     }

@@ -5,8 +5,7 @@ import com.roots.mms.dto.response.ValidationError;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -31,9 +30,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
@@ -514,9 +512,9 @@ public class GlobalExceptionHandler {
         MDC.put("traceId", traceId);
         try {
             if (ex instanceof MemberManagementException) {
-                logger.warn("Business exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId);
+                log.warn("Business exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId);
             } else {
-                logger.error("Unexpected exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId, ex);
+                log.error("Unexpected exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId, ex);
             }
         } finally {
             MDC.remove("traceId");

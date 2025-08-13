@@ -13,8 +13,7 @@ import com.roots.mms.exception.DuplicateResourceException;
 import com.roots.mms.exception.ResourceNotFoundException;
 import com.roots.mms.repository.MemberRepository;
 import com.roots.mms.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,9 +29,8 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class MemberService {
-
-    private static final Logger logger = LoggerFactory.getLogger(MemberService.class);
 
     @Autowired
     private MemberRepository memberRepository;
@@ -41,7 +39,7 @@ public class MemberService {
     private UserRepository userRepository;
 
     public MemberResponse createMember(CreateMemberRequest request) {
-        logger.info("Creating member for user ID: {}", request.getUserId());
+        log.info("Creating member for user ID: {}", request.getUserId());
 
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getUserId()));
@@ -75,7 +73,7 @@ public class MemberService {
         member.setNotes(request.getNotes());
 
         Member savedMember = memberRepository.save(member);
-        logger.info("Successfully created member with ID: {} for user: {}",
+        log.info("Successfully created member with ID: {} for user: {}",
                 savedMember.getMembershipId(), user.getUsername());
 
         return convertToMemberResponse(savedMember);
@@ -124,7 +122,7 @@ public class MemberService {
     }
 
     public MemberResponse updateMember(Long id, UpdateMemberRequest request) {
-        logger.info("Updating member with ID: {}", id);
+        log.info("Updating member with ID: {}", id);
 
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
@@ -170,23 +168,23 @@ public class MemberService {
         }
 
         Member updatedMember = memberRepository.save(member);
-        logger.info("Successfully updated member with ID: {}", id);
+        log.info("Successfully updated member with ID: {}", id);
 
         return convertToMemberResponse(updatedMember);
     }
 
     public void deleteMember(Long id) {
-        logger.info("Deleting member with ID: {}", id);
+        log.info("Deleting member with ID: {}", id);
 
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
 
         memberRepository.delete(member);
-        logger.info("Successfully deleted member with ID: {}", id);
+        log.info("Successfully deleted member with ID: {}", id);
     }
 
     public void deactivateMember(Long id) {
-        logger.info("Deactivating member with ID: {}", id);
+        log.info("Deactivating member with ID: {}", id);
 
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
@@ -199,11 +197,11 @@ public class MemberService {
         member.setStatus(MembershipStatus.INACTIVE);
         memberRepository.save(member);
 
-        logger.info("Successfully deactivated member with ID: {}", id);
+        log.info("Successfully deactivated member with ID: {}", id);
     }
 
     public void activateMember(Long id) {
-        logger.info("Activating member with ID: {}", id);
+        log.info("Activating member with ID: {}", id);
 
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
@@ -216,7 +214,7 @@ public class MemberService {
         member.setStatus(MembershipStatus.ACTIVE);
         memberRepository.save(member);
 
-        logger.info("Successfully activated member with ID: {}", id);
+        log.info("Successfully activated member with ID: {}", id);
     }
 
     public Long getTotalActiveMembers() {

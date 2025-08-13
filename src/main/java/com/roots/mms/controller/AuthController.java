@@ -15,8 +15,7 @@ import com.roots.mms.repository.UserRepository;
 import com.roots.mms.security.jwt.JwtUtils;
 import com.roots.mms.security.services.UserPrincipal;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,10 +34,9 @@ import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
+@Slf4j
 @RequestMapping("/api/auth")
 public class AuthController {
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     AuthenticationManager authenticationManager;
@@ -57,7 +55,7 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-        logger.info("Authentication attempt for user: {}", loginRequest.getUsername());
+        log.info("Authentication attempt for user: {}", loginRequest.getUsername());
 
         try {
             Authentication authentication = authenticationManager
@@ -74,7 +72,7 @@ public class AuthController {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
-            logger.info("Successful authentication for user: {}", loginRequest.getUsername());
+            log.info("Successful authentication for user: {}", loginRequest.getUsername());
 
             return ResponseEntity.ok(new JwtResponse(jwt, refreshToken,
                     userDetails.getId(),
@@ -82,14 +80,14 @@ public class AuthController {
                     userDetails.getEmail(),
                     roles));
         } catch (BadCredentialsException e) {
-            logger.warn("Failed authentication attempt for user: {}", loginRequest.getUsername());
+            log.warn("Failed authentication attempt for user: {}", loginRequest.getUsername());
             throw new AuthenticationException("Invalid username or password");
         }
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        logger.info("User registration attempt for username: {}", signUpRequest.getUsername());
+        log.info("User registration attempt for username: {}", signUpRequest.getUsername());
 
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             throw new DuplicateResourceException("User", "username", signUpRequest.getUsername());
@@ -117,7 +115,7 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        logger.info("Successfully registered user: {}", signUpRequest.getUsername());
+        log.info("Successfully registered user: {}", signUpRequest.getUsername());
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
