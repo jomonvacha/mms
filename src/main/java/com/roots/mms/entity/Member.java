@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "members")
 @EntityListeners(AuditingEntityListener.class)
 public class Member {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,7 +34,7 @@ public class Member {
     private MembershipStatus status;
 
     private LocalDate membershipStartDate;
-    
+
     private LocalDate membershipEndDate;
 
     @Size(max = 500)
@@ -50,7 +50,8 @@ public class Member {
     private LocalDateTime updatedAt;
 
     // Constructors
-    public Member() {}
+    public Member() {
+    }
 
     public Member(String membershipId, User user, MembershipType membershipType) {
         this.membershipId = membershipId;

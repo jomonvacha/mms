@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Resource not found");
 
@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateResourceException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateResourceException(
             DuplicateResourceException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Duplicate resource");
 
@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRuleException(
             BusinessRuleException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Business rule violation");
 
@@ -95,7 +95,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             ValidationException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Validation error");
 
@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Method argument validation failed");
 
@@ -141,7 +141,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BindException.class)
     public ResponseEntity<ErrorResponse> handleBindException(
             BindException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Binding validation failed");
 
@@ -166,7 +166,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolationException(
             ConstraintViolationException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Constraint validation failed");
 
@@ -188,10 +188,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(
-            AuthenticationException ex, HttpServletRequest request) {
-        
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleSpringAuthenticationException(
+            org.springframework.security.core.AuthenticationException ex, HttpServletRequest request) {
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Authentication failed");
 
@@ -208,10 +208,44 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(com.roots.mms.exception.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleCustomAuthenticationException(
+            com.roots.mms.exception.AuthenticationException ex, HttpServletRequest request) {
+        String traceId = generateTraceId();
+        logError(ex, traceId, "Authentication failed");
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .errorCode(ex.getErrorCode())
+                .message("Authentication failed")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleUsernameNotFound(
+            UsernameNotFoundException ex, HttpServletRequest request) {
+        String traceId = generateTraceId();
+        logError(ex, traceId, "User not found during authentication");
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Unauthorized")
+                .errorCode("USER_NOT_FOUND")
+                .message("Authentication failed")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(
             BadCredentialsException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Bad credentials");
 
@@ -230,7 +264,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(
             AccessDeniedException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Access denied");
 
@@ -247,14 +281,30 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthorizationException(
+            AuthorizationException ex, HttpServletRequest request) {
+        String traceId = generateTraceId();
+        logError(ex, traceId, "Authorization failed");
+        ErrorResponse errorResponse = new ErrorResponse.Builder()
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Forbidden")
+                .errorCode(ex.getErrorCode())
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .traceId(traceId)
+                .build();
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMethodNotSupportedException(
             HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Method not supported");
 
-        String supportedMethods = String.join(", ", 
+        String supportedMethods = String.join(", ",
                 Optional.ofNullable(ex.getSupportedMethods()).orElse(new String[0]));
 
         Map<String, Object> metadata = new HashMap<>();
@@ -278,7 +328,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<ErrorResponse> handleMediaTypeNotSupportedException(
             HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Media type not supported");
 
@@ -298,7 +348,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Malformed JSON request");
 
@@ -318,7 +368,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handleMissingServletRequestParameterException(
             MissingServletRequestParameterException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Missing request parameter");
 
@@ -337,18 +387,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Method argument type mismatch");
 
-        String expectedType = ex.getRequiredType() != null ? 
+        String expectedType = ex.getRequiredType() != null ?
                 ex.getRequiredType().getSimpleName() : "Unknown";
 
         ErrorResponse errorResponse = new ErrorResponse.Builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("TYPE_MISMATCH")
-                .message(String.format("Parameter '%s' should be of type '%s'", 
+                .message(String.format("Parameter '%s' should be of type '%s'",
                         ex.getName(), expectedType))
                 .path(request.getRequestURI())
                 .traceId(traceId)
@@ -360,7 +410,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoHandlerFoundException(
             NoHandlerFoundException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "No handler found");
 
@@ -380,7 +430,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(
             DataIntegrityViolationException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Data integrity violation");
 
@@ -400,7 +450,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SQLException.class)
     public ResponseEntity<ErrorResponse> handleSQLException(
             SQLException ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Database error");
 
@@ -420,7 +470,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        
+
         String traceId = generateTraceId();
         logError(ex, traceId, "Unexpected error");
 

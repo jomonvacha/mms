@@ -22,7 +22,7 @@ public class InfoController {
         info.put("description", "Enterprise-grade Member Management System with JWT Authentication");
         info.put("java_version", System.getProperty("java.version"));
         info.put("timestamp", LocalDateTime.now());
-        
+
         Map<String, String> features = new HashMap<>();
         features.put("authentication", "JWT with refresh tokens");
         features.put("authorization", "Role-based access control");
@@ -30,7 +30,7 @@ public class InfoController {
         features.put("error_handling", "Enterprise-grade global exception handling");
         features.put("logging", "Structured logging with trace IDs");
         features.put("validation", "Bean validation with detailed error responses");
-        
+
         info.put("features", features);
         return info;
     }

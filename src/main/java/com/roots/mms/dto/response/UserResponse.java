@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class UserResponse {
-    
+
     private Long id;
     private String username;
     private String email;
@@ -17,7 +17,8 @@ public class UserResponse {
     private List<String> roles;
 
     // Constructors
-    public UserResponse() {}
+    public UserResponse() {
+    }
 
     // Getters and Setters
     public Long getId() {

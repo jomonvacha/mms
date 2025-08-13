@@ -23,6 +23,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +37,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
-    
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -61,7 +62,7 @@ public class AuthController {
         try {
             Authentication authentication = authenticationManager
                     .authenticate(new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(), 
+                            loginRequest.getUsername(),
                             loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -70,7 +71,7 @@ public class AuthController {
 
             UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
-                    .map(item -> item.getAuthority())
+                    .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toList());
 
             logger.info("Successful authentication for user: {}", loginRequest.getUsername());
@@ -128,23 +129,17 @@ public class AuthController {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
 
-            // Create new authentication
-            Authentication authentication = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(
-                            user.getUsername(), null));
+            String newJwt = jwtUtils.generateTokenFromUsername(user.getUsername());
+            String newRefreshToken = jwtUtils.generateRefreshTokenFromUsername(user.getUsername());
 
-            String newJwt = jwtUtils.generateJwtToken(authentication);
-            String newRefreshToken = jwtUtils.generateRefreshToken(authentication);
-
-            UserPrincipal userDetails = (UserPrincipal) authentication.getPrincipal();
-            List<String> roles = userDetails.getAuthorities().stream()
-                    .map(item -> item.getAuthority())
+            List<String> roles = user.getRoles().stream()
+                    .map(r -> r.getName().name())
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok(new JwtResponse(newJwt, newRefreshToken,
-                    userDetails.getId(),
-                    userDetails.getUsername(),
-                    userDetails.getEmail(),
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
                     roles));
         } else {
             throw new AuthenticationException("Invalid refresh token");

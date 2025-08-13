@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class MemberResponse {
-    
+
     private Long id;
     private String membershipId;
     private UserResponse user;
@@ -21,7 +21,8 @@ public class MemberResponse {
     private LocalDateTime updatedAt;
 
     // Constructors
-    public MemberResponse() {}
+    public MemberResponse() {
+    }
 
     // Getters and Setters
     public Long getId() {

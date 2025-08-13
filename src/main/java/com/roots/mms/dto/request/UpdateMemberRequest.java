@@ -7,9 +7,9 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class UpdateMemberRequest {
-    
+
     private MembershipType membershipType;
-    
+
     private MembershipStatus status;
 
     private LocalDate membershipStartDate;

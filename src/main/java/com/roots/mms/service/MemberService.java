@@ -4,7 +4,10 @@ import com.roots.mms.dto.request.CreateMemberRequest;
 import com.roots.mms.dto.request.UpdateMemberRequest;
 import com.roots.mms.dto.response.MemberResponse;
 import com.roots.mms.dto.response.UserResponse;
-import com.roots.mms.entity.*;
+import com.roots.mms.entity.Member;
+import com.roots.mms.entity.MembershipStatus;
+import com.roots.mms.entity.MembershipType;
+import com.roots.mms.entity.User;
 import com.roots.mms.exception.BusinessRuleException;
 import com.roots.mms.exception.DuplicateResourceException;
 import com.roots.mms.exception.ResourceNotFoundException;
@@ -28,18 +31,18 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class MemberService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(MemberService.class);
-    
+
     @Autowired
     private MemberRepository memberRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
     public MemberResponse createMember(CreateMemberRequest request) {
         logger.info("Creating member for user ID: {}", request.getUserId());
-        
+
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getUserId()));
 
@@ -66,15 +69,15 @@ public class MemberService {
         member.setUser(user);
         member.setMembershipType(request.getMembershipType());
         member.setStatus(MembershipStatus.ACTIVE);
-        member.setMembershipStartDate(request.getMembershipStartDate() != null ? 
+        member.setMembershipStartDate(request.getMembershipStartDate() != null ?
                 request.getMembershipStartDate() : LocalDate.now());
         member.setMembershipEndDate(request.getMembershipEndDate());
         member.setNotes(request.getNotes());
 
         Member savedMember = memberRepository.save(member);
-        logger.info("Successfully created member with ID: {} for user: {}", 
+        logger.info("Successfully created member with ID: {} for user: {}",
                 savedMember.getMembershipId(), user.getUsername());
-        
+
         return convertToMemberResponse(savedMember);
     }
 
@@ -94,10 +97,10 @@ public class MemberService {
     }
 
     public Page<MemberResponse> getAllMembers(int page, int size, String sortBy, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? 
+        Sort sort = sortDir.equalsIgnoreCase("desc") ?
                 Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        
+
         return memberRepository.findAll(pageable)
                 .map(this::convertToMemberResponse);
     }
@@ -122,7 +125,7 @@ public class MemberService {
 
     public MemberResponse updateMember(Long id, UpdateMemberRequest request) {
         logger.info("Updating member with ID: {}", id);
-        
+
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
 
@@ -168,51 +171,51 @@ public class MemberService {
 
         Member updatedMember = memberRepository.save(member);
         logger.info("Successfully updated member with ID: {}", id);
-        
+
         return convertToMemberResponse(updatedMember);
     }
 
     public void deleteMember(Long id) {
         logger.info("Deleting member with ID: {}", id);
-        
+
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
-        
+
         memberRepository.delete(member);
         logger.info("Successfully deleted member with ID: {}", id);
     }
 
     public void deactivateMember(Long id) {
         logger.info("Deactivating member with ID: {}", id);
-        
+
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
-        
+
         if (!member.getIsActive()) {
             throw new BusinessRuleException("Member is already inactive");
         }
-        
+
         member.setIsActive(false);
         member.setStatus(MembershipStatus.INACTIVE);
         memberRepository.save(member);
-        
+
         logger.info("Successfully deactivated member with ID: {}", id);
     }
 
     public void activateMember(Long id) {
         logger.info("Activating member with ID: {}", id);
-        
+
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Member", "id", id));
-        
+
         if (member.getIsActive()) {
             throw new BusinessRuleException("Member is already active");
         }
-        
+
         member.setIsActive(true);
         member.setStatus(MembershipStatus.ACTIVE);
         memberRepository.save(member);
-        
+
         logger.info("Successfully activated member with ID: {}", id);
     }
 
@@ -236,11 +239,11 @@ public class MemberService {
         response.setIsActive(member.getIsActive());
         response.setCreatedAt(member.getCreatedAt());
         response.setUpdatedAt(member.getUpdatedAt());
-        
+
         // Convert user to user response
         UserResponse userResponse = convertToUserResponse(member.getUser());
         response.setUser(userResponse);
-        
+
         return response;
     }
 

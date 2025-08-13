@@ -3,7 +3,7 @@ package com.roots.mms.dto.request;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
-    
+
     @NotBlank
     private String username;
 

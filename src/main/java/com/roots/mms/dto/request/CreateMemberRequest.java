@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class CreateMemberRequest {
-    
+
     @NotNull
     private Long userId;
 

@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class UserPrincipal implements UserDetails {
-    
+
     private static final long serialVersionUID = 1L;
 
     private Long id;
@@ -19,14 +19,17 @@ public class UserPrincipal implements UserDetails {
     private String email;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
+    private boolean enabled;
 
     public UserPrincipal(Long id, String username, String email, String password,
-                        Collection<? extends GrantedAuthority> authorities) {
+                         Collection<? extends GrantedAuthority> authorities,
+                         boolean enabled) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.enabled = enabled;
     }
 
     public static UserPrincipal create(User user) {
@@ -39,7 +42,8 @@ public class UserPrincipal implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
-                authorities);
+                authorities,
+                Boolean.TRUE.equals(user.getActive()));
     }
 
     @Override
@@ -82,7 +86,7 @@ public class UserPrincipal implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     @Override

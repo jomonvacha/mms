@@ -9,34 +9,34 @@ import java.util.Map;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-    
+
     @JsonProperty("timestamp")
     private LocalDateTime timestamp;
-    
+
     @JsonProperty("status")
     private int status;
-    
+
     @JsonProperty("error")
     private String error;
-    
+
     @JsonProperty("error_code")
     private String errorCode;
-    
+
     @JsonProperty("message")
     private String message;
-    
+
     @JsonProperty("details")
     private String details;
-    
+
     @JsonProperty("path")
     private String path;
-    
+
     @JsonProperty("trace_id")
     private String traceId;
-    
+
     @JsonProperty("validation_errors")
     private List<ValidationError> validationErrors;
-    
+
     @JsonProperty("metadata")
     private Map<String, Object> metadata;
 

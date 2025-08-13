@@ -1,7 +1,7 @@
 package com.roots.mms.exception;
 
 public class MemberManagementException extends RuntimeException {
-    
+
     private final String errorCode;
     private final Object[] args;
 

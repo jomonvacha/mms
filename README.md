@@ -1,6 +1,7 @@
 # Member Management System API
 
-A comprehensive Enterprise-Grade Member Management System built with Spring Boot 3.3.x, Java 21, PostgreSQL, and JWT authentication.
+A comprehensive Enterprise-Grade Member Management System built with Spring Boot 3.3.x, Java 21, PostgreSQL, and JWT
+authentication.
 
 ## Features
 
@@ -33,26 +34,95 @@ A comprehensive Enterprise-Grade Member Management System built with Spring Boot
 ## Prerequisites
 
 - Java 21 or higher
-- PostgreSQL 13+ 
+- PostgreSQL 13+
 - Maven 3.6+
 - Docker (optional)
+
+## Running Tests
+
+- Unit and integration tests run against an in-memory H2 database using the `test` profile.
+- Commands:
+
+```bash
+# Run full build and tests
+mvn clean package
+
+# Or run tests only
+mvn test
+
+# Optional: use a local repo cache in workspace
+mvn -Dmaven.repo.local=.m2 test
+```
+
+Notes:
+
+- Test profile config lives at `src/test/resources/application-test.yml`.
+- Admin seeding is disabled in tests; roles are still initialized.
+
+## Code Coverage
+
+- JaCoCo is configured to generate coverage reports and enforce a minimum instruction coverage of 30% (excluding DTOs,
+  entities, config, and JWT helpers).
+- Generate coverage locally:
+
+```bash
+mvn verify
+# then open the HTML report
+open target/site/jacoco/index.html
+```
+
+You can raise the threshold in `pom.xml` under the `jacoco-maven-plugin` check rule.
+
+## Continuous Integration
+
+- A GitHub Actions workflow is included at `.github/workflows/ci.yml`.
+- It runs on pushes and PRs to `main`/`master`, builds with Java 21, runs tests, enforces coverage, and uploads the
+  JaCoCo HTML report as an artifact.
+
+## Make Targets
+
+Convenient shortcuts are available via the `Makefile`:
+
+```bash
+# Database
+make db-up         # start Postgres container
+make db-down       # stop Postgres container
+make db-destroy    # stop and remove DB data volume (DATA LOSS)
+make db-logs       # tail DB logs
+
+# App via docker-compose
+make up            # start app + postgres
+make app-up        # start only the app (waits for healthy DB)
+make down          # stop all compose services
+make logs          # tail app logs
+
+# Build & Tests
+make build         # mvn clean package
+make test          # mvn test
+make verify        # mvn verify (with JaCoCo)
+make clean         # mvn clean
+```
 
 ## Setup Instructions
 
 ### Option 1: Quick Start with Docker (Recommended)
 
 #### Prerequisites
+
 - Docker and Docker Compose installed
 - At least 2GB of available RAM
 
 #### Steps
+
 1. **Clone the repository:**
+
 ```bash
 git clone <repository-url>
 cd member-management-system
 ```
 
 2. **Build and run with Docker Compose:**
+
 ```bash
 # Build the application and start all services
 docker-compose up --build
@@ -62,6 +132,7 @@ docker-compose up -d --build
 ```
 
 3. **Verify the application is running:**
+
 ```bash
 # Check service status
 docker-compose ps
@@ -74,6 +145,7 @@ curl http://localhost:8080/api/info
 ```
 
 4. **View logs:**
+
 ```bash
 # View all logs
 docker-compose logs -f
@@ -86,6 +158,7 @@ docker-compose logs -f postgres
 ```
 
 5. **Stop the application:**
+
 ```bash
 # Stop all services
 docker-compose down
@@ -97,20 +170,27 @@ docker-compose down -v
 ### Option 2: Local Development Setup
 
 #### Prerequisites
+
 - Java 21 or higher
 - PostgreSQL 13+
 - Maven 3.6+
 
 #### Database Setup
+
 1. **Install PostgreSQL** and create database:
+
 ```sql
 -- Connect to PostgreSQL as superuser
-CREATE DATABASE member_management_db;
-CREATE USER mms_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE member_management_db TO mms_user;
+CREATE
+DATABASE member_management_db;
+CREATE
+USER mms_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE
+member_management_db TO mms_user;
 ```
 
 2. **Update database configuration** in `src/main/resources/application.yml`:
+
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/member_management_db
 spring.datasource.username=mms_user
@@ -118,7 +198,9 @@ spring.datasource.password=your_secure_password
 ```
 
 #### Application Setup
+
 1. **Clone and build:**
+
 ```bash
 git clone <repository-url>
 cd member-management-system
@@ -128,6 +210,7 @@ mvn clean install
 ```
 
 2. **Run the application:**
+
 ```bash
 # Run with Maven
 mvn spring-boot:run
@@ -137,6 +220,7 @@ java -jar target/member-management-system-0.0.1-SNAPSHOT.jar
 ```
 
 3. **Verify the application:**
+
 ```bash
 # Check health
 curl http://localhost:8080/api/health
@@ -150,6 +234,7 @@ curl http://localhost:8080/api/test/all
 For production deployments, use environment-specific configurations:
 
 1. **Create production environment file (`.env.prod`):**
+
 ```env
 # Database Configuration
 POSTGRES_DB=member_management_db
@@ -167,6 +252,7 @@ SPRING_PROFILES_ACTIVE=prod
 ```
 
 2. **Create production Docker Compose file (`docker-compose.prod.yml`):**
+
 ```yaml
 version: '3.8'
 
@@ -216,6 +302,7 @@ networks:
 ```
 
 3. **Deploy to production:**
+
 ```bash
 # Load environment variables and deploy
 docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d
@@ -225,38 +312,74 @@ docker-compose --env-file .env.prod -f docker-compose.prod.yml up -d
 
 ### Authentication Endpoints
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/auth/signup` | Register new user | Public |
-| POST | `/api/auth/signin` | User login | Public |
-| POST | `/api/auth/refresh` | Refresh JWT token | Public |
+| Method | Endpoint            | Description       | Access |
+|--------|---------------------|-------------------|--------|
+| POST   | `/api/auth/signup`  | Register new user | Public |
+| POST   | `/api/auth/signin`  | User login        | Public |
+| POST   | `/api/auth/refresh` | Refresh JWT token | Public |
 
 ### Member Management Endpoints
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| POST | `/api/members` | Create new member | ADMIN, MODERATOR |
-| GET | `/api/members` | Get all members (paginated) | MODERATOR, ADMIN |
-| GET | `/api/members/{id}` | Get member by ID | USER, MODERATOR, ADMIN |
-| GET | `/api/members/membership/{membershipId}` | Get member by membership ID | USER, MODERATOR, ADMIN |
-| GET | `/api/members/user/{userId}` | Get member by user ID | USER, MODERATOR, ADMIN |
-| GET | `/api/members/status/{status}` | Get members by status | MODERATOR, ADMIN |
-| GET | `/api/members/type/{type}` | Get members by type | MODERATOR, ADMIN |
-| GET | `/api/members/search?keyword={keyword}` | Search members | MODERATOR, ADMIN |
-| PUT | `/api/members/{id}` | Update member | ADMIN, MODERATOR |
-| DELETE | `/api/members/{id}` | Delete member | ADMIN |
-| PUT | `/api/members/{id}/activate` | Activate member | ADMIN, MODERATOR |
-| PUT | `/api/members/{id}/deactivate` | Deactivate member | ADMIN, MODERATOR |
-| GET | `/api/members/stats/active-count` | Get active members count | MODERATOR, ADMIN |
+| Method | Endpoint                                 | Description                 | Access                          |
+|--------|------------------------------------------|-----------------------------|---------------------------------|
+| POST   | `/api/members`                           | Create new member           | ADMIN, MODERATOR, MANAGER       |
+| GET    | `/api/members`                           | Get all members (paginated) | MODERATOR, ADMIN, MANAGER       |
+| GET    | `/api/members/{id}`                      | Get member by ID            | USER, MODERATOR, ADMIN, MANAGER |
+| GET    | `/api/members/membership/{membershipId}` | Get member by membership ID | USER, MODERATOR, ADMIN, MANAGER |
+| GET    | `/api/members/user/{userId}`             | Get member by user ID       | USER, MODERATOR, ADMIN, MANAGER |
+| GET    | `/api/members/status/{status}`           | Get members by status       | MODERATOR, ADMIN, MANAGER       |
+| GET    | `/api/members/type/{type}`               | Get members by type         | MODERATOR, ADMIN, MANAGER       |
+| GET    | `/api/members/search?keyword={keyword}`  | Search members              | MODERATOR, ADMIN, MANAGER       |
+| PUT    | `/api/members/{id}`                      | Update member               | ADMIN, MODERATOR, MANAGER       |
+| DELETE | `/api/members/{id}`                      | Delete member               | ADMIN                           |
+| PUT    | `/api/members/{id}/activate`             | Activate member             | ADMIN, MODERATOR, MANAGER       |
+| PUT    | `/api/members/{id}/deactivate`           | Deactivate member           | ADMIN, MODERATOR, MANAGER       |
+| GET    | `/api/members/stats/active-count`        | Get active members count    | MODERATOR, ADMIN, MANAGER       |
 
 ### Test Endpoints
 
-| Method | Endpoint | Description | Access |
-|--------|----------|-------------|--------|
-| GET | `/api/test/all` | Public content | Public |
-| GET | `/api/test/user` | User content | USER, MODERATOR, ADMIN |
-| GET | `/api/test/mod` | Moderator content | MODERATOR |
-| GET | `/api/test/admin` | Admin content | ADMIN |
+| Method | Endpoint          | Description       | Access                 |
+|--------|-------------------|-------------------|------------------------|
+| GET    | `/api/test/all`   | Public content    | Public                 |
+| GET    | `/api/test/user`  | User content      | USER, MODERATOR, ADMIN |
+| GET    | `/api/test/mod`   | Moderator content | MODERATOR              |
+| GET    | `/api/test/admin` | Admin content     | ADMIN                  |
+
+### User Profile Endpoints
+
+| Method | Endpoint                 | Description         | Access            |
+|--------|--------------------------|---------------------|-------------------|
+| GET    | `/api/users/me`          | Get own profile     | Any authenticated |
+| PUT    | `/api/users/me`          | Update own profile  | Any authenticated |
+| PUT    | `/api/users/me/password` | Change own password | Any authenticated |
+
+### Role & User Admin Endpoints
+
+| Method | Endpoint                       | Description              | Access                    |
+|--------|--------------------------------|--------------------------|---------------------------|
+| GET    | `/api/roles`                   | List available roles     | ADMIN, MODERATOR, MANAGER |
+| GET    | `/api/admin/users`             | List users (paginated)   | ADMIN, MODERATOR, MANAGER |
+| GET    | `/api/admin/users/{id}`        | Get user by ID           | ADMIN, MODERATOR, MANAGER |
+| PUT    | `/api/admin/users/{id}/roles`  | Set user roles           | ADMIN                     |
+| PUT    | `/api/admin/users/{id}/status` | Activate/Deactivate user | ADMIN                     |
+
+## Admin Seeding
+
+Admin seeding is controlled via application properties:
+
+- `app.admin.enabled` (default: true in `application.yml` for local)
+- `app.admin.username`, `app.admin.email`, `app.admin.password`
+- `app.admin.first-name`, `app.admin.last-name`
+
+For production, disable seeding or provide secure credentials via environment variables. Example:
+
+```bash
+APP_ADMIN_ENABLED=true \
+APP_ADMIN_USERNAME=admin \
+APP_ADMIN_EMAIL=admin@example.com \
+APP_ADMIN_PASSWORD='change_me' \
+java -jar target/member-management-system-0.0.1-SNAPSHOT.jar
+```
 
 ## API Usage Examples
 
@@ -287,6 +410,7 @@ curl -X POST http://localhost:8080/api/auth/signin \
 ```
 
 Response:
+
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -295,7 +419,9 @@ Response:
   "id": 1,
   "username": "johndoe",
   "email": "john@example.com",
-  "roles": ["ROLE_USER"]
+  "roles": [
+    "ROLE_USER"
+  ]
 }
 ```
 
@@ -331,6 +457,7 @@ curl -X GET "http://localhost:8080/api/members/search?keyword=john&page=0&size=1
 ## Data Models
 
 ### User Entity
+
 - id (Long)
 - username (String, unique)
 - email (String, unique)
@@ -343,6 +470,7 @@ curl -X GET "http://localhost:8080/api/members/search?keyword=john&page=0&size=1
 - createdAt, updatedAt (LocalDateTime)
 
 ### Member Entity
+
 - id (Long)
 - membershipId (String, unique, auto-generated)
 - user (User, OneToOne)
@@ -354,6 +482,7 @@ curl -X GET "http://localhost:8080/api/members/search?keyword=john&page=0&size=1
 - createdAt, updatedAt (LocalDateTime)
 
 ### Role Entity
+
 - id (Integer)
 - name (ERole: ROLE_USER, ROLE_MODERATOR, ROLE_ADMIN, ROLE_MEMBER, ROLE_MANAGER)
 
@@ -362,6 +491,7 @@ curl -X GET "http://localhost:8080/api/members/search?keyword=john&page=0&size=1
 The application implements comprehensive error handling with:
 
 ### Structured Error Responses
+
 ```json
 {
   "timestamp": "2024-08-07T10:30:45.123",
@@ -384,6 +514,7 @@ The application implements comprehensive error handling with:
 ```
 
 ### Exception Types Handled
+
 - **Business Rule Violations** - Custom business logic errors
 - **Resource Not Found** - When requested resources don't exist
 - **Duplicate Resources** - When creating resources that already exist
@@ -394,6 +525,7 @@ The application implements comprehensive error handling with:
 - **HTTP Errors** - Method not allowed, media type not supported, etc.
 
 ### Logging and Tracing
+
 - **Trace IDs** for request correlation across logs
 - **Structured Logging** with JSON format in production
 - **Log Rotation** with size and time-based policies
@@ -403,7 +535,7 @@ The application implements comprehensive error handling with:
 ## Security Features
 
 - **JWT Token Authentication** with configurable expiration
-- **Refresh Token** mechanism for extended sessions
+- **Refresh Token** mechanism for extended sessions (no password re-check)
 - **Role-based Access Control** with method-level security
 - **Password Encryption** using BCrypt
 - **CORS Configuration** for cross-origin requests
@@ -414,6 +546,7 @@ The application implements comprehensive error handling with:
 ## Error Handling
 
 The API returns appropriate HTTP status codes:
+
 - `200 OK` - Successful requests
 - `201 Created` - Resource created successfully
 - `400 Bad Request` - Invalid input or business logic errors
@@ -425,6 +558,7 @@ The API returns appropriate HTTP status codes:
 - `500 Internal Server Error` - Server errors
 
 Each error response includes:
+
 - Timestamp and HTTP status
 - Error code for programmatic handling
 - Human-readable message
@@ -435,29 +569,30 @@ Each error response includes:
 ## Production Considerations
 
 1. **Security:**
-   - Change JWT secret to a secure 256-bit key
-   - Use environment variables for sensitive configuration
-   - Enable HTTPS
-   - Configure proper CORS origins
+    - Change JWT secret to a secure 256-bit key
+    - Use environment variables for sensitive configuration
+    - Enable HTTPS
+    - Configure proper CORS origins
 
 2. **Database:**
-   - Use connection pooling
-   - Configure proper database indexes
-   - Set up database backups
+    - Use connection pooling
+    - Configure proper database indexes
+    - Set up database backups
 
 3. **Monitoring:**
-   - Enable Spring Boot Actuator endpoints
-   - Set up logging and monitoring
-   - Configure health checks
+    - Enable Spring Boot Actuator endpoints
+    - Set up logging and monitoring
+    - Configure health checks
 
 4. **Performance:**
-   - Implement caching where appropriate
-   - Optimize database queries
-   - Configure proper pagination limits
+    - Implement caching where appropriate
+    - Optimize database queries
+    - Configure proper pagination limits
 
 ## Testing
 
 Run tests with:
+
 ```bash
 mvn test
 ```
@@ -467,6 +602,7 @@ The application includes H2 in-memory database for testing.
 ## Monitoring and Health Checks
 
 ### Application Health
+
 ```bash
 # Basic health check
 curl http://localhost:8080/api/health
@@ -481,6 +617,7 @@ curl http://localhost:8080/actuator/metrics
 ```
 
 ### Docker Health Monitoring
+
 ```bash
 # Check container health
 docker ps
@@ -493,6 +630,7 @@ docker stats mms-app mms-postgres
 ```
 
 ### Log Monitoring
+
 ```bash
 # Application logs
 docker-compose logs -f app
@@ -512,6 +650,7 @@ docker-compose logs --tail=100 app
 ### Common Issues
 
 #### 1. Application Won't Start
+
 ```bash
 # Check if ports are already in use
 netstat -tlnp | grep :8080
@@ -527,6 +666,7 @@ docker-compose logs postgres
 ```
 
 #### 2. Database Connection Issues
+
 ```bash
 # Verify PostgreSQL is running
 docker-compose exec postgres pg_isready -U postgres
@@ -539,12 +679,14 @@ docker-compose exec postgres psql -U postgres -d member_management_db -c "\dt"
 ```
 
 #### 3. JWT Token Issues
+
 - Ensure the JWT secret is at least 256 bits (32+ characters)
 - Check token expiration times in configuration
 - Verify token format in Authorization header: `Bearer <token>`
 - Clear browser cache/tokens if testing in browser
 
 #### 4. Permission Issues
+
 ```bash
 # Fix file permissions (Linux/Mac)
 sudo chown -R $USER:$USER .
@@ -556,6 +698,7 @@ chmod 755 logs
 ```
 
 #### 5. Memory Issues
+
 ```bash
 # Increase Docker memory limits
 docker-compose down
@@ -568,6 +711,7 @@ mvn spring-boot:run
 ```
 
 #### 6. Build Issues
+
 ```bash
 # Clean and rebuild
 mvn clean install
@@ -582,21 +726,29 @@ mvn clean install -U
 ### Performance Tuning
 
 #### Database Optimization
+
 ```sql
 -- Connect to database
-docker-compose exec postgres psql -U postgres -d member_management_db
+docker
+-compose exec postgres psql -U postgres -d member_management_db
 
 -- Check database size
 SELECT pg_size_pretty(pg_database_size('member_management_db'));
 
 -- Check table sizes
-SELECT schemaname,tablename,attname,n_distinct,correlation FROM pg_stats;
+SELECT schemaname, tablename, attname, n_distinct, correlation
+FROM pg_stats;
 
 -- Analyze query performance
-EXPLAIN ANALYZE SELECT * FROM users WHERE username = 'testuser';
+EXPLAIN
+ANALYZE
+SELECT *
+FROM users
+WHERE username = 'testuser';
 ```
 
 #### Application Optimization
+
 ```bash
 # Enable JFR (Java Flight Recorder) for profiling
 java -XX:+FlightRecorder -XX:StartFlightRecording=duration=60s,filename=app-profile.jfr -jar target/member-management-system-0.0.1-SNAPSHOT.jar
@@ -609,6 +761,7 @@ curl http://localhost:8080/actuator/metrics/http.server.requests
 ### Environment-Specific Configuration
 
 #### Development Environment
+
 ```yaml
 # src/main/resources/application-dev.yml
 logging:
@@ -625,6 +778,7 @@ management:
 ```
 
 #### Production Environment
+
 ```yaml
 # src/main/resources/application-prod.yml
 logging:
@@ -644,6 +798,7 @@ server:
 ```
 
 #### Test Environment
+
 ```yaml
 # src/test/resources/application-test.yml
 spring:
@@ -660,6 +815,7 @@ logging:
 ## Security Best Practices
 
 ### Production Security Checklist
+
 - [ ] Change default JWT secret to a secure 256-bit key
 - [ ] Use environment variables for sensitive configuration
 - [ ] Enable HTTPS/TLS in production
@@ -672,6 +828,7 @@ logging:
 - [ ] Implement database backup strategy
 
 ### Environment Variable Security
+
 ```bash
 # Generate secure JWT secret
 openssl rand -hex 32
@@ -683,6 +840,7 @@ openssl rand -base64 32
 ## FAQ
 
 ### Q: How do I reset the database?
+
 ```bash
 # Stop containers and remove volumes
 docker-compose down -v
@@ -692,12 +850,15 @@ docker-compose up -d
 ```
 
 ### Q: How do I change the default admin user?
+
 The application creates a default admin user on startup. You can:
+
 1. Change the credentials in `DataInitializer.java`
 2. Use the API to create new admin users
 3. Use database scripts to modify existing users
 
 ### Q: How do I enable debug logging?
+
 ```bash
 # For Docker
 # For Docker
@@ -710,6 +871,7 @@ mvn spring-boot:run
 ```
 
 ### Q: How do I backup the database?
+
 ```bash
 # Create backup
 docker-compose exec postgres pg_dump -U postgres member_management_db > backup.sql
@@ -719,6 +881,7 @@ docker-compose exec -T postgres psql -U postgres member_management_db < backup.s
 ```
 
 ### Q: How do I scale the application?
+
 ```bash
 # Scale app containers (load balancer required)
 docker-compose up -d --scale app=3

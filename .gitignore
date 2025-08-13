@@ -39,6 +39,7 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+.m2/
 
 # Gradle build artifacts
 .gradle/
@@ -189,4 +190,4 @@ uploads/
 # Applications
 *.app
 *.exe
-
+/YAML_MIGRATION.md
