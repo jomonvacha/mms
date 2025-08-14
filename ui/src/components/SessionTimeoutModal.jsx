@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function SessionTimeoutModal() {
-  const { idleWarning, idleCountdown, extendSession, confirmLogout } = useAuth();
+  const { idleWarning, idleCountdown, extendSession, confirmSignout } = useAuth();
   if (!idleWarning) return null;
 
   // Simple Bootstrap-like modal without relying on JS API
@@ -19,7 +19,7 @@ export default function SessionTimeoutModal() {
               <p className="mb-0">You will be signed out in <strong>{idleCountdown}</strong> seconds.</p>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={confirmLogout}>Sign Out Now</button>
+              <button type="button" className="btn btn-secondary" onClick={confirmSignout}>Sign Out Now</button>
               <button type="button" className="btn btn-primary" onClick={extendSession}>Stay Signed In</button>
             </div>
           </div>

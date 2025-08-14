@@ -19,12 +19,12 @@ cp .env.example .env
 
 - `VITE_API_BASE_URL`: Optional. If set, client requests go to this absolute base (e.g., `http://localhost:8080`). If empty, requests use relative paths like `/api` (recommended with dev proxy).
 - `VITE_PROXY_TARGET`: Dev-only proxy target for Vite. Defaults to `http://localhost:8080`.
-- `VITE_LOGIN_PATH`: Defaults to `/api/auth/signin` (matches `AuthController`).
+- `VITE_SIGNIN_PATH`: Defaults to `/api/auth/signin` (matches `AuthController`).
 - `VITE_REGISTER_PATH`: Defaults to `/api/auth/signup` (matches `AuthController`).
-- `VITE_LOGOUT_PATH`: Optional; leave empty if your backend has no logout endpoint.
+- `VITE_SIGNOUT_PATH`: Optional; leave empty if your backend has no signout endpoint.
 - `VITE_REFRESH_PATH`: Defaults to `/api/auth/refresh`.
-- `VITE_AUTO_LOGOUT_MINUTES`: Optional idle timeout in minutes (e.g., `30`). When set, the UI signs the user out after inactivity.
-- `VITE_IDLE_WARNING_SECONDS`: Seconds to show the confirmation dialog before auto-logout (default 60).
+- `VITE_AUTO_SIGNOUT_MINUTES`: Optional idle timeout in minutes (e.g., `30`). When set, the UI signs the user out after inactivity.
+- `VITE_IDLE_WARNING_SECONDS`: Seconds to show the confirmation dialog before auto-signout (default 60).
 
 Make sure your MMS backend is configured for CORS when accessed cross-origin and allows credentials.
 
@@ -72,12 +72,12 @@ docker compose up --build ui
 
 ## Auth Model
 - On app start, the UI calls `/api/users/me` with `credentials: include` to determine auth state.
-- Local login: `POST /api/auth/signin` by default (username + password); override via `VITE_LOGIN_PATH`. If unset, local sign-in is hidden.
+- Local signin: `POST /api/auth/signin` by default (username + password); override via `VITE_SIGNIN_PATH`. If unset, local sign-in is hidden.
 - Local register: `POST /api/auth/signup` by default (username, email, firstName, lastName, password, optional phoneNumber); override via `VITE_REGISTER_PATH`. If unset, sign-up is hidden.
-- Logout: optional endpoint via `VITE_LOGOUT_PATH` (if unset, Sign Out skips server call and only clears client state).
+- Signout: optional endpoint via `VITE_SIGNOUT_PATH` (if unset, Sign Out skips server call and only clears client state).
 - Members (protected): `GET /api/members?page=0&size=25`, UI unwraps `content` from Page if present.
 - Token refresh: Automatically calls `POST /api/auth/refresh?refreshToken=...` (configurable via `VITE_REFRESH_PATH`) on 401s, updates tokens, and retries once.
-- Auto logout: When `VITE_AUTO_LOGOUT_MINUTES` is set (> 0), the UI logs the user out after that period of inactivity and redirects to `/signin?autoLoggedOut=1`.
+- Auto signout: When `VITE_AUTO_SIGNOUT_MINUTES` is set (> 0), the UI logs the user out after that period of inactivity and redirects to `/signin?autoSignedOut=1`.
   - A confirmation dialog appears for `VITE_IDLE_WARNING_SECONDS` allowing users to Stay Signed In or Sign Out now.
 
 ## Project Structure
@@ -118,7 +118,7 @@ If you are not using the dev proxy or you set `VITE_API_BASE_URL` to a different
 
 ## Acceptance Checklist
 - `npm run dev` serves on port 3000 and proxies `/api` to MMS.
-- If local auth endpoints provided, successful login sets session cookie; navbar shows the user’s name.
+- If local auth endpoints provided, successful signin sets session cookie; navbar shows the user’s name.
 - Members page loads data when authenticated.
 - Google/Apple buttons redirect to backend OAuth routes.
 - `docker compose up --build ui` serves the built app on port 3000 with SPA fallback.

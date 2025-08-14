@@ -3,9 +3,9 @@
 // - Base URL is configurable via Vite env VITE_API_BASE_URL
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
-export const LOGIN_PATH = import.meta.env.VITE_LOGIN_PATH || '';
+export const SIGNIN_PATH = import.meta.env.VITE_SIGNIN_PATH || '';
 export const REGISTER_PATH = import.meta.env.VITE_REGISTER_PATH || '';
-export const LOGOUT_PATH = import.meta.env.VITE_LOGOUT_PATH || '';
+export const SIGNOUT_PATH = import.meta.env.VITE_SIGNOUT_PATH || '';
 export const REFRESH_PATH = import.meta.env.VITE_REFRESH_PATH || '/api/auth/refresh';
 
 function isAbsoluteUrl(u) {
@@ -108,13 +108,13 @@ export async function validateEndpoint(path, method = 'POST') {
   }
 }
 
-export function login({ username, password }) {
-  if (!LOGIN_PATH) {
-    const err = new Error('Local login is not configured');
+export function signin({ username, password }) {
+  if (!SIGNIN_PATH) {
+    const err = new Error('Local signin is not configured');
     err.status = 501;
     throw err;
   }
-  return fetchJson(LOGIN_PATH, {
+  return fetchJson(SIGNIN_PATH, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   }).then((res) => {
@@ -141,13 +141,13 @@ export function register(data) {
   });
 }
 
-export function logout() {
-  if (!LOGOUT_PATH) {
+export function signout() {
+  if (!SIGNOUT_PATH) {
     // No server endpoint; clear tokens client-side
     clearAuthTokens();
     return Promise.resolve({ ok: true });
   }
-  return fetchJson(LOGOUT_PATH, { method: 'POST' }).finally(() => clearAuthTokens());
+  return fetchJson(SIGNOUT_PATH, { method: 'POST' }).finally(() => clearAuthTokens());
 }
 
 export function me() {

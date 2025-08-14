@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout, clearAuthTokens } from '../api/client.js';
+import { signout, clearAuthTokens } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function SignOut() {
@@ -9,11 +9,11 @@ export default function SignOut() {
 
   useEffect(() => {
     let cancelled = false;
-    async function doLogout() {
+    async function doSignout() {
       try {
-        await logout();
+        await signout();
       } catch (_) {
-        // If logout endpoint is not configured, continue to refresh state
+        // If signout endpoint is not configured, continue to refresh state
       } finally {
         if (!cancelled) {
           // Ensure tokens are cleared
@@ -23,7 +23,7 @@ export default function SignOut() {
         }
       }
     }
-    doLogout();
+    doSignout();
     return () => { cancelled = true; };
   }, [navigate, refreshMe]);
 

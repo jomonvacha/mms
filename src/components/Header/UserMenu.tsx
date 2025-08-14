@@ -28,7 +28,7 @@ export default function UserMenu({ user }: Props) {
     { key: 'profile', label: 'Profile' },
     { key: 'account', label: 'Account' },
     { key: 'preferences', label: 'Preferences' },
-    { key: 'logout', label: 'Logout' },
+    { key: 'logout', label: 'Sign out' },
   ]), []);
 
   // Close on outside click and keep dropdown positioned via portal to avoid clipping

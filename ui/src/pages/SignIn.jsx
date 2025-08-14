@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
-import { login, API_BASE, LOGIN_PATH, REGISTER_PATH, validateEndpoint } from '../api/client.js';
+import { signin, API_BASE, SIGNIN_PATH, REGISTER_PATH, validateEndpoint } from '../api/client.js';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export default function SignIn() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [endpointOk, setEndpointOk] = useState(true);
-  const timedOut = new URLSearchParams(location.search).get('autoLoggedOut') === '1';
+  const timedOut = new URLSearchParams(location.search).get('autoSignedOut') === '1';
 
   const from = location.state?.from?.pathname || '/';
 
@@ -22,7 +22,7 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
     try {
-      await login({ username, password });
+      await signin({ username, password });
       await refreshMe();
       navigate(from === '/signin' ? '/' : from, { replace: true });
     } catch (err) {
@@ -37,14 +37,14 @@ export default function SignIn() {
     window.location.href = `${oauthBase}/oauth2/authorization/${provider}`;
   };
 
-  const localAuthEnabled = Boolean(LOGIN_PATH);
+  const localAuthEnabled = Boolean(SIGNIN_PATH);
 
-  // Validate login endpoint if configured
+  // Validate signin endpoint if configured
   useEffect(() => {
     let cancelled = false;
     if (!localAuthEnabled) return;
     (async () => {
-      const ok = await validateEndpoint(LOGIN_PATH, 'POST');
+      const ok = await validateEndpoint(SIGNIN_PATH, 'POST');
       if (!cancelled) setEndpointOk(ok);
     })();
     return () => { cancelled = true; };

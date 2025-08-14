@@ -8,7 +8,7 @@ export const AuthContext = createContext({
   idleWarning: false,
   idleCountdown: 0,
   extendSession: () => {},
-  confirmLogout: () => {},
+  confirmSignout: () => {},
 });
 
 export function useAuth() {
