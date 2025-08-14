@@ -100,11 +100,13 @@ ui/
     components/
       Navbar.jsx
       ProtectedRoute.jsx
+      SessionTimeoutModal.jsx
     pages/
       Home.jsx
       SignIn.jsx
       SignUp.jsx
       Members.jsx
+      Profile.jsx
       SignOut.jsx
 ```
 

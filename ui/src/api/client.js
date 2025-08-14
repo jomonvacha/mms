@@ -166,6 +166,20 @@ export function getMemberByUserId(userId) {
   return fetchJson(`/api/members/user/${encodeURIComponent(userId)}`);
 }
 
+export function updateMe(payload) {
+  return fetchJson('/api/users/me', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function changePassword(payload) {
+  return fetchJson('/api/users/me/password', {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function refreshTokens() {
   if (refreshInFlight) return refreshInFlight;
   if (!refreshToken) throw new Error('No refresh token');
