@@ -90,7 +90,7 @@ management:
 info:
   app:
     name: Member Management System
-    description: Enterprise-grade Member Management System with JWT Authentication
+    description: Member Management System
     version: 1.0.0
     java:
       version: '@java.version@'
@@ -98,7 +98,7 @@ info:
 # Logging Configuration
 logging:
   level:
-    "com.roots.mms": INFO
+    "com.roots.mms": DEBUG
     "org.springframework.security": WARN
     "org.hibernate.SQL": WARN
     "org.hibernate.type.descriptor.sql.BasicBinder": WARN
