@@ -5,10 +5,9 @@ import com.roots.mms.security.jwt.AuthTokenFilter;
 import com.roots.mms.security.jwt.JwtUtils;
 import com.roots.mms.security.oauth.CustomOAuth2UserService;
 import com.roots.mms.security.oauth.OAuth2AuthenticationSuccessHandler;
-import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import com.roots.mms.security.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +19,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -64,6 +64,8 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/test/**").permitAll()
                                 .requestMatchers("/actuator/**").permitAll()
                                 .requestMatchers("/h2-console/**").permitAll()
+                                .requestMatchers("/oauth2/callback-dev").permitAll()
+                                .requestMatchers("/api/auth/google-id-token").permitAll()
                                 .anyRequest().authenticated()
                 );
 

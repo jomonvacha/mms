@@ -1,9 +1,11 @@
 package com.roots.mms.controller;
 
+import com.roots.mms.dto.request.GoogleIdTokenRequest;
 import com.roots.mms.dto.request.LoginRequest;
 import com.roots.mms.dto.request.SignupRequest;
 import com.roots.mms.dto.response.JwtResponse;
 import com.roots.mms.dto.response.MessageResponse;
+import com.roots.mms.entity.AuthProvider;
 import com.roots.mms.entity.ERole;
 import com.roots.mms.entity.Role;
 import com.roots.mms.entity.User;
@@ -17,6 +19,7 @@ import com.roots.mms.security.services.UserPrincipal;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -44,6 +47,8 @@ public class AuthController {
     private final RoleRepository roleRepository;
     private final PasswordEncoder encoder;
     private final JwtUtils jwtUtils;
+    @Value("${spring.security.oauth2.client.registration.google.client-id:}")
+    private String googleClientId;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -133,6 +138,55 @@ public class AuthController {
                     roles));
         } else {
             throw new AuthenticationException("Invalid refresh token");
+        }
+    }
+
+    @PostMapping("/google-id-token")
+    public ResponseEntity<?> exchangeGoogleIdToken(@Valid @RequestBody GoogleIdTokenRequest req) {
+        try {
+            var httpTransport = new com.google.api.client.http.javanet.NetHttpTransport();
+            var jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance();
+            var verifier = new com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier.Builder(httpTransport, jsonFactory)
+                    .setAudience(java.util.Collections.singletonList(googleClientId))
+                    .build();
+
+            com.google.api.client.googleapis.auth.oauth2.GoogleIdToken idToken = verifier.verify(req.getIdToken());
+            if (idToken == null) {
+                throw new AuthenticationException("Invalid Google ID token");
+            }
+
+            var payload = idToken.getPayload();
+            String email = (String) payload.get("email");
+            Boolean emailVerified = (Boolean) payload.get("email_verified");
+            String sub = payload.getSubject();
+
+            if (email == null || Boolean.FALSE.equals(emailVerified)) {
+                throw new AuthenticationException("Google account email is not available or not verified");
+            }
+
+            // Lookup or provision user
+            User user = userRepository.findByEmail(email).orElseGet(() -> {
+                User u = new User(email, email, "", (String) payload.get("given_name"), (String) payload.get("family_name"));
+                u.setActive(true);
+                u.setProvider(AuthProvider.GOOGLE);
+                u.setProviderId(sub);
+                Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                        .orElseThrow(() -> new ResourceNotFoundException("Role", "name", ERole.ROLE_USER));
+                java.util.Set<Role> roles = new java.util.HashSet<>();
+                roles.add(userRole);
+                u.setRoles(roles);
+                return userRepository.save(u);
+            });
+
+            String accessToken = jwtUtils.generateTokenFromUsername(email);
+            String refresh = jwtUtils.generateRefreshTokenFromUsername(email);
+            java.util.List<String> roles = user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toList());
+
+            return ResponseEntity.ok(new JwtResponse(accessToken, refresh, user.getId(), user.getUsername(), user.getEmail(), roles));
+        } catch (AuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new AuthenticationException("Google ID token verification failed", e);
         }
     }
 }

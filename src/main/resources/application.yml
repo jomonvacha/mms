@@ -70,7 +70,7 @@ app:
     expiration: 86400000
     refresh-expiration: 604800000
   oauth2:
-    authorized-redirect-uri: http://localhost:3000/oauth2/callback
+    authorized-redirect-uri: http://localhost:8080/oauth2/callback-dev
   admin:
     enabled: true
     username: admin

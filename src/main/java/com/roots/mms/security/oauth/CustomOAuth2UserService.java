@@ -83,6 +83,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         Map<String, Object> principalAttrs = new HashMap<>(attributes);
         principalAttrs.put("userId", user.getId());
+        // Use email as the principal name to align with local lookup
+        if (email != null) {
+            principalAttrs.putIfAbsent("email", email);
+            return new DefaultOAuth2User(authorities, principalAttrs, "email");
+        }
         return new DefaultOAuth2User(authorities, principalAttrs, "sub");
     }
 
@@ -100,4 +105,3 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return userRepository.save(u);
     }
 }
-

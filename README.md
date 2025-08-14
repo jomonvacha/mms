@@ -122,7 +122,12 @@ Important: The `redirect-uri` must exactly match the URI registered in Google/Ap
     - `http://localhost:8080/login/oauth2/code/google`
     - If you use 127.0.0.1 or another domain/port, add those exact URIs as well.
 3) Set env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-4) Test: open `http://localhost:8080/oauth2/authorization/google`, then use the returned `token` for API calls.
+4) Test (with backend dev callback):
+    - Temporarily set:
+        - `app.oauth2.authorized-redirect-uri=http://localhost:8080/oauth2/callback-dev`
+    - Open `http://localhost:8080/oauth2/authorization/google`
+    - After login, a dev page shows `token` and `refreshToken`, with a button to call `/api/users/me`.
+    - For frontend usage, set `authorized-redirect-uri` back to your SPA callback.
 
 If you see `redirect_uri_mismatch`, ensure your Google console has the exact callback configured and your
 application.yml `redirect-uri` matches.
