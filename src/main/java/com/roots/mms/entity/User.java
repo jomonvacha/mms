@@ -70,6 +70,13 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(length = 100)
+    private String providerId; // ID from external IdP (e.g., Google sub, Apple sub)
+
     public User(String username, String email, String password, String firstName, String lastName) {
         this.username = username;
         this.email = email;

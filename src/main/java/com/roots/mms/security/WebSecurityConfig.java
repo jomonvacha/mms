@@ -3,6 +3,8 @@ package com.roots.mms.security;
 import com.roots.mms.security.jwt.AuthEntryPointJwt;
 import com.roots.mms.security.jwt.AuthTokenFilter;
 import com.roots.mms.security.jwt.JwtUtils;
+import com.roots.mms.security.oauth.CustomOAuth2UserService;
+import com.roots.mms.security.oauth.OAuth2AuthenticationSuccessHandler;
 import com.roots.mms.security.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +30,8 @@ public class WebSecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final JwtUtils jwtUtils;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -60,7 +64,11 @@ public class WebSecurityConfig {
                                 .anyRequest().authenticated()
                 );
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                );
 
         return http.build();
     }

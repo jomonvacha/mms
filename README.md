@@ -9,6 +9,7 @@ authentication.
 - **Role-based Access Control** (USER, MODERATOR, ADMIN, MEMBER, MANAGER)
 - **Member Management** with CRUD operations
 - **User Registration and Authentication**
+- **OAuth2 Login** with Google and Apple (provisions local users and issues JWT)
 - **PostgreSQL Database** with JPA/Hibernate and connection pooling
 - **RESTful API** with proper HTTP status codes
 - **Enterprise-Grade Error Handling** with structured error responses and trace IDs
@@ -70,6 +71,92 @@ mvn verify
 # then open the HTML report
 open target/site/jacoco/index.html
 ```
+
+## OAuth2 Login (Google & Apple)
+
+This API supports OAuth2 login via Google and Apple. On successful login, the backend provisions/updates a local user
+and issues your app's JWT and refresh token, then redirects the browser back to your frontend with `token` and
+`refreshToken` query params.
+
+### Endpoints
+
+- Start login: `GET /oauth2/authorization/google` or `GET /oauth2/authorization/apple`
+- OAuth callback (handled by Spring): `GET /login/oauth2/code/{registrationId}`
+- Redirect to your frontend after success: `app.oauth2.authorized-redirect-uri` (see config below)
+
+### Configuration (application.yml)
+
+```yaml
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid, profile, email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/google" # set exact
+          apple:
+            client-id: ${APPLE_CLIENT_ID:}
+            client-secret: ${APPLE_CLIENT_SECRET:}
+            scope: name, email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/apple"   # set exact
+        provider:
+          apple:
+            authorization-uri: https://appleid.apple.com/auth/authorize
+            token-uri: https://appleid.apple.com/auth/token
+            jwk-set-uri: https://appleid.apple.com/auth/keys
+
+app:
+  oauth2:
+    authorized-redirect-uri: http://localhost:3000/oauth2/callback
+```
+
+Important: The `redirect-uri` must exactly match the URI registered in Google/Apple developer consoles.
+
+### Google setup
+
+1) Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client (Web).
+2) Authorized redirect URIs:
+    - `http://localhost:8080/login/oauth2/code/google`
+    - If you use 127.0.0.1 or another domain/port, add those exact URIs as well.
+3) Set env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+4) Test: open `http://localhost:8080/oauth2/authorization/google`, then use the returned `token` for API calls.
+
+If you see `redirect_uri_mismatch`, ensure your Google console has the exact callback configured and your
+application.yml `redirect-uri` matches.
+
+### Apple setup (overview)
+
+- Apple requires a Client Secret JWT (ES256) signed with your `.p8` private key.
+- Create a Service ID (client-id), generate a private key (teamId/keyId), then create a client secret JWT and set
+  `APPLE_CLIENT_SECRET`.
+- Add redirect URI: `http://localhost:8080/login/oauth2/code/apple`.
+- We can add automatic client secret generation on request — ask to enable it.
+
+### Provisioning behavior
+
+- On first OAuth login, a local `User` is created with `ROLE_USER`, `provider` set to `GOOGLE`/`APPLE`, and `providerId`
+  set to IdP subject.
+- On subsequent logins, the user is looked up by email and updated if needed.
+- After success, backend generates your app’s JWT and refresh token and redirects to
+  `app.oauth2.authorized-redirect-uri` with them as query params.
+
+## Security & Logging
+
+- JWT + RBAC
+    - Stateless JWT auth with roles (`ROLE_USER`, `ROLE_MEMBER`, `ROLE_MANAGER`, `ROLE_MODERATOR`, `ROLE_ADMIN`).
+    - Non-privileged users can only read their own member record; managers/moderators/admins can list and manage.
+
+- Correlation IDs and request context
+    - Every request gets a `traceId` (returned in `X-Trace-Id` header).
+    - MDC includes: `traceId`, `method`, `path`, `clientIp`, `userId` (if authenticated).
+    - Dev logs show: `[trace=… user=… ip=… method=… path=…]`.
+    - Prod logs are JSON and include the MDC as structured fields.
+
+- Stable page JSON
+    - Spring Data page responses serialize via DTO (no PageImpl warning).
 
 You can raise the threshold in `pom.xml` under the `jacoco-maven-plugin` check rule.
 

@@ -43,6 +43,25 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid, profile, email
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#          apple:
+#            client-id: ${APPLE_CLIENT_ID:}
+#            client-secret: ${APPLE_CLIENT_SECRET:}
+#            scope: name, email
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#        provider:
+#          apple:
+#            authorization-uri: https://appleid.apple.com/auth/authorize
+#            token-uri: https://appleid.apple.com/auth/token
+#            jwk-set-uri: https://appleid.apple.com/auth/keys
 
 # JWT Configuration
 app:
@@ -50,6 +69,8 @@ app:
     secret: mySecretKey12345678901234567890123456789012345678901234567890
     expiration: 86400000
     refresh-expiration: 604800000
+  oauth2:
+    authorized-redirect-uri: http://localhost:3000/oauth2/callback
   admin:
     enabled: true
     username: admin
