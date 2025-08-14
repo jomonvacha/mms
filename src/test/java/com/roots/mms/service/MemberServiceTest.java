@@ -18,7 +18,9 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration,org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientWebSecurityAutoConfiguration"
+})
 @ActiveProfiles("test")
 class MemberServiceTest {
 
@@ -79,4 +81,3 @@ class MemberServiceTest {
         assertThat(memberService.getMembersByStatus(MembershipStatus.ACTIVE, 0, 10).getTotalElements()).isEqualTo(1);
     }
 }
-

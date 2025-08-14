@@ -69,6 +69,8 @@ app:
     secret: mySecretKey12345678901234567890123456789012345678901234567890
     expiration: 86400000
     refresh-expiration: 604800000
+  auth:
+    auto-provision: true
   oauth2:
     authorized-redirect-uri: http://localhost:8080/oauth2/callback-dev
   admin:
