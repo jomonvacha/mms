@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
-import { login, API_BASE, LOGIN_PATH, REGISTER_PATH } from '../api/client.js';
+import { login, API_BASE, LOGIN_PATH, REGISTER_PATH, validateEndpoint } from '../api/client.js';
 
 export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const { refreshMe } = useAuth();
 
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [endpointOk, setEndpointOk] = useState(true);
 
   const from = location.state?.from?.pathname || '/';
 
@@ -20,7 +21,7 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ username, password });
       await refreshMe();
       navigate(from === '/signin' ? '/' : from, { replace: true });
     } catch (err) {
@@ -30,11 +31,23 @@ export default function SignIn() {
     }
   };
 
+  const oauthBase = API_BASE || import.meta.env.VITE_PROXY_TARGET || '';
   const handleOAuth = (provider) => {
-    window.location.href = `${API_BASE || ''}/oauth2/authorization/${provider}`;
+    window.location.href = `${oauthBase}/oauth2/authorization/${provider}`;
   };
 
   const localAuthEnabled = Boolean(LOGIN_PATH);
+
+  // Validate login endpoint if configured
+  useEffect(() => {
+    let cancelled = false;
+    if (!localAuthEnabled) return;
+    (async () => {
+      const ok = await validateEndpoint(LOGIN_PATH, 'POST');
+      if (!cancelled) setEndpointOk(ok);
+    })();
+    return () => { cancelled = true; };
+  }, [localAuthEnabled]);
 
   return (
     <div className="row justify-content-center">
@@ -47,17 +60,17 @@ export default function SignIn() {
                 {error}
               </div>
             )}
-            {localAuthEnabled ? (
+            {localAuthEnabled && endpointOk ? (
               <>
                 <form onSubmit={handleSubmit} noValidate>
                   <div className="mb-3">
-                    <label htmlFor="email" className="form-label">Email</label>
+                    <label htmlFor="username" className="form-label">Username</label>
                     <input
-                      id="email"
-                      type="email"
+                      id="username"
+                      type="text"
                       className="form-control"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       required
                     />
                   </div>
@@ -79,7 +92,11 @@ export default function SignIn() {
                 <div className="text-center text-muted my-3">or</div>
               </>
             ) : (
-              <div className="alert alert-info">Local sign-in is not available. Use a social provider below.</div>
+              <div className="alert alert-info">
+                {localAuthEnabled && !endpointOk
+                  ? 'Local sign-in endpoint is not available. Use a social provider below.'
+                  : 'Local sign-in is not available. Use a social provider below.'}
+              </div>
             )}
 
             <div className="d-grid gap-2">

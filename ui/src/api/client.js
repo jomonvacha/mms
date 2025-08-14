@@ -7,8 +7,12 @@ export const LOGIN_PATH = import.meta.env.VITE_LOGIN_PATH || '';
 export const REGISTER_PATH = import.meta.env.VITE_REGISTER_PATH || '';
 export const LOGOUT_PATH = import.meta.env.VITE_LOGOUT_PATH || '';
 
+function isAbsoluteUrl(u) {
+  return /^https?:\/\//i.test(u);
+}
+
 async function fetchJson(path, options = {}) {
-  const url = `${API_BASE}${path}`;
+  const url = isAbsoluteUrl(path) ? path : `${API_BASE}${path}`;
   const headers = options.headers ? { ...options.headers } : {};
   const opts = { ...options, credentials: 'include', headers };
 
@@ -35,7 +39,29 @@ async function fetchJson(path, options = {}) {
   return data;
 }
 
-export function login({ email, password }) {
+// Validate that an endpoint exists and likely supports the intended method.
+// Uses OPTIONS and checks the Allow header when present.
+export async function validateEndpoint(path, method = 'POST') {
+  try {
+    const url = isAbsoluteUrl(path) ? path : `${API_BASE}${path}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const res = await fetch(url, {
+      method: 'OPTIONS',
+      credentials: 'include',
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) return false;
+    const allow = res.headers.get('Allow');
+    if (!allow) return true; // many servers don't set it on OPTIONS
+    return allow.toUpperCase().includes(method.toUpperCase());
+  } catch (_) {
+    return false;
+  }
+}
+
+export function login({ username, password }) {
   if (!LOGIN_PATH) {
     const err = new Error('Local login is not configured');
     err.status = 501;
@@ -43,7 +69,7 @@ export function login({ email, password }) {
   }
   return fetchJson(LOGIN_PATH, {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   });
 }
 
@@ -72,6 +98,10 @@ export function me() {
   return fetchJson('/api/users/me');
 }
 
-export function listMembers() {
-  return fetchJson('/api/members');
+export function listMembers({ page = 0, size = 25 } = {}) {
+  const qs = `?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
+  return fetchJson(`/api/members${qs}`).then((data) => {
+    if (data && Array.isArray(data.content)) return data.content;
+    return Array.isArray(data) ? data : [];
+  });
 }

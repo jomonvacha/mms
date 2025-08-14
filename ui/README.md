@@ -19,6 +19,9 @@ cp .env.example .env
 
 - `VITE_API_BASE_URL`: Optional. If set, client requests go to this absolute base (e.g., `http://localhost:8080`). If empty, requests use relative paths like `/api` (recommended with dev proxy).
 - `VITE_PROXY_TARGET`: Dev-only proxy target for Vite. Defaults to `http://localhost:8080`.
+- `VITE_LOGIN_PATH`: Defaults to `/api/auth/signin` (matches `AuthController`).
+- `VITE_REGISTER_PATH`: Defaults to `/api/auth/signup` (matches `AuthController`).
+- `VITE_LOGOUT_PATH`: Optional; leave empty if your backend has no logout endpoint.
 
 Make sure your MMS backend is configured for CORS when accessed cross-origin and allows credentials.
 
@@ -66,10 +69,10 @@ docker compose up --build ui
 
 ## Auth Model
 - On app start, the UI calls `/api/users/me` with `credentials: include` to determine auth state.
-- Local login: configurable via `VITE_LOGIN_PATH` (if unset, local sign-in is hidden)
-- Local register: configurable via `VITE_REGISTER_PATH` (if unset, sign-up is hidden)
-- Logout: configurable via `VITE_LOGOUT_PATH` (if unset, Sign Out skips the server call and only clears client state)
-- Members (protected): `GET /api/members`
+- Local login: `POST /api/auth/signin` by default (username + password); override via `VITE_LOGIN_PATH`. If unset, local sign-in is hidden.
+- Local register: `POST /api/auth/signup` by default (username, email, firstName, lastName, password, optional phoneNumber); override via `VITE_REGISTER_PATH`. If unset, sign-up is hidden.
+- Logout: optional endpoint via `VITE_LOGOUT_PATH` (if unset, Sign Out skips server call and only clears client state).
+- Members (protected): `GET /api/members?page=0&size=25`, UI unwraps `content` from Page if present.
 
 ## Project Structure
 ```
