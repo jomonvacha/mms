@@ -5,9 +5,12 @@ export const AuthContext = createContext({
   loading: true,
   error: null,
   refreshMe: async () => {},
+  idleWarning: false,
+  idleCountdown: 0,
+  extendSession: () => {},
+  confirmLogout: () => {},
 });
 
 export function useAuth() {
   return useContext(AuthContext);
 }
-

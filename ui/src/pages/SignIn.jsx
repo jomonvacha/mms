@@ -13,6 +13,7 @@ export default function SignIn() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [endpointOk, setEndpointOk] = useState(true);
+  const timedOut = new URLSearchParams(location.search).get('autoLoggedOut') === '1';
 
   const from = location.state?.from?.pathname || '/';
 
@@ -55,6 +56,11 @@ export default function SignIn() {
         <div className="card shadow-sm">
           <div className="card-body p-4">
             <h1 className="h4 mb-3">Sign In</h1>
+            {timedOut && (
+              <div className="alert alert-warning" role="alert">
+                You were signed out due to inactivity.
+              </div>
+            )}
             {error && (
               <div className="alert alert-danger" role="alert">
                 {error}

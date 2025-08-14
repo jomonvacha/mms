@@ -78,13 +78,18 @@ export default function Members() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m, idx) => (
-                <tr key={m.id || idx}>
-                  <th scope="row">{idx + 1}</th>
-                  <td>{m.name || m.fullName || m.username || '—'}</td>
-                  <td>{m.email || '—'}</td>
-                </tr>
-              ))}
+              {members.map((m, idx) => {
+                const u = m.user || {};
+                const name = u.firstName || u.lastName ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim() : (u.username || '—');
+                const email = u.email || '—';
+                return (
+                  <tr key={m.id || idx}>
+                    <th scope="row">{idx + 1}</th>
+                    <td>{name || '—'}</td>
+                    <td>{email}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

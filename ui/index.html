@@ -11,6 +11,18 @@
       integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
       crossorigin="anonymous"
     />
+    <style>
+      /* Keep navbar greeting tidy and aligned */
+      .navbar .user-greeting {
+        max-width: 40vw;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      @media (min-width: 992px) {
+        .navbar .user-greeting { max-width: 280px; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
@@ -24,4 +36,3 @@
     <script type="module" src="/src/main.jsx"></script>
   </body>
   </html>
-

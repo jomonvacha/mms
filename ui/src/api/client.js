@@ -6,6 +6,7 @@ export const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 export const LOGIN_PATH = import.meta.env.VITE_LOGIN_PATH || '';
 export const REGISTER_PATH = import.meta.env.VITE_REGISTER_PATH || '';
 export const LOGOUT_PATH = import.meta.env.VITE_LOGOUT_PATH || '';
+export const REFRESH_PATH = import.meta.env.VITE_REFRESH_PATH || '/api/auth/refresh';
 
 function isAbsoluteUrl(u) {
   return /^https?:\/\//i.test(u);
@@ -41,6 +42,8 @@ export function clearAuthTokens() {
   try { localStorage.removeItem('mms_auth'); } catch (_) {}
 }
 
+let refreshInFlight = null;
+
 async function fetchJson(path, options = {}) {
   const url = isAbsoluteUrl(path) ? path : `${API_BASE}${path}`;
   const headers = options.headers ? { ...options.headers } : {};
@@ -50,7 +53,7 @@ async function fetchJson(path, options = {}) {
     headers['Content-Type'] = 'application/json';
   }
 
-  if (accessToken && !headers['Authorization']) {
+  if (!options.noAuth && accessToken && !headers['Authorization']) {
     headers['Authorization'] = `${tokenType} ${accessToken}`;
   }
 
@@ -68,6 +71,16 @@ async function fetchJson(path, options = {}) {
     const err = new Error(message);
     err.status = res.status;
     err.data = data;
+    // Attempt token refresh once on 401
+    const canRefresh = err.status === 401 && refreshToken && !options._retry;
+    if (canRefresh) {
+      try {
+        await refreshTokens();
+        return fetchJson(path, { ...options, _retry: true });
+      } catch (_) {
+        clearAuthTokens();
+      }
+    }
     throw err;
   }
   return data;
@@ -151,4 +164,41 @@ export function listMembers({ page = 0, size = 25 } = {}) {
 
 export function getMemberByUserId(userId) {
   return fetchJson(`/api/members/user/${encodeURIComponent(userId)}`);
+}
+
+export async function refreshTokens() {
+  if (refreshInFlight) return refreshInFlight;
+  if (!refreshToken) throw new Error('No refresh token');
+
+  const refreshUrl = isAbsoluteUrl(REFRESH_PATH) ? REFRESH_PATH : `${API_BASE}${REFRESH_PATH}`;
+  const urlWithParam = `${refreshUrl}?refreshToken=${encodeURIComponent(refreshToken)}`;
+
+  refreshInFlight = fetch(urlWithParam, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+  })
+    .then(async (res) => {
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch (_) { data = text || null; }
+      if (!res.ok) {
+        const e = new Error((data && (data.message || data.error || data.detail)) || res.statusText);
+        e.status = res.status;
+        throw e;
+      }
+      if (!data || !(data.accessToken || data.token)) {
+        throw new Error('Invalid refresh response');
+      }
+      setAuthTokens({
+        accessToken: data.accessToken || data.token,
+        refreshToken: data.refreshToken,
+        tokenType: data.tokenType || 'Bearer',
+      });
+      return data;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+  return refreshInFlight;
 }

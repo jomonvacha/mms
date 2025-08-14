@@ -22,6 +22,9 @@ cp .env.example .env
 - `VITE_LOGIN_PATH`: Defaults to `/api/auth/signin` (matches `AuthController`).
 - `VITE_REGISTER_PATH`: Defaults to `/api/auth/signup` (matches `AuthController`).
 - `VITE_LOGOUT_PATH`: Optional; leave empty if your backend has no logout endpoint.
+- `VITE_REFRESH_PATH`: Defaults to `/api/auth/refresh`.
+- `VITE_AUTO_LOGOUT_MINUTES`: Optional idle timeout in minutes (e.g., `30`). When set, the UI signs the user out after inactivity.
+- `VITE_IDLE_WARNING_SECONDS`: Seconds to show the confirmation dialog before auto-logout (default 60).
 
 Make sure your MMS backend is configured for CORS when accessed cross-origin and allows credentials.
 
@@ -73,6 +76,9 @@ docker compose up --build ui
 - Local register: `POST /api/auth/signup` by default (username, email, firstName, lastName, password, optional phoneNumber); override via `VITE_REGISTER_PATH`. If unset, sign-up is hidden.
 - Logout: optional endpoint via `VITE_LOGOUT_PATH` (if unset, Sign Out skips server call and only clears client state).
 - Members (protected): `GET /api/members?page=0&size=25`, UI unwraps `content` from Page if present.
+- Token refresh: Automatically calls `POST /api/auth/refresh?refreshToken=...` (configurable via `VITE_REFRESH_PATH`) on 401s, updates tokens, and retries once.
+- Auto logout: When `VITE_AUTO_LOGOUT_MINUTES` is set (> 0), the UI logs the user out after that period of inactivity and redirects to `/signin?autoLoggedOut=1`.
+  - A confirmation dialog appears for `VITE_IDLE_WARNING_SECONDS` allowing users to Stay Signed In or Sign Out now.
 
 ## Project Structure
 ```
