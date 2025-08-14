@@ -5,6 +5,8 @@ import com.roots.mms.security.jwt.AuthTokenFilter;
 import com.roots.mms.security.jwt.JwtUtils;
 import com.roots.mms.security.oauth.CustomOAuth2UserService;
 import com.roots.mms.security.oauth.OAuth2AuthenticationSuccessHandler;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import com.roots.mms.security.services.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,8 +32,9 @@ public class WebSecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final JwtUtils jwtUtils;
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
+    private final ObjectProvider<CustomOAuth2UserService> customOAuth2UserServiceProvider;
+    private final ObjectProvider<OAuth2AuthenticationSuccessHandler> oAuth2AuthenticationSuccessHandlerProvider;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -64,11 +67,20 @@ public class WebSecurityConfig {
                                 .anyRequest().authenticated()
                 );
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth -> oauth
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler(oAuth2AuthenticationSuccessHandler)
+        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        // Conditionally enable oauth2Login only if client registrations are present (tests can skip env vars)
+        ClientRegistrationRepository repo = clientRegistrationRepositoryProvider.getIfAvailable();
+        if (repo instanceof Iterable<?> iterable && iterable.iterator().hasNext()) {
+            CustomOAuth2UserService oAuth2UserService = customOAuth2UserServiceProvider.getIfAvailable();
+            OAuth2AuthenticationSuccessHandler successHandler = oAuth2AuthenticationSuccessHandlerProvider.getIfAvailable();
+            if (oAuth2UserService != null && successHandler != null) {
+                http.oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo.userService(oAuth2UserService))
+                        .successHandler(successHandler)
                 );
+            }
+        }
 
         return http.build();
     }
