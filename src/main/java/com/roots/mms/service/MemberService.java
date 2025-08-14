@@ -13,8 +13,8 @@ import com.roots.mms.exception.DuplicateResourceException;
 import com.roots.mms.exception.ResourceNotFoundException;
 import com.roots.mms.repository.MemberRepository;
 import com.roots.mms.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,13 +30,11 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class MemberService {
 
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private UserRepository userRepository;
+    private final MemberRepository memberRepository;
+    private final UserRepository userRepository;
 
     public MemberResponse createMember(CreateMemberRequest request) {
         log.info("Creating member for user ID: {}", request.getUserId());

@@ -12,7 +12,7 @@ import com.roots.mms.exception.BusinessRuleException;
 import com.roots.mms.exception.ResourceNotFoundException;
 import com.roots.mms.repository.RoleRepository;
 import com.roots.mms.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,13 +27,11 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UserService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private RoleRepository roleRepository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
@@ -110,4 +108,3 @@ public class UserService {
         return response;
     }
 }
-

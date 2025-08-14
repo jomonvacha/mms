@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Resource not found");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error("Not Found")
                 .errorCode(ex.getErrorCode())
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Duplicate resource");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
                 .error("Conflict")
                 .errorCode(ex.getErrorCode())
@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Business rule violation");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode(ex.getErrorCode())
@@ -97,7 +97,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Validation error");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode(ex.getErrorCode())
@@ -122,7 +122,7 @@ public class GlobalExceptionHandler {
                 .map(this::buildValidationError)
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("VALIDATION_FAILED")
@@ -148,7 +148,7 @@ public class GlobalExceptionHandler {
                 .map(this::buildValidationError)
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("BINDING_FAILED")
@@ -173,7 +173,7 @@ public class GlobalExceptionHandler {
                 .map(this::buildValidationError)
                 .collect(Collectors.toList());
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("CONSTRAINT_VIOLATION")
@@ -193,7 +193,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Authentication failed");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
                 .errorCode("AUTHENTICATION_FAILED")
@@ -211,7 +211,7 @@ public class GlobalExceptionHandler {
             com.roots.mms.exception.AuthenticationException ex, HttpServletRequest request) {
         String traceId = generateTraceId();
         logError(ex, traceId, "Authentication failed");
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
                 .errorCode(ex.getErrorCode())
@@ -228,7 +228,7 @@ public class GlobalExceptionHandler {
             UsernameNotFoundException ex, HttpServletRequest request) {
         String traceId = generateTraceId();
         logError(ex, traceId, "User not found during authentication");
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
                 .errorCode("USER_NOT_FOUND")
@@ -247,7 +247,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Bad credentials");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .error("Unauthorized")
                 .errorCode("INVALID_CREDENTIALS")
@@ -266,7 +266,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Access denied");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .error("Forbidden")
                 .errorCode("ACCESS_DENIED")
@@ -284,7 +284,7 @@ public class GlobalExceptionHandler {
             AuthorizationException ex, HttpServletRequest request) {
         String traceId = generateTraceId();
         logError(ex, traceId, "Authorization failed");
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
                 .error("Forbidden")
                 .errorCode(ex.getErrorCode())
@@ -309,7 +309,7 @@ public class GlobalExceptionHandler {
         metadata.put("supported_methods", supportedMethods);
         metadata.put("requested_method", ex.getMethod());
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.METHOD_NOT_ALLOWED.value())
                 .error("Method Not Allowed")
                 .errorCode("METHOD_NOT_SUPPORTED")
@@ -330,7 +330,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Media type not supported");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.UNSUPPORTED_MEDIA_TYPE.value())
                 .error("Unsupported Media Type")
                 .errorCode("MEDIA_TYPE_NOT_SUPPORTED")
@@ -350,7 +350,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Malformed JSON request");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("MALFORMED_JSON")
@@ -370,7 +370,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Missing request parameter");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("MISSING_PARAMETER")
@@ -392,7 +392,7 @@ public class GlobalExceptionHandler {
         String expectedType = ex.getRequiredType() != null ?
                 ex.getRequiredType().getSimpleName() : "Unknown";
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Bad Request")
                 .errorCode("TYPE_MISMATCH")
@@ -412,7 +412,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "No handler found");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
                 .error("Not Found")
                 .errorCode("ENDPOINT_NOT_FOUND")
@@ -432,7 +432,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Data integrity violation");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
                 .error("Conflict")
                 .errorCode("DATA_INTEGRITY_VIOLATION")
@@ -452,7 +452,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Database error");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")
                 .errorCode("DATABASE_ERROR")
@@ -472,7 +472,7 @@ public class GlobalExceptionHandler {
         String traceId = generateTraceId();
         logError(ex, traceId, "Unexpected error");
 
-        ErrorResponse errorResponse = new ErrorResponse.Builder()
+        ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error("Internal Server Error")
                 .errorCode("INTERNAL_ERROR")
