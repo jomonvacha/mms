@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useTheme } from '../hooks/useTheme.js';
-import { REGISTER_PATH } from '../api/client.js';
+import { REGISTER_PATH, logout as apiLogout } from '../api/client.js';
 import AccountModal from './AccountModal.jsx';
 
 export default function Navbar() {
@@ -80,9 +80,16 @@ export default function Navbar() {
                     <li><button className="dropdown-item" onClick={() => { setInitialTab('preferences'); setModalOpen(true); }}>Preferences</button></li>
                     <li><hr className="dropdown-divider" /></li>
                     <li>
-                      <NavLink className={({ isActive }) => 'dropdown-item' + (isActive ? ' active' : '')} to="/signout">
+                      <button
+                        className="dropdown-item"
+                        onClick={async () => {
+                          try { await apiLogout(); } catch (_) {}
+                          // Redirect to sign-in route used in this app
+                          window.location.assign('/signin');
+                        }}
+                      >
                         Logout
-                      </NavLink>
+                      </button>
                     </li>
                   </ul>
                 </li>
