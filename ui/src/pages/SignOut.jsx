@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../api/client.js';
+import { logout, clearAuthTokens } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function SignOut() {
@@ -16,6 +16,8 @@ export default function SignOut() {
         // If logout endpoint is not configured, continue to refresh state
       } finally {
         if (!cancelled) {
+          // Ensure tokens are cleared
+          try { clearAuthTokens(); } catch (_) {}
           await refreshMe();
           navigate('/signin', { replace: true });
         }

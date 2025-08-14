@@ -11,6 +11,36 @@ function isAbsoluteUrl(u) {
   return /^https?:\/\//i.test(u);
 }
 
+// Simple token store (memory + localStorage)
+let accessToken = null;
+let refreshToken = null;
+let tokenType = 'Bearer';
+
+try {
+  const saved = JSON.parse(localStorage.getItem('mms_auth') || 'null');
+  if (saved) {
+    accessToken = saved.accessToken || null;
+    refreshToken = saved.refreshToken || null;
+    tokenType = saved.tokenType || 'Bearer';
+  }
+} catch (_) {}
+
+export function setAuthTokens(tokens) {
+  accessToken = tokens?.accessToken || tokens?.token || null;
+  refreshToken = tokens?.refreshToken || null;
+  tokenType = tokens?.tokenType || 'Bearer';
+  try {
+    localStorage.setItem('mms_auth', JSON.stringify({ accessToken, refreshToken, tokenType }));
+  } catch (_) {}
+}
+
+export function clearAuthTokens() {
+  accessToken = null;
+  refreshToken = null;
+  tokenType = 'Bearer';
+  try { localStorage.removeItem('mms_auth'); } catch (_) {}
+}
+
 async function fetchJson(path, options = {}) {
   const url = isAbsoluteUrl(path) ? path : `${API_BASE}${path}`;
   const headers = options.headers ? { ...options.headers } : {};
@@ -18,6 +48,10 @@ async function fetchJson(path, options = {}) {
 
   if (opts.body && !headers['Content-Type'] && !(opts.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
+  }
+
+  if (accessToken && !headers['Authorization']) {
+    headers['Authorization'] = `${tokenType} ${accessToken}`;
   }
 
   const res = await fetch(url, opts);
@@ -70,6 +104,15 @@ export function login({ username, password }) {
   return fetchJson(LOGIN_PATH, {
     method: 'POST',
     body: JSON.stringify({ username, password }),
+  }).then((res) => {
+    if (res && (res.accessToken || res.token)) {
+      setAuthTokens({
+        accessToken: res.accessToken || res.token,
+        refreshToken: res.refreshToken,
+        tokenType: res.tokenType || 'Bearer',
+      });
+    }
+    return res;
   });
 }
 
@@ -87,11 +130,11 @@ export function register(data) {
 
 export function logout() {
   if (!LOGOUT_PATH) {
-    const err = new Error('Logout endpoint is not configured');
-    err.status = 501;
-    throw err;
+    // No server endpoint; clear tokens client-side
+    clearAuthTokens();
+    return Promise.resolve({ ok: true });
   }
-  return fetchJson(LOGOUT_PATH, { method: 'POST' });
+  return fetchJson(LOGOUT_PATH, { method: 'POST' }).finally(() => clearAuthTokens());
 }
 
 export function me() {
@@ -104,4 +147,8 @@ export function listMembers({ page = 0, size = 25 } = {}) {
     if (data && Array.isArray(data.content)) return data.content;
     return Array.isArray(data) ? data : [];
   });
+}
+
+export function getMemberByUserId(userId) {
+  return fetchJson(`/api/members/user/${encodeURIComponent(userId)}`);
 }

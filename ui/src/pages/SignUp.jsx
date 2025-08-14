@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { register, REGISTER_PATH, validateEndpoint } from '../api/client.js';
+import { register, REGISTER_PATH, validateEndpoint, login } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function SignUp() {
@@ -28,6 +28,8 @@ export default function SignUp() {
     setLoading(true);
     try {
       await register({ username, email, password, firstName, lastName, phoneNumber });
+      // Auto sign-in after successful registration
+      await login({ username, password });
       await refreshMe();
       navigate('/', { replace: true });
     } catch (err) {
