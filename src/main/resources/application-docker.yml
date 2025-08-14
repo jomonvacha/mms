@@ -1,7 +1,5 @@
 # Docker Environment Configuration
-# This configuration is used when running   endpoint:
-health:
-  show-details: when-authorizedh Docker Compose
+# This configuration is used when running with Docker Compose
 
 spring:
   datasource:
@@ -23,6 +21,7 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
