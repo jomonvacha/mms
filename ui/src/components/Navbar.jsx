@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useTheme } from '../hooks/useTheme.js';
 import { REGISTER_PATH } from '../api/client.js';
+import AccountModal from './AccountModal.jsx';
 
 export default function Navbar() {
   const { user, loading } = useAuth();
@@ -11,6 +12,8 @@ export default function Navbar() {
   const firstName = (rawName || '').split(/[\s._-]/)[0] || 'there';
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [initialTab, setInitialTab] = React.useState('profile');
 
   const navClass = theme === 'dark' ? 'navbar navbar-expand-lg navbar-dark bg-dark sticky-top' : 'navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top';
 
@@ -52,18 +55,36 @@ export default function Navbar() {
               </li>
             ) : user ? (
               <>
-                <li className="nav-item">
-                  <NavLink className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')} to="/profile">
-                    Profile
-                  </NavLink>
-                </li>
-                <li className="nav-item d-flex align-items-center">
-                  <span className="navbar-text user-greeting">{greeting}, {firstName}</span>
-                </li>
-                <li className="nav-item">
-                  <NavLink className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')} to="/signout">
-                    Sign Out
-                  </NavLink>
+                <li className="nav-item dropdown">
+                  <a
+                    className="nav-link dropdown-toggle"
+                    href="#"
+                    id="userMenuDropdown"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                  >
+                    {firstName}
+                  </a>
+                  <ul className="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuDropdown" style={{ minWidth: '16rem' }}>
+                    <li>
+                      <span className="dropdown-item-text">
+                        <strong>{user.firstName || user.username || user.email}</strong>
+                        <br />
+                        <small className="text-muted">{user.email}</small>
+                      </span>
+                    </li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li><button className="dropdown-item" onClick={() => { setInitialTab('profile'); setModalOpen(true); }}>Profile</button></li>
+                    <li><button className="dropdown-item" onClick={() => { setInitialTab('account'); setModalOpen(true); }}>Account</button></li>
+                    <li><button className="dropdown-item" onClick={() => { setInitialTab('preferences'); setModalOpen(true); }}>Preferences</button></li>
+                    <li><hr className="dropdown-divider" /></li>
+                    <li>
+                      <NavLink className={({ isActive }) => 'dropdown-item' + (isActive ? ' active' : '')} to="/signout">
+                        Logout
+                      </NavLink>
+                    </li>
+                  </ul>
                 </li>
               </>
             ) : (
@@ -90,6 +111,7 @@ export default function Navbar() {
           </ul>
         </div>
       </div>
+      <AccountModal isOpen={modalOpen} initialTab={initialTab} onClose={() => setModalOpen(false)} />
     </nav>
   );
 }

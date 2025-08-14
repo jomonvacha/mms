@@ -180,6 +180,13 @@ export function changePassword(payload) {
   });
 }
 
+export function updatePreferences(payload) {
+  return fetchJson('/api/user/preferences', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function refreshTokens() {
   if (refreshInFlight) return refreshInFlight;
   if (!refreshToken) throw new Error('No refresh token');
