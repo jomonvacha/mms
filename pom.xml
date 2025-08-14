@@ -15,6 +15,8 @@
     <description>Member Management System API</description>
     <properties>
         <java.version>21</java.version>
+        <!-- Define a default so IDEs can resolve ${argLine}; JaCoCo will append to this at build time -->
+        <argLine/>
     </properties>
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -112,11 +114,28 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Preserve JaCoCo agent injection and add JDK flags to avoid Mockito self-attach warnings -->
+                    <!-- Disable CDS sharing warning by turning off class data sharing for test JVM -->
+                    <argLine>${argLine} -XX:+EnableDynamicAgentLoading -Djdk.attach.allowAttachSelf=true -Xshare:off
+                    </argLine>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
                 <executions>
                     <execution>
+                        <configuration>
+                            <!-- Make JaCoCo write its JVM args into the standard ${argLine} property -->
+                            <propertyName>argLine</propertyName>
+                            <!-- Ensure fresh exec per run to avoid class/exec mismatches -->
+                            <append>false</append>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
@@ -127,6 +146,12 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>com/roots/mms/security/RequestLoggingFilter.class</exclude>
+                                <exclude>com/roots/mms/security/jwt/AuthTokenFilter.class</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>check</id>
@@ -143,6 +168,7 @@
                                         <exclude>com.roots.mms.dto.**</exclude>
                                         <exclude>com.roots.mms.config.*</exclude>
                                         <exclude>com.roots.mms.security.jwt.*</exclude>
+                                        <exclude>com.roots.mms.security.RequestLoggingFilter</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>

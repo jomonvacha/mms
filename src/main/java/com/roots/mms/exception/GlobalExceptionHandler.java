@@ -511,8 +511,10 @@ public class GlobalExceptionHandler {
     private void logError(Exception ex, String traceId, String context) {
         MDC.put("traceId", traceId);
         try {
-            if (ex instanceof MemberManagementException) {
-                log.warn("Business exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId);
+            boolean isExpected = ex instanceof MemberManagementException || ex instanceof org.springframework.security.core.AuthenticationException || ex instanceof AccessDeniedException;
+
+            if (isExpected) {
+                log.warn("Handled exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId);
             } else {
                 log.error("Unexpected exception in {}: {} (traceId: {})", context, ex.getMessage(), traceId, ex);
             }

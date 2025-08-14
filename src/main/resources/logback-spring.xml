@@ -11,13 +11,13 @@
         <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>logs/mms-application.log</file>
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId:-}] %logger{36} - %msg%n</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [trace=%X{traceId:-} user=%X{userId:-}
+                    ip=%X{clientIp:-} method=%X{method:-} path=%X{path:-}] %logger{36} - %msg%n
+                </pattern>
             </encoder>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                 <fileNamePattern>logs/mms-application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                    <maxFileSize>100MB</maxFileSize>
-                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxFileSize>100MB</maxFileSize>
                 <maxHistory>30</maxHistory>
                 <totalSizeCap>3GB</totalSizeCap>
             </rollingPolicy>
@@ -32,13 +32,13 @@
                 <onMismatch>DENY</onMismatch>
             </filter>
             <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [trace=%X{traceId:-} method=%X{method:-} path=%X{path:-}] %logger{36} - %msg%n</pattern>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [trace=%X{traceId:-} method=%X{method:-}
+                    path=%X{path:-}] %logger{36} - %msg%n
+                </pattern>
             </encoder>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                 <fileNamePattern>logs/mms-error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                    <maxFileSize>100MB</maxFileSize>
-                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxFileSize>100MB</maxFileSize>
                 <maxHistory>90</maxHistory>
                 <totalSizeCap>5GB</totalSizeCap>
             </rollingPolicy>
@@ -100,11 +100,9 @@
                     <stackTrace/>
                 </providers>
             </encoder>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                 <fileNamePattern>logs/mms-application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
-                <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                    <maxFileSize>500MB</maxFileSize>
-                </timeBasedFileNamingAndTriggeringPolicy>
+                <maxFileSize>500MB</maxFileSize>
                 <maxHistory>60</maxHistory>
                 <totalSizeCap>10GB</totalSizeCap>
             </rollingPolicy>
