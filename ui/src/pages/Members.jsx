@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { listMembers } from '../api/client.js';
+import { listMembers, getMemberByUserId } from '../api/client.js';
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function Members() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [members, setMembers] = useState([]);
+  const [myMember, setMyMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,14 +15,36 @@ export default function Members() {
     let cancelled = false;
     async function load() {
       try {
-        const data = await listMembers();
-        if (!cancelled) setMembers(data || []);
+        // Determine if user is privileged to list all members
+        const roles = user?.roles || [];
+        const isPrivileged = roles.includes('ROLE_ADMIN') || roles.includes('ROLE_MODERATOR') || roles.includes('ROLE_MANAGER');
+        if (isPrivileged) {
+          const data = await listMembers();
+          if (!cancelled) setMembers(data || []);
+        } else if (user?.id) {
+          const mine = await getMemberByUserId(user.id);
+          if (!cancelled) setMyMember(mine || null);
+        } else {
+          // No user loaded
+          if (!cancelled) setError('User not loaded');
+        }
       } catch (err) {
         if (err?.status === 401) {
           navigate('/signin', { replace: true, state: { from: { pathname: '/members' } } });
           return;
         }
-        if (!cancelled) setError(err?.message || 'Failed to load members');
+        if (err?.status === 403 && user?.id) {
+          try {
+            const mine = await getMemberByUserId(user.id);
+            if (!cancelled) setMyMember(mine || null);
+          } catch (e2) {
+            if (!cancelled) setError(e2?.message || 'Access denied');
+          }
+        } else if (err?.status === 404) {
+          if (!cancelled) setMyMember(null);
+        } else if (!cancelled) {
+          setError(err?.message || 'Failed to load members');
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -44,7 +67,7 @@ export default function Members() {
         <div className="alert alert-danger" role="alert">{error}</div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && members && members.length > 0 && (
         <div className="table-responsive">
           <table className="table table-striped align-middle">
             <thead>
@@ -55,11 +78,6 @@ export default function Members() {
               </tr>
             </thead>
             <tbody>
-              {members.length === 0 && (
-                <tr>
-                  <td colSpan={3} className="text-center text-muted">No members found</td>
-                </tr>
-              )}
               {members.map((m, idx) => (
                 <tr key={m.id || idx}>
                   <th scope="row">{idx + 1}</th>
@@ -71,7 +89,44 @@ export default function Members() {
           </table>
         </div>
       )}
+
+      {!loading && !error && (!members || members.length === 0) && myMember && (
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title mb-3">Your Membership</h5>
+            <div className="row g-3">
+              <div className="col-sm-6">
+                <div className="text-muted small">Membership ID</div>
+                <div>{myMember.membershipId || '—'}</div>
+              </div>
+              <div className="col-sm-6">
+                <div className="text-muted small">Status</div>
+                <div>{myMember.status || '—'}</div>
+              </div>
+              <div className="col-sm-6">
+                <div className="text-muted small">Type</div>
+                <div>{myMember.membershipType || '—'}</div>
+              </div>
+              <div className="col-sm-6">
+                <div className="text-muted small">Active</div>
+                <div>{String(myMember.isActive ?? '')}</div>
+              </div>
+              <div className="col-sm-6">
+                <div className="text-muted small">Start</div>
+                <div>{myMember.membershipStartDate || '—'}</div>
+              </div>
+              <div className="col-sm-6">
+                <div className="text-muted small">End</div>
+                <div>{myMember.membershipEndDate || '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && !error && (!members || members.length === 0) && !myMember && (
+        <div className="alert alert-info">No members to display. You may not have permission to view the full list, and no personal membership was found.</div>
+      )}
     </div>
   );
 }
-
