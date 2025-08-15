@@ -68,6 +68,15 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const [avatarUrl, setAvatarUrl] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState(null);
+  const initials = React.useMemo(() => {
+    const fn = (user?.firstName || '').trim();
+    const ln = (user?.lastName || '').trim();
+    const a = fn ? fn[0] : '';
+    const b = ln ? ln[0] : '';
+    if (a || b) return (a + b).toUpperCase();
+    const un = (user?.username || user?.email || '').trim();
+    return un ? un[0].toUpperCase() : '?';
+  }, [user]);
   useEffect(() => {
     let revokeUrl;
     if (user && isOpen) {
@@ -209,7 +218,13 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
               }
             }}
           >
-            <img src={avatarUrl || 'https://via.placeholder.com/96?text=Avatar'} onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/96?text=Avatar'; }} alt="avatar" className="rounded-circle mb-2" style={{ width: 96, height: 96, objectFit: 'cover' }} />
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="rounded-circle mb-2" style={{ width: 96, height: 96, objectFit: 'cover' }} />
+            ) : (
+              <div className="mb-2 d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white" style={{ width: 96, height: 96, fontWeight: 600, fontSize: 24 }}>
+                {initials}
+              </div>
+            )}
             <div className="text-muted small">Drag & drop an image here to upload (PNG/JPG/GIF, max 5MB)</div>
             {uploadingAvatar && <div className="text-info small mt-2">Uploading…</div>}
             {avatarError && <div className="text-danger small mt-2">{avatarError}</div>}
