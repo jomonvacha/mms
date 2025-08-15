@@ -110,7 +110,7 @@ export default function Navbar() {
           <ul className="navbar-nav ms-auto align-items-center gap-2">
             {loading ? (
               <li className="nav-item">
-                <span className="navbar-text text-muted">Loading…</span>
+                <span className="navbar-text text-body-secondary">Loading…</span>
               </li>
             ) : user ? (
               <>

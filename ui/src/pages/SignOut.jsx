@@ -35,6 +35,6 @@ export default function SignOut() {
   }, [navigate, refreshMe]);
 
   return (
-    <div className="text-center text-muted py-5">Signing you out…</div>
+    <div className="text-center text-body-secondary py-5">Signing you out…</div>
   );
 }

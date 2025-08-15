@@ -7,10 +7,10 @@ export default function Home() {
 
   return (
     <div className="py-4">
-      <div className="p-5 mb-4 bg-light rounded-3 border">
+      <div className="p-5 mb-4 bg-body-tertiary rounded-3 border">
         <div className="container-fluid py-5">
           <h1 className="display-6 fw-semibold">Welcome to MMS</h1>
-          <p className="col-md-8 fs-5 text-muted">
+          <p className="col-md-8 fs-5 text-body-secondary">
             Manage members and access protected resources. Sign in to continue,
             or explore the members area if you already have access.
           </p>
@@ -38,7 +38,7 @@ export default function Home() {
           <div className="card h-100">
             <div className="card-body">
               <h5 className="card-title">Secure Authentication</h5>
-              <p className="card-text text-muted">
+              <p className="card-text text-body-secondary">
                 Sign in with email and password or continue with Google or Apple.
               </p>
             </div>
@@ -48,7 +48,7 @@ export default function Home() {
           <div className="card h-100">
             <div className="card-body">
               <h5 className="card-title">Members Area</h5>
-              <p className="card-text text-muted">
+              <p className="card-text text-body-secondary">
                 Access member data and resources after authentication.
               </p>
             </div>
@@ -58,7 +58,7 @@ export default function Home() {
           <div className="card h-100">
             <div className="card-body">
               <h5 className="card-title">Responsive UI</h5>
-              <p className="card-text text-muted">
+              <p className="card-text text-body-secondary">
                 Built with Bootstrap 5 and React for an enterprise look and feel.
               </p>
             </div>
@@ -68,4 +68,3 @@ export default function Home() {
     </div>
   );
 }
-

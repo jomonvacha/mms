@@ -67,11 +67,11 @@ export default function Members() {
     <div>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h1 className="h4 mb-0">Members</h1>
-        {user && <span className="text-muted small">Signed in as {user.name || user.email}</span>}
+        {user && <span className="text-body-secondary small">Signed in as {user.name || user.email}</span>}
       </div>
 
       {loading && (
-        <div className="text-center py-5 text-muted">Loading members…</div>
+        <div className="text-center py-5 text-body-secondary">Loading members…</div>
       )}
       {error && (
         <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert" aria-live="polite">
@@ -114,27 +114,27 @@ export default function Members() {
             <h5 className="card-title mb-3">Your Membership</h5>
             <div className="row g-3">
               <div className="col-sm-6">
-                <div className="text-muted small">Membership ID</div>
+                <div className="text-body-secondary small">Membership ID</div>
                 <div>{myMember.membershipId || '—'}</div>
               </div>
               <div className="col-sm-6">
-                <div className="text-muted small">Status</div>
+                <div className="text-body-secondary small">Status</div>
                 <div>{myMember.status || '—'}</div>
               </div>
               <div className="col-sm-6">
-                <div className="text-muted small">Type</div>
+                <div className="text-body-secondary small">Type</div>
                 <div>{myMember.membershipType || '—'}</div>
               </div>
               <div className="col-sm-6">
-                <div className="text-muted small">Active</div>
+                <div className="text-body-secondary small">Active</div>
                 <div>{String(myMember.isActive ?? '')}</div>
               </div>
               <div className="col-sm-6">
-                <div className="text-muted small">Start</div>
+                <div className="text-body-secondary small">Start</div>
                 <div>{myMember.membershipStartDate || '—'}</div>
               </div>
               <div className="col-sm-6">
-                <div className="text-muted small">End</div>
+                <div className="text-body-secondary small">End</div>
                 <div>{myMember.membershipEndDate || '—'}</div>
               </div>
             </div>

@@ -16,8 +16,8 @@ export default function App() {
         </div>
       </main>
       <SessionTimeoutModal/>
-      <footer className="mt-auto py-3 bg-light border-top">
-        <div className="container text-center text-muted small">
+      <footer className="mt-auto py-3 bg-body-tertiary border-top">
+        <div className="container text-center text-body-secondary small">
           MMS UI
         </div>
       </footer>

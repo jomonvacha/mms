@@ -108,7 +108,7 @@ export default function SignIn() {
                     {loading ? 'Signing in…' : 'Sign In'}
                   </button>
                 </form>
-                <div className="text-center text-muted my-3">or</div>
+                <div className="text-center text-body-secondary my-3">or</div>
               </>
             ) : (
               <div className="alert alert-info">
@@ -137,7 +137,7 @@ export default function SignIn() {
 
             {Boolean(REGISTER_PATH) && (
               <div className="text-center mt-3">
-                <span className="text-muted">No account?</span>{' '}
+                <span className="text-body-secondary">No account?</span>{' '}
                 <Link to="/signup">Sign up</Link>
               </div>
             )}

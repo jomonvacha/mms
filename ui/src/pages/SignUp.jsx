@@ -176,7 +176,7 @@ export default function SignUp() {
                   </button>
                 </form>
                 <div className="text-center mt-3">
-                  <span className="text-muted">Already have an account?</span>{' '}
+                  <span className="text-body-secondary">Already have an account?</span>{' '}
                   <Link to="/signin">Sign in</Link>
                 </div>
               </>

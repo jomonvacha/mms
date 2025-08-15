@@ -7,7 +7,7 @@ export default function ProtectedRoute({children}) {
   const location = useLocation();
 
   if (loading) {
-    return <div className="text-center text-muted py-5">Checking access…</div>;
+    return <div className="text-center text-body-secondary py-5">Checking access…</div>;
   }
 
   if (!user) {
@@ -16,4 +16,3 @@ export default function ProtectedRoute({children}) {
 
   return children;
 }
-
