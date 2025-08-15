@@ -387,29 +387,50 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
             </div>
           </div>
         </div>
-        <fieldset className="mb-3">
-          <legend className="form-label">Navbar Display</legend>
-          {['avatar','name'].map((opt) => (
-            <div className="form-check" key={opt}>
-              <input className="form-check-input" type="radio" name="navbarDisplay" id={`nav-${opt}`}
-                     checked={prefs.navbarDisplay === opt} onChange={() => setPrefs({...prefs, navbarDisplay: opt})}/>
-              <label className="form-check-label" htmlFor={`nav-${opt}`}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</label>
-            </div>
-          ))}
-        </fieldset>
         <div className="mb-3">
-          <label className="form-label">Language</label>
-          <select className="form-select" value={prefs.language}
-                  onChange={(e) => setPrefs({...prefs, language: e.target.value})}>
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-          </select>
+          <div className="border rounded p-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="fw-semibold">Display Preference</span>
+              <span className="text-body-secondary small">Choose what appears on the navbar</span>
+            </div>
+            <div className="btn-group" role="group" aria-label="Display preference">
+              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
+                     checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
+              <label className="btn btn-outline-secondary" htmlFor="nav-avatar">Avatar</label>
+
+              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
+                     checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
+              <label className="btn btn-outline-secondary" htmlFor="nav-name">Name</label>
+            </div>
+          </div>
         </div>
-        <div className="form-check form-switch mb-3">
-          <input className="form-check-input" type="checkbox" id="emailNotifications" checked={prefs.emailNotifications}
-                 onChange={(e) => setPrefs({...prefs, emailNotifications: e.target.checked})}/>
-          <label className="form-check-label" htmlFor="emailNotifications">Email Notifications</label>
+        <div className="mb-3">
+          <div className="border rounded p-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="fw-semibold">Language</span>
+              <span className="text-body-secondary small">Applies to labels and messages</span>
+            </div>
+            <select className="form-select w-auto" value={prefs.language}
+                    onChange={(e) => setPrefs({...prefs, language: e.target.value})} aria-label="Language">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+        </div>
+        <div className="mb-3">
+          <div className="border rounded p-3">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <div className="fw-semibold">Email Notifications</div>
+                <div className="text-body-secondary small">Receive account and activity updates</div>
+              </div>
+              <div className="form-check form-switch m-0">
+                <input className="form-check-input" type="checkbox" id="emailNotifications" checked={prefs.emailNotifications}
+                       onChange={(e) => setPrefs({...prefs, emailNotifications: e.target.checked})} aria-label="Email Notifications"/>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary"
