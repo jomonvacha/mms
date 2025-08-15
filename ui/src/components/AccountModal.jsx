@@ -364,31 +364,12 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
         <div className="mb-3">
           <div className="border rounded p-3">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <span className="fw-semibold">Display Preference</span>
-              <span className="text-body-secondary small">Choose what appears on the navbar</span>
-            </div>
-            <div className="btn-group" role="group" aria-label="Display preference">
-              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
-                     checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
-              <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-avatar">
-                {/* User avatar icon */}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.83-3.67-5-8-5z"/></svg>
-                <span>Avatar</span>
-              </label>
-
-              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
-                     checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
-              <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-name">
-                {/* Text/name icon */}
+              <span className="fw-semibold d-inline-flex align-items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h16a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h10a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h7a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2z"/></svg>
-                <span>Name</span>
-              </label>
+                <span>Display Preference</span>
+              </span>
             </div>
-          </div>
-        </div>
-        <div className="mb-3">
-          <div className="border rounded p-3">
-            <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
               <div className="btn-group" role="group" aria-label="Theme selection">
                 <input type="radio" className="btn-check" name="theme" id="theme-system"
                        checked={prefs.theme === 'system'} onChange={() => setPrefs({...prefs, theme: 'system'})}/>
@@ -409,6 +390,20 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="theme-dark">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
                   <span>Dark</span>
+                </label>
+              </div>
+              <div className="btn-group" role="group" aria-label="Display preference">
+                <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
+                       checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
+                <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-avatar">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.83-3.67-5-8-5z"/></svg>
+                  <span>Avatar</span>
+                </label>
+                <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
+                       checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
+                <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-name">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h16a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h10a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h7a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2z"/></svg>
+                  <span>Name</span>
                 </label>
               </div>
             </div>
