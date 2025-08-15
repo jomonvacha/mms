@@ -412,14 +412,31 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 </label>
               </div>
             </div>
-            <div data-bs-theme={(prefs.theme === 'system') ? ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light') : prefs.theme}>
-              <div className="card">
-                <div className="card-body">
-                  <h6 className="card-title mb-1">Preview</h6>
-                  <p className="card-text text-body-secondary mb-0">This is how the UI looks.</p>
+            {(() => {
+              // Resolve preview theme without complexity and guard for SSR
+              let resolved = prefs.theme;
+              if (prefs.theme === 'system') {
+                try {
+                  const isDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  resolved = isDark ? 'dark' : 'light';
+                } catch (_) {
+                  resolved = 'light';
+                }
+              }
+              return (
+                <div className="border rounded-3 p-3 bg-body" data-bs-theme={resolved}>
+                  <h6 className="mb-1">Preview</h6>
+                  <p className="text-body-secondary mb-3">Colors and contrast reflect the theme.</p>
+                  <button type="button" className="btn btn-primary btn-sm mb-3">Primary action</button>
+                  <div className="card">
+                    <div className="card-body">
+                      <div className="fw-semibold mb-1">Card title</div>
+                      <p className="text-body-secondary mb-0">Example text to show contrast.</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
           </div>
         </div>
         <div className="mb-3">
