@@ -84,21 +84,12 @@ export default function Navbar() {
               <>
                 <li className="nav-item dropdown d-flex align-items-center">
                   <a
-                    className="nav-link dropdown-toggle"
                     href="#"
+                    className="nav-link p-0"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
                     id="userMenuDropdown"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    {firstName}
-                  </a>
-                  <a
-                    href="#"
-                    className="nav-link p-0 ms-2"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
                     aria-label="Open user menu"
                   >
                     {avatarUrl ? (
