@@ -7,6 +7,12 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
+  // Auto-dismiss inline alerts
+  useEffect(() => {
+    if (!alert) return;
+    const t = setTimeout(() => setAlert(null), 4000);
+    return () => clearTimeout(t);
+  }, [alert]);
   const panelRef = useRef(null);
   const lastFocused = useRef(null);
 
@@ -83,7 +89,6 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setDisplayName([user.firstName, user.lastName].filter(Boolean).join(' '));
-      setAlert(null);
       (async () => {
         try {
           const blob = await fetchAvatarBlob();
@@ -124,7 +129,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       await refreshMe();
       setAlert({type: 'success', text: 'Profile updated.'});
     } catch (err) {
-      setAlert({type: 'danger', text: err?.message || 'Failed to update profile.'});
+      setAlert({type: 'danger', text: 'Profile update failed.'});
     } finally {
       setSubmitting(false);
     }
@@ -149,7 +154,9 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       setConfirmPassword('');
       setAlert({type: 'success', text: 'Password updated.'});
     } catch (err) {
-      setAlert({type: 'danger', text: err?.message || 'Failed to update password.'});
+      const detail = (err && (err.data && (err.data.message || err.data.error || err.data.detail))) || err?.message || '';
+      const text = detail ? `Password update failed. ${detail}` : 'Password update failed.';
+      setAlert({type: 'danger', text});
     } finally {
       setSubmitting(false);
     }
@@ -161,9 +168,9 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     setSubmitting(true);
     try {
       await apiUpdatePreferences(prefs);
-      setAlert({type: 'success', text: 'Preferences saved.'});
+      setAlert({type: 'success', text: 'Preferences updated.'});
     } catch (err) {
-      setAlert({type: 'danger', text: err?.message || 'Failed to save preferences.'});
+      setAlert({type: 'danger', text: 'Preferences update failed.'});
     } finally {
       setSubmitting(false);
     }
@@ -212,7 +219,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                   return url;
                 });
               } catch (err) {
-                setAvatarError(err?.message || 'Failed to upload avatar');
+                setAvatarError('Avatar update failed.');
               } finally {
                 setUploadingAvatar(false);
               }
@@ -270,8 +277,10 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                    onChange={(e) => setConfirmPassword(e.target.value)} required/>
           </div>
           <div className="d-flex gap-2">
-            <button type="submit" className="btn btn-warning"
-                    disabled={submitting}>{submitting ? 'Updating…' : 'Update Password'}</button>
+            <button type="submit" className="btn btn-warning" disabled={submitting}>
+              {submitting && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>}
+              {submitting ? 'Updating…' : 'Update Password'}
+            </button>
             <button type="button" className="btn btn-outline-secondary" disabled={submitting}
                     onClick={closeIfAllowed}>Cancel
             </button>
@@ -346,13 +355,17 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
             </aside>
             <section className="flex-grow-1 p-4">
               {alert && (
-                <div className={`alert alert-${alert.type}`} role="alert">{alert.text}</div>
+                <div className={`alert alert-${alert.type} d-flex justify-content-between align-items-center`} role="alert" aria-live="polite">
+                  <div>{alert.text}</div>
+                  <button type="button" className="btn-close" aria-label="Close" onClick={() => setAlert(null)}></button>
+                </div>
               )}
               {rightPanel}
             </section>
           </div>
         </div>
       </div>
+      {/* Toast disabled as requested */}
     </div>
   );
 }

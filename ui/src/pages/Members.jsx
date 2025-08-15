@@ -10,6 +10,12 @@ export default function Members() {
   const [myMember, setMyMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // Auto-dismiss error alerts
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +74,10 @@ export default function Members() {
         <div className="text-center py-5 text-muted">Loading members…</div>
       )}
       {error && (
-        <div className="alert alert-danger" role="alert">{error}</div>
+        <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert" aria-live="polite">
+          <div>{error}</div>
+          <button type="button" className="btn-close" aria-label="Close" onClick={() => setError(null)}></button>
+        </div>
       )}
 
       {!loading && !error && members && members.length > 0 && (

@@ -13,6 +13,12 @@ export default function SignIn() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [endpointOk, setEndpointOk] = useState(true);
+  // Auto-dismiss error alerts
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
   const timedOut = new URLSearchParams(location.search).get('autoSignedOut') === '1';
 
   const from = location.state?.from?.pathname || '/';
@@ -64,8 +70,9 @@ export default function SignIn() {
               </div>
             )}
             {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
+              <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert" aria-live="polite">
+                <div>{error}</div>
+                <button type="button" className="btn-close" aria-label="Close" onClick={() => setError(null)}></button>
               </div>
             )}
             {localAuthEnabled && endpointOk ? (

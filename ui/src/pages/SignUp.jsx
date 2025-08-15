@@ -17,6 +17,12 @@ export default function SignUp() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [endpointOk, setEndpointOk] = useState(true);
+  // Auto-dismiss error alerts
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(null), 4000);
+    return () => clearTimeout(t);
+  }, [error]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,8 +67,9 @@ export default function SignUp() {
           <div className="card-body p-4">
             <h1 className="h4 mb-3">Create your account</h1>
             {error && (
-              <div className="alert alert-danger" role="alert">
-                {error}
+              <div className="alert alert-danger d-flex justify-content-between align-items-center" role="alert" aria-live="polite">
+                <div>{error}</div>
+                <button type="button" className="btn-close" aria-label="Close" onClick={() => setError(null)}></button>
               </div>
             )}
             {localRegistrationEnabled && endpointOk ? (
