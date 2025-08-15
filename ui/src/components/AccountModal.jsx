@@ -230,13 +230,13 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
             {avatarError && <div className="text-danger small mt-2">{avatarError}</div>}
           </div>
         </div>
-        <div className="d-flex gap-2">
-          <button type="submit" className="btn btn-primary"
-                  disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
-          <button type="button" className="btn btn-outline-secondary" disabled={submitting}
-                  onClick={closeIfAllowed}>Cancel
-          </button>
-        </div>
+          <div className="d-flex gap-2">
+            <button type="submit" className="btn btn-primary"
+                    disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
+            <button type="button" className="btn btn-outline-secondary" disabled={submitting}
+                    onClick={closeIfAllowed}>Cancel
+            </button>
+          </div>
       </form>
     );
     if (activeTab === 'account') {
