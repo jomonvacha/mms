@@ -429,14 +429,25 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
               }
               return (
                 <div
-                  className="border rounded-3 p-2 bg-body small"
-                  style={{ maxWidth: 360 }}
+                  className="border rounded-3 p-3 bg-body mx-auto w-100"
+                  style={{ maxWidth: 680, minHeight: 220 }}
                   data-bs-theme={resolved}
                 >
                   <div className="h6 mb-2">Preview</div>
-                  <p className="text-body-secondary mb-2">Colors and contrast reflect the theme.</p>
+                  <div className="d-flex align-items-center justify-content-between bg-body-tertiary rounded-2 px-3 py-2 mb-3">
+                    <div className="fw-semibold">Brand</div>
+                    <div>
+                      {prefs.navbarDisplay === 'avatar' ? (
+                        <div className="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white" style={{ width: 28, height: 28, fontSize: 12, fontWeight: 600 }}>
+                          {(initials || 'U').slice(0, 2)}
+                        </div>
+                      ) : (
+                        <span className="text-body">{(user?.firstName && user?.lastName) ? `${user.firstName} ${user.lastName}` : (user?.username || 'Your Name')}</span>
+                      )}
+                    </div>
+                  </div>
                   <div className="card">
-                    <div className="card-body p-2">
+                    <div className="card-body">
                       <div className="fw-semibold mb-1">Card title</div>
                       <p className="text-body-secondary mb-0">Example text to show contrast.</p>
                     </div>
@@ -491,7 +502,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
         </div>
       </form>
     );
-  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, currentPassword, newPassword, confirmPassword, prefs, submitting]);
+  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, currentPassword, newPassword, confirmPassword, prefs, submitting, user, initials]);
 
   if (!isOpen) return null;
 
