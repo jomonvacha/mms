@@ -171,6 +171,52 @@ export function getMemberByUserId(userId) {
   return fetchJson(`/api/members/user/${encodeURIComponent(userId)}`);
 }
 
+// Member management (admin-only endpoints; guarded at UI via roles)
+export async function updateMember(memberId, payload) {
+  // Try a standard endpoint; caller may optionally pre-validate via validateEndpoint
+  return fetchJson(`/api/members/${encodeURIComponent(memberId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload || {}),
+  });
+}
+
+export async function deleteMember(memberId) {
+  return fetchJson(`/api/members/${encodeURIComponent(memberId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function deactivateMember(memberId) {
+  // Try action endpoint; if unsupported (405), fall back to updating isActive=false
+  try {
+    return await fetchJson(`/api/members/${encodeURIComponent(memberId)}/deactivate`, { method: 'POST' });
+  } catch (err) {
+    if (err && (err.status === 404 || err.status === 405 || err.status === 501)) {
+      // Fallback: PUT with isActive=false
+      return fetchJson(`/api/members/${encodeURIComponent(memberId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isActive: false }),
+      });
+    }
+    throw err;
+  }
+}
+
+export async function activateMember(memberId) {
+  // Symmetric helper in case activation is needed elsewhere
+  try {
+    return await fetchJson(`/api/members/${encodeURIComponent(memberId)}/activate`, { method: 'POST' });
+  } catch (err) {
+    if (err && (err.status === 404 || err.status === 405 || err.status === 501)) {
+      return fetchJson(`/api/members/${encodeURIComponent(memberId)}`, {
+        method: 'PUT',
+        body: JSON.stringify({ isActive: true }),
+      });
+    }
+    throw err;
+  }
+}
+
 export function updateMe(payload) {
   return fetchJson('/api/users/me', {
     method: 'PUT',
