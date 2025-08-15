@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
-import {getMemberByUserId, listMembers, updateMember, deleteMember, deactivateMember, validateEndpoint} from '../api/client.js';
+import {getMemberByUserId, listMembers, updateMember, deleteMember, deactivateMember, validateEndpoint, createMember, listUsers} from '../api/client.js';
 import {useAuth} from '../hooks/useAuth.js';
 
 export default function Members() {
@@ -10,9 +10,10 @@ export default function Members() {
   const [myMember, setMyMember] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [endpoints, setEndpoints] = useState({ canUpdate: true, canDelete: true, canDeactivate: true });
+  const [endpoints, setEndpoints] = useState({ canUpdate: true, canDelete: true, canDeactivate: true, canCreate: true });
   const [editing, setEditing] = useState(null);
   const [confirm, setConfirm] = useState(null); // { action: 'delete'|'deactivate', member }
+  const [creating, setCreating] = useState(false);
   // Auto-dismiss error alerts
   useEffect(() => {
     if (!error) return;
@@ -32,16 +33,18 @@ export default function Members() {
           const data = await listMembers();
           if (!cancelled) setMembers(data || []);
           // Check endpoints availability once for better UX
-          const [canUpdate, canDelete, canDeactivatePost, canDeactivatePut] = await Promise.all([
+          const [canUpdate, canDelete, canDeactivatePost, canDeactivatePut, canCreate] = await Promise.all([
             validateEndpoint('/api/members/1', 'PUT'),
             validateEndpoint('/api/members/1', 'DELETE'),
             validateEndpoint('/api/members/1/deactivate', 'POST'),
             validateEndpoint('/api/members/1', 'PUT'),
+            validateEndpoint('/api/members', 'POST'),
           ]);
           if (!cancelled) setEndpoints({
             canUpdate: canUpdate !== false,
             canDelete: canDelete !== false,
             canDeactivate: (canDeactivatePost !== false) || (canDeactivatePut !== false),
+            canCreate: canCreate !== false,
           });
         } else if (user?.id) {
           const mine = await getMemberByUserId(user.id);
@@ -96,7 +99,19 @@ export default function Members() {
     <div>
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h1 className="h4 mb-0">Members</h1>
-        {user && <span className="text-body-secondary small">Signed in as {user.name || user.email}</span>}
+        {isAdmin && (
+          <button
+            type="button"
+            className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1"
+            onClick={() => setCreating(true)}
+            disabled={!endpoints.canCreate}
+            title="Create member"
+            aria-label="Create member"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11 11V6h2v5h5v2h-5v5h-2v-5H6v-2z"/></svg>
+            <span className="d-none d-sm-inline">New</span>
+          </button>
+        )}
       </div>
 
       {loading && (
@@ -186,6 +201,13 @@ export default function Members() {
         />
       )}
 
+      {creating && (
+        <CreateMemberModal
+          onClose={() => setCreating(false)}
+          onCreated={reload}
+        />
+      )}
+
       {confirm && (
         <ConfirmAction
           action={confirm.action}
@@ -251,6 +273,138 @@ export default function Members() {
   );
 }
 
+function CreateMemberModal({onClose, onCreated}) {
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState(null);
+  const [userId, setUserId] = React.useState('');
+  const [membershipType, setMembershipType] = React.useState('');
+  const [status, setStatus] = React.useState('');
+  const [active, setActive] = React.useState(true);
+  const [users, setUsers] = React.useState([]);
+  const [usersLoading, setUsersLoading] = React.useState(true);
+  const [usersError, setUsersError] = React.useState(null);
+  const [userSearch, setUserSearch] = React.useState('');
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        setUsersLoading(true);
+        const data = await listUsers({ page: 0, size: 100 });
+        if (!cancelled) setUsers(data || []);
+      } catch (e) {
+        if (!cancelled) setUsersError(e?.message || 'User list not available; enter User ID manually');
+      } finally {
+        if (!cancelled) setUsersLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      const payload = {};
+      if (userId) payload.userId = userId;
+      if (membershipType) payload.membershipType = membershipType;
+      if (status) payload.status = status;
+      payload.isActive = active;
+      await createMember(payload);
+      onCreated && onCreated();
+      onClose();
+    } catch (err) {
+      setError(err?.message || 'Create failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="position-fixed top-0 start-0 w-100 h-100" style={{zIndex: 1060}}>
+      <div className="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-50" onClick={() => !saving && onClose()}></div>
+      <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-start justify-content-center p-3 p-md-4 overflow-auto">
+        <div className="bg-body rounded shadow" style={{maxWidth: '32rem', width: '100%'}}>
+          <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
+            <div className="h6 mb-0">Create Member</div>
+            <button className="btn btn-sm btn-outline-secondary" onClick={() => !saving && onClose()} disabled={saving}>×</button>
+          </div>
+          <form className="p-3" onSubmit={submit}>
+            {error && <div className="alert alert-danger">{error}</div>}
+            {usersError ? (
+              <div className="mb-3">
+                <label className="form-label">User ID</label>
+                <input className="form-control" value={userId} onChange={(e) => setUserId(e.target.value)} placeholder="Enter user ID" required />
+                <div className="form-text text-danger">{usersError}</div>
+              </div>
+            ) : (
+              <div className="mb-3">
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <label className="form-label mb-0">Link to User</label>
+                  <input
+                    type="text"
+                    className="form-control form-control-sm w-auto"
+                    placeholder="Search"
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    aria-label="Search users"
+                  />
+                </div>
+                <select
+                  className="form-select"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  required
+                  disabled={usersLoading}
+                  aria-label="Select user"
+                >
+                  <option value="" disabled>{usersLoading ? 'Loading users…' : 'Select a user'}</option>
+                  {users
+                    .filter((u) => {
+                      const q = userSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      const name = `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase();
+                      const email = (u.email || '').toLowerCase();
+                      const username = (u.username || '').toLowerCase();
+                      return name.includes(q) || email.includes(q) || username.includes(q);
+                    })
+                    .map((u) => {
+                      const labelName = (u.firstName || u.lastName)
+                        ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim()
+                        : (u.username || 'Unknown');
+                      const label = `${labelName}${u.email ? ' (' + u.email + ')' : ''}`;
+                      return (
+                        <option key={u.id} value={u.id}>{label}</option>
+                      );
+                    })}
+                </select>
+              </div>
+            )}
+            <div className="mb-3">
+              <label className="form-label">Membership Type</label>
+              <input className="form-control" value={membershipType} onChange={(e) => setMembershipType(e.target.value)} placeholder="e.g., gold, standard" />
+            </div>
+            <div className="mb-3">
+              <label className="form-label">Status</label>
+              <input className="form-control" value={status} onChange={(e) => setStatus(e.target.value)} placeholder="e.g., ACTIVE, PENDING" />
+            </div>
+            <div className="form-check form-switch mb-3">
+              <input className="form-check-input" type="checkbox" id="createActive" checked={active} onChange={(e) => setActive(e.target.checked)} />
+              <label className="form-check-label" htmlFor="createActive">Active</label>
+            </div>
+            <div className="d-flex justify-content-end gap-2">
+              <button type="button" className="btn btn-outline-secondary" disabled={saving} onClick={() => !saving && onClose()}>Cancel</button>
+              <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Creating…' : 'Create'}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ConfirmAction({action, member, onCancel, onConfirm}) {
   const [working, setWorking] = React.useState(false);
   const title = action === 'delete' ? 'Delete Member' : 'Deactivate Member';
@@ -311,7 +465,17 @@ function EditMemberModal({member, onClose, onSaved}) {
     setError(null);
     setSaving(true);
     try {
-      const payload = { status, membershipType, isActive: active };
+      const originalStatus = member?.status;
+      const originalType = member?.membershipType;
+      const originalActive = Boolean(member?.isActive);
+      const payload = {};
+      if (status && status !== originalStatus) payload.status = status;
+      if (membershipType && membershipType !== originalType) payload.membershipType = membershipType;
+      if (active !== originalActive) payload.isActive = active;
+      if (Object.keys(payload).length === 0) {
+        onClose();
+        return;
+      }
       await updateMember(member.id, payload);
       onSaved && onSaved();
       onClose();

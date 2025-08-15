@@ -171,6 +171,14 @@ export function getMemberByUserId(userId) {
   return fetchJson(`/api/members/user/${encodeURIComponent(userId)}`);
 }
 
+export function createMember(payload) {
+  // Create a new member; payload shape depends on backend DTO
+  return fetchJson('/api/members', {
+    method: 'POST',
+    body: JSON.stringify(payload || {}),
+  });
+}
+
 // Member management (admin-only endpoints; guarded at UI via roles)
 export async function updateMember(memberId, payload) {
   // Try a standard endpoint; caller may optionally pre-validate via validateEndpoint
@@ -307,4 +315,37 @@ export async function refreshTokens() {
       refreshInFlight = null;
     });
   return refreshInFlight;
+}
+
+// Users listing for linking members
+export async function listUsers({page = 0, size = 50, q} = {}) {
+  const params = new URLSearchParams();
+  params.set('page', String(page));
+  params.set('size', String(size));
+  if (q) params.set('q', q);
+  const qs = `?${params.toString()}`;
+  // Try common endpoints; normalize response to an array
+  const tryPaths = [
+    `/api/users${qs}`,
+    `/api/admin/users${qs}`,
+    q ? `/api/users/search?${new URLSearchParams({ q }).toString()}` : null,
+  ].filter(Boolean);
+  let lastErr;
+  for (const path of tryPaths) {
+    try {
+      const data = await fetchJson(path);
+      if (data && Array.isArray(data.content)) return data.content;
+      if (Array.isArray(data)) return data;
+      // Some APIs return { items: [] }
+      if (data && Array.isArray(data.items)) return data.items;
+      // Fallback: unknown shape, return empty to avoid breaking UI
+      return [];
+    } catch (e) {
+      lastErr = e;
+      if (!(e && (e.status === 404 || e.status === 405 || e.status === 501))) throw e;
+      // Otherwise, try the next path
+    }
+  }
+  // If all attempts failed, throw the last error
+  throw lastErr || new Error('User listing endpoint not available');
 }
