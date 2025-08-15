@@ -370,11 +370,19 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
             <div className="btn-group" role="group" aria-label="Display preference">
               <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
                      checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
-              <label className="btn btn-outline-secondary" htmlFor="nav-avatar">Avatar</label>
+              <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-avatar">
+                {/* User avatar icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.83-3.67-5-8-5z"/></svg>
+                <span>Avatar</span>
+              </label>
 
               <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
                      checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
-              <label className="btn btn-outline-secondary" htmlFor="nav-name">Name</label>
+              <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="nav-name">
+                {/* Text/name icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 6h16a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h10a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2zm0 6h7a1 1 0 1 0 0-2H4a1 1 0 1 0 0 2z"/></svg>
+                <span>Name</span>
+              </label>
             </div>
           </div>
         </div>
@@ -384,18 +392,24 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
               <div className="btn-group" role="group" aria-label="Theme selection">
                 <input type="radio" className="btn-check" name="theme" id="theme-system"
                        checked={prefs.theme === 'system'} onChange={() => setPrefs({...prefs, theme: 'system'})}/>
-                <label className="btn btn-outline-secondary" htmlFor="theme-system">
-                  System
-                  <span className="text-body-secondary ms-1 small">({(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'Dark' : 'Light'})</span>
+                <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="theme-system">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-6v2h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2H5a2 2 0 0 1-2-2V5zm2 0v9h14V5H5z"/></svg>
+                  <span>System</span>
                 </label>
 
                 <input type="radio" className="btn-check" name="theme" id="theme-light"
                        checked={prefs.theme === 'light'} onChange={() => setPrefs({...prefs, theme: 'light'})}/>
-                <label className="btn btn-outline-secondary" htmlFor="theme-light">Light</label>
+                <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="theme-light">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12zm0-16a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1zm0 18a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1zM3 11h1a1 1 0 1 1 0 2H3a1 1 0 1 1 0-2zm17 0h1a1 1 0 1 1 0 2h-1a1 1 0 1 1 0-2zM5.05 5.05a1 1 0 0 1 1.41 0l.7.7a1 1 0 0 1-1.41 1.41l-.7-.7a1 1 0 0 1 0-1.41zm11.79 11.79a1 1 0 0 1 1.41 0l.7.7a1 1 0 1 1-1.41 1.41l-.7-.7a1 1 0 0 1 0-1.41zM18.95 5.05a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0zM5.76 17.24a1 1 0 0 1 0 1.41l-.7.7a1 1 0 1 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 0z"/></svg>
+                  <span>Light</span>
+                </label>
 
                 <input type="radio" className="btn-check" name="theme" id="theme-dark"
                        checked={prefs.theme === 'dark'} onChange={() => setPrefs({...prefs, theme: 'dark'})}/>
-                <label className="btn btn-outline-secondary" htmlFor="theme-dark">Dark</label>
+                <label className="btn btn-outline-secondary d-flex align-items-center gap-1" htmlFor="theme-dark">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 1 0 9.79 9.79z"/></svg>
+                  <span>Dark</span>
+                </label>
               </div>
             </div>
             <div data-bs-theme={(prefs.theme === 'system') ? ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light') : prefs.theme}>
@@ -411,7 +425,11 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
         <div className="mb-3">
           <div className="border rounded p-3">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <span className="fw-semibold">Language</span>
+              <span className="fw-semibold d-inline-flex align-items-center gap-2">
+                {/* Globe icon */}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2zm7.93 9h-3.09a15.26 15.26 0 0 0-1.26-5.01A8.014 8.014 0 0 1 19.93 11zM12 4a13.28 13.28 0 0 1 2.06 7H9.94A13.28 13.28 0 0 1 12 4zM6.42 5.99A15.26 15.26 0 0 0 5.16 11H2.07a8.014 8.014 0 0 1 4.35-5.01zM2.07 13h3.09a15.26 15.26 0 0 0 1.26 5.01A8.014 8.014 0 0 1 2.07 13zM12 20a13.28 13.28 0 0 1-2.06-7h4.12A13.28 13.28 0 0 1 12 20zm5.58-1.99A15.26 15.26 0 0 0 18.84 13h3.09a8.014 8.014 0 0 1-4.35 5.01z"/></svg>
+                <span>Language</span>
+              </span>
               <span className="text-body-secondary small">Applies to labels and messages</span>
             </div>
             <select className="form-select w-auto" value={prefs.language}
@@ -426,7 +444,11 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           <div className="border rounded p-3">
             <div className="d-flex justify-content-between align-items-center">
               <div>
-                <div className="fw-semibold">Email Notifications</div>
+                <div className="fw-semibold d-inline-flex align-items-center gap-2">
+                  {/* Bell icon */}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1z"/></svg>
+                  <span>Email Notifications</span>
+                </div>
                 <div className="text-body-secondary small">Receive account and activity updates</div>
               </div>
               <div className="form-check form-switch m-0">
