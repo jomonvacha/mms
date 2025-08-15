@@ -248,26 +248,32 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const rightPanel = useMemo(() => {
     if (activeTab === 'profile') return (
       <form onSubmit={submitProfile}>
-        <div className="mb-3">
-          <label className="form-label">First Name</label>
-          <input className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
+        <div className="mb-3 border rounded p-3">
+          <div className="fw-semibold mb-2">Profile</div>
+          <div className="row g-3">
+            <div className="col-12 col-md-6">
+              <label className="form-label">First Name</label>
+              <input className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            </div>
+            <div className="col-12 col-md-6">
+              <label className="form-label">Last Name</label>
+              <input className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+            </div>
+            <div className="col-12 col-md-6">
+              <label className="form-label">Email</label>
+              <input className="form-control" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+            <div className="col-12 col-md-6">
+              <label className="form-label">Phone</label>
+              <input className="form-control" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Optional" />
+            </div>
+          </div>
         </div>
-        <div className="mb-3">
-          <label className="form-label">Last Name</label>
-          <input className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)}/>
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input className="form-control" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Phone</label>
-          <input className="form-control" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Optional"/>
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Profile Picture</label>
+        <div className="mb-3 border rounded p-3">
+          <div className="fw-semibold mb-2">Profile Picture</div>
           <div
-            className="border rounded p-3 text-center"
+            className="rounded p-3 text-center border"
+            style={{ borderStyle: 'dashed' }}
             onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
             onDrop={async (e) => {
               e.preventDefault();
@@ -299,18 +305,15 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 {initials}
               </div>
             )}
-            <div className="text-muted small">Drag and drop an image here to upload (PNG/JPG/GIF, max 5 MB).</div>
+            <div className="text-body-secondary small">Drag and drop an image here to upload (PNG/JPG/GIF, max 5 MB).</div>
             {uploadingAvatar && <div className="text-info small mt-2">Uploading…</div>}
             {avatarError && <div className="text-danger small mt-2">{avatarError}</div>}
           </div>
         </div>
-          <div className="d-flex gap-2">
-            <button type="submit" className="btn btn-primary"
-                    disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
-            <button type="button" className="btn btn-outline-secondary" disabled={submitting}
-                    onClick={closeIfAllowed}>Cancel
-            </button>
-          </div>
+        <div className="d-flex gap-2 justify-content-end">
+          <button type="button" className="btn btn-outline-secondary" disabled={submitting} onClick={closeIfAllowed}>Cancel</button>
+          <button type="submit" className="btn btn-primary" disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</button>
+        </div>
       </form>
     );
     if (activeTab === 'account') {
