@@ -357,6 +357,24 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     }
     return (
       <form onSubmit={submitPreferences}>
+        
+        <div className="mb-3">
+          <div className="border rounded p-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="fw-semibold">Display Preference</span>
+              <span className="text-body-secondary small">Choose what appears on the navbar</span>
+            </div>
+            <div className="btn-group" role="group" aria-label="Display preference">
+              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
+                     checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
+              <label className="btn btn-outline-secondary" htmlFor="nav-avatar">Avatar</label>
+
+              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
+                     checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
+              <label className="btn btn-outline-secondary" htmlFor="nav-name">Name</label>
+            </div>
+          </div>
+        </div>
         <div className="mb-3">
           <div className="border rounded p-3">
             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -365,7 +383,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                        checked={prefs.theme === 'system'} onChange={() => setPrefs({...prefs, theme: 'system'})}/>
                 <label className="btn btn-outline-secondary" htmlFor="theme-system">
                   System
-                  <span className="text-muted ms-1 small">({(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'Dark' : 'Light'})</span>
+                  <span className="text-body-secondary ms-1 small">({(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'Dark' : 'Light'})</span>
                 </label>
 
                 <input type="radio" className="btn-check" name="theme" id="theme-light"
@@ -381,26 +399,9 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
               <div className="card">
                 <div className="card-body">
                   <h6 className="card-title mb-1">Preview</h6>
-                  <p className="card-text text-muted mb-0">This is how the UI looks.</p>
+                  <p className="card-text text-body-secondary mb-0">This is how the UI looks.</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-        <div className="mb-3">
-          <div className="border rounded p-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <span className="fw-semibold">Display Preference</span>
-              <span className="text-body-secondary small">Choose what appears on the navbar</span>
-            </div>
-            <div className="btn-group" role="group" aria-label="Display preference">
-              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-avatar"
-                     checked={prefs.navbarDisplay === 'avatar'} onChange={() => setPrefs({...prefs, navbarDisplay: 'avatar'})}/>
-              <label className="btn btn-outline-secondary" htmlFor="nav-avatar">Avatar</label>
-
-              <input type="radio" className="btn-check" name="navbarDisplay" id="nav-name"
-                     checked={prefs.navbarDisplay === 'name'} onChange={() => setPrefs({...prefs, navbarDisplay: 'name'})}/>
-              <label className="btn btn-outline-secondary" htmlFor="nav-name">Name</label>
             </div>
           </div>
         </div>
