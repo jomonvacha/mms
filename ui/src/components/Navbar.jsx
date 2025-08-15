@@ -79,11 +79,14 @@ export default function Navbar() {
   return (
     <nav className={navClass}>
       <div className="container">
-        <Link className="navbar-brand d-flex align-items-center gap-1" to="/">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.236L5 7.5v9l7 3.764 7-3.764v-9l-7-3.264z"/>
+        <Link className="navbar-brand d-flex align-items-center" to="/" aria-label="Member Management System">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            {/* Group icon to represent members */}
+            <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4z"/>
+            <path d="M4 20a8 8 0 0 1 16 0v1H4z"/>
+            <path d="M6 10a3 3 0 1 0-3-3 3 3 0 0 0 3 3z"/>
+            <path d="M21 17.5a5.5 5.5 0 0 0-6.5-4.4 8.5 8.5 0 0 1 6.5 8.4V21z"/>
           </svg>
-          <span>MMS</span>
         </Link>
         <button
           className="navbar-toggler"
