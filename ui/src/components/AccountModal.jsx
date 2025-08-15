@@ -397,7 +397,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       }}></div>
       <div
         className="position-absolute top-0 start-0 w-100 h-100 overflow-auto d-flex align-items-start align-items-md-center justify-content-center p-0 p-md-4">
-        <div ref={panelRef} className="bg-white rounded-0 rounded-md-3 shadow w-100" style={{maxWidth: '64rem'}}
+        <div ref={panelRef} className="bg-body rounded-0 rounded-md-3 shadow w-100" style={{maxWidth: '64rem'}}
              tabIndex={-1}>
           <div className="d-flex align-items-start gap-3 p-4 border-bottom">
             <div className="flex-grow-1">

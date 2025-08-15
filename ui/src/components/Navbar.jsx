@@ -1,13 +1,11 @@
 import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {useAuth} from '../hooks/useAuth.js';
-import {useTheme} from '../hooks/useTheme.js';
 import {REGISTER_PATH} from '../api/client.js';
 import AccountModal from './AccountModal.jsx';
 
 export default function Navbar() {
   const {user, loading} = useAuth();
-  const {theme, toggleTheme} = useTheme();
   const rawName = user?.firstName || user?.username || (user?.email ? user.email.split('@')[0] : '');
   const firstName = (rawName || '').split(/[\s._-]/)[0] || 'there';
   const hour = new Date().getHours();
@@ -16,7 +14,7 @@ export default function Navbar() {
   const [initialTab, setInitialTab] = React.useState('profile');
   const canChangePassword = Boolean(user?.hasPassword === true);
 
-  const navClass = theme === 'dark' ? 'navbar navbar-expand-lg navbar-dark bg-dark sticky-top' : 'navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top';
+  const navClass = 'navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom';
 
   return (
     <nav className={navClass}>
@@ -129,12 +127,7 @@ export default function Navbar() {
                 )}
               </>
             )}
-            <li className="nav-item ms-2">
-              <button type="button" className="btn btn-sm btn-outline-secondary" onClick={toggleTheme}
-                      aria-label="Toggle theme">
-                {theme === 'dark' ? 'Light' : 'Dark'}
-              </button>
-            </li>
+
           </ul>
         </div>
       </div>
