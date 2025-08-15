@@ -284,32 +284,58 @@ function CreateMemberModal({onClose, onCreated}) {
   const [usersLoading, setUsersLoading] = React.useState(true);
   const [usersError, setUsersError] = React.useState(null);
   const [userSearch, setUserSearch] = React.useState('');
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [highlight, setHighlight] = React.useState(-1);
+  const listRef = React.useRef(null);
+
+  function userLabel(u) {
+    const labelName = (u.firstName || u.lastName)
+      ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim()
+      : (u.username || 'Unknown');
+    return `${labelName}${u.email ? ' (' + u.email + ')' : ''}`;
+  }
 
   React.useEffect(() => {
     let cancelled = false;
-    async function load() {
+    const q = userSearch.trim();
+    const timer = setTimeout(async () => {
       try {
         setUsersLoading(true);
-        const data = await listUsers({ page: 0, size: 100 });
-        if (!cancelled) setUsers(data || []);
+        const data = await listUsers({ page: 0, size: 20, q: q || undefined });
+        if (!cancelled) {
+          setUsers(data || []);
+          setUsersError(null);
+        }
       } catch (e) {
-        if (!cancelled) setUsersError(e?.message || 'User list not available; enter User ID manually');
+        if (!cancelled) {
+          setUsers([]);
+          setUsersError(e?.message || 'User list not available; enter User ID manually');
+        }
       } finally {
         if (!cancelled) setUsersLoading(false);
       }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [userSearch]);
 
   async function submit(e) {
     e.preventDefault();
     setError(null);
     setSaving(true);
     try {
+      if (!userId) {
+        setError('Please select a user');
+        setSaving(false);
+        return;
+      }
+      if (!membershipType.trim()) {
+        setError('Membership type is required');
+        setSaving(false);
+        return;
+      }
       const payload = {};
       if (userId) payload.userId = userId;
-      if (membershipType) payload.membershipType = membershipType;
+      payload.membershipType = membershipType.trim();
       if (status) payload.status = status;
       payload.isActive = active;
       await createMember(payload);
@@ -340,51 +366,81 @@ function CreateMemberModal({onClose, onCreated}) {
                 <div className="form-text text-danger">{usersError}</div>
               </div>
             ) : (
-              <div className="mb-3">
-                <div className="d-flex justify-content-between align-items-center mb-1">
-                  <label className="form-label mb-0">Link to User</label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm w-auto"
-                    placeholder="Search"
-                    value={userSearch}
-                    onChange={(e) => setUserSearch(e.target.value)}
-                    aria-label="Search users"
-                  />
-                </div>
-                <select
-                  className="form-select"
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  required
-                  disabled={usersLoading}
-                  aria-label="Select user"
-                >
-                  <option value="" disabled>{usersLoading ? 'Loading users…' : 'Select a user'}</option>
-                  {users
-                    .filter((u) => {
-                      const q = userSearch.trim().toLowerCase();
-                      if (!q) return true;
-                      const name = `${u.firstName || ''} ${u.lastName || ''}`.trim().toLowerCase();
-                      const email = (u.email || '').toLowerCase();
-                      const username = (u.username || '').toLowerCase();
-                      return name.includes(q) || email.includes(q) || username.includes(q);
-                    })
-                    .map((u) => {
-                      const labelName = (u.firstName || u.lastName)
-                        ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim()
-                        : (u.username || 'Unknown');
-                      const label = `${labelName}${u.email ? ' (' + u.email + ')' : ''}`;
-                      return (
-                        <option key={u.id} value={u.id}>{label}</option>
-                      );
-                    })}
-                </select>
+              <div className="mb-3 position-relative">
+                <label className="form-label mb-1">Link to User</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder={usersLoading ? 'Loading users…' : 'Search users by name or email'}
+                  value={userSearch}
+                  onChange={(e) => { setUserSearch(e.target.value); setMenuOpen(true); setHighlight(-1); }}
+                  onFocus={() => { setMenuOpen(true); }}
+                  onKeyDown={(e) => {
+                    if (!menuOpen) return;
+                    if (e.key === 'ArrowDown') {
+                      e.preventDefault();
+                      setHighlight((h) => Math.min((users.length - 1), h + 1));
+                    } else if (e.key === 'ArrowUp') {
+                      e.preventDefault();
+                      setHighlight((h) => Math.max(-1, h - 1));
+                    } else if (e.key === 'Enter') {
+                      if (highlight >= 0 && users[highlight]) {
+                        e.preventDefault();
+                        const u = users[highlight];
+                        setUserId(String(u.id));
+                        setUserSearch(userLabel(u));
+                        setMenuOpen(false);
+                      }
+                    } else if (e.key === 'Escape') {
+                      setMenuOpen(false);
+                    }
+                  }}
+                  aria-autocomplete="list"
+                  aria-expanded={menuOpen}
+                  aria-controls="create-member-user-list"
+                />
+                {menuOpen && (
+                  <div
+                    id="create-member-user-list"
+                    ref={listRef}
+                    className="list-group position-absolute w-100 shadow-sm"
+                    style={{ zIndex: 5, maxHeight: '14rem', overflowY: 'auto' }}
+                    role="listbox"
+                  >
+                    {usersLoading && (
+                      <div className="list-group-item text-body-secondary small">Loading…</div>
+                    )}
+                    {!usersLoading && users.length === 0 && (
+                      <div className="list-group-item text-body-secondary small">No matches</div>
+                    )}
+                    {!usersLoading && users.map((u, idx) => (
+                      <button
+                        type="button"
+                        key={u.id}
+                        className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${idx === highlight ? 'active' : ''}`}
+                        onMouseEnter={() => setHighlight(idx)}
+                        onMouseDown={(e) => { e.preventDefault(); }}
+                        onClick={() => {
+                          setUserId(String(u.id));
+                          setUserSearch(userLabel(u));
+                          setMenuOpen(false);
+                        }}
+                        role="option"
+                        aria-selected={idx === highlight}
+                      >
+                        <span>{userLabel(u)}</span>
+                        <span className="badge text-bg-secondary">ID: {u.id}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="form-text">Select a user; required to create a member.</div>
               </div>
             )}
             <div className="mb-3">
               <label className="form-label">Membership Type</label>
-              <input className="form-control" value={membershipType} onChange={(e) => setMembershipType(e.target.value)} placeholder="e.g., gold, standard" />
+              <input className="form-control" value={membershipType} onChange={(e) => setMembershipType(e.target.value)} placeholder="Required, e.g., STANDARD, GOLD" required />
+              <div className="form-text">Use a valid type as defined by your backend.</div>
             </div>
             <div className="mb-3">
               <label className="form-label">Status</label>
