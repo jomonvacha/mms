@@ -119,15 +119,15 @@ Important: The `redirect-uri` must exactly match the URI registered in Google/Ap
 
 1) Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client (Web).
 2) Authorized redirect URIs:
-    - `http://localhost:8080/login/oauth2/code/google`
-    - If you use 127.0.0.1 or another domain/port, add those exact URIs as well.
+  - `http://localhost:8080/login/oauth2/code/google`
+  - If you use 127.0.0.1 or another domain/port, add those exact URIs as well.
 3) Set env vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
 4) Test (with backend dev callback):
-    - Temporarily set:
-        - `app.oauth2.authorized-redirect-uri=http://localhost:8080/oauth2/callback-dev`
-    - Open `http://localhost:8080/oauth2/authorization/google`
-    - After login, a dev page shows `token` and `refreshToken`, with a button to call `/api/users/me`.
-    - For frontend usage, set `authorized-redirect-uri` back to your SPA callback.
+  - Temporarily set:
+    - `app.oauth2.authorized-redirect-uri=http://localhost:8080/oauth2/callback-dev`
+  - Open `http://localhost:8080/oauth2/authorization/google`
+  - After login, a dev page shows `token` and `refreshToken`, with a button to call `/api/users/me`.
+  - For frontend usage, set `authorized-redirect-uri` back to your SPA callback.
 
 If you see `redirect_uri_mismatch`, ensure your Google console has the exact callback configured and your
 application.yml `redirect-uri` matches.
@@ -151,17 +151,17 @@ application.yml `redirect-uri` matches.
 ## Security & Logging
 
 - JWT + RBAC
-    - Stateless JWT auth with roles (`ROLE_USER`, `ROLE_MEMBER`, `ROLE_MANAGER`, `ROLE_MODERATOR`, `ROLE_ADMIN`).
-    - Non-privileged users can only read their own member record; managers/moderators/admins can list and manage.
+  - Stateless JWT auth with roles (`ROLE_USER`, `ROLE_MEMBER`, `ROLE_MANAGER`, `ROLE_MODERATOR`, `ROLE_ADMIN`).
+  - Non-privileged users can only read their own member record; managers/moderators/admins can list and manage.
 
 - Correlation IDs and request context
-    - Every request gets a `traceId` (returned in `X-Trace-Id` header).
-    - MDC includes: `traceId`, `method`, `path`, `clientIp`, `userId` (if authenticated).
-    - Dev logs show: `[trace=… user=… ip=… method=… path=…]`.
-    - Prod logs are JSON and include the MDC as structured fields.
+  - Every request gets a `traceId` (returned in `X-Trace-Id` header).
+  - MDC includes: `traceId`, `method`, `path`, `clientIp`, `userId` (if authenticated).
+  - Dev logs show: `[trace=… user=… ip=… method=… path=…]`.
+  - Prod logs are JSON and include the MDC as structured fields.
 
 - Stable page JSON
-    - Spring Data page responses serialize via DTO (no PageImpl warning).
+  - Spring Data page responses serialize via DTO (no PageImpl warning).
 
 You can raise the threshold in `pom.xml` under the `jacoco-maven-plugin` check rule.
 
@@ -661,25 +661,25 @@ Each error response includes:
 ## Production Considerations
 
 1. **Security:**
-    - Change JWT secret to a secure 256-bit key
-    - Use environment variables for sensitive configuration
-    - Enable HTTPS
-    - Configure proper CORS origins
+  - Change JWT secret to a secure 256-bit key
+  - Use environment variables for sensitive configuration
+  - Enable HTTPS
+  - Configure proper CORS origins
 
 2. **Database:**
-    - Use connection pooling
-    - Configure proper database indexes
-    - Set up database backups
+  - Use connection pooling
+  - Configure proper database indexes
+  - Set up database backups
 
 3. **Monitoring:**
-    - Enable Spring Boot Actuator endpoints
-    - Set up logging and monitoring
-    - Configure health checks
+  - Enable Spring Boot Actuator endpoints
+  - Set up logging and monitoring
+  - Configure health checks
 
 4. **Performance:**
-    - Implement caching where appropriate
-    - Optimize database queries
-    - Configure proper pagination limits
+  - Implement caching where appropriate
+  - Optimize database queries
+  - Configure proper pagination limits
 
 ## Testing
 

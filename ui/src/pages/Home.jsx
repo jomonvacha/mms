@@ -1,9 +1,9 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
+import {Link} from 'react-router-dom';
+import {useAuth} from '../hooks/useAuth.js';
 
 export default function Home() {
-  const { user, loading } = useAuth();
+  const {user, loading} = useAuth();
 
   return (
     <div className="py-4">

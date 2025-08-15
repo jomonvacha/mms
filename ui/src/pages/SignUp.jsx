@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { register, REGISTER_PATH, validateEndpoint, signin } from '../api/client.js';
-import { useAuth } from '../hooks/useAuth.js';
+import React, {useEffect, useState} from 'react';
+import {Link, useNavigate} from 'react-router-dom';
+import {register, REGISTER_PATH, signin, validateEndpoint} from '../api/client.js';
+import {useAuth} from '../hooks/useAuth.js';
 
 export default function SignUp() {
   const navigate = useNavigate();
-  const { refreshMe } = useAuth();
+  const {refreshMe} = useAuth();
 
   const [username, setUsername] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -27,11 +27,11 @@ export default function SignUp() {
     }
     setLoading(true);
     try {
-      await register({ username, email, password, firstName, lastName, phoneNumber });
+      await register({username, email, password, firstName, lastName, phoneNumber});
       // Auto sign-in after successful registration
-      await signin({ username, password });
+      await signin({username, password});
       await refreshMe();
-      navigate('/', { replace: true });
+      navigate('/', {replace: true});
     } catch (err) {
       setError(err?.message || 'Sign up failed');
     } finally {
@@ -49,7 +49,9 @@ export default function SignUp() {
       const ok = await validateEndpoint(REGISTER_PATH, 'POST');
       if (!cancelled) setEndpointOk(ok);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [/* eslint-disable-line react-hooks/exhaustive-deps */]);
 
   return (

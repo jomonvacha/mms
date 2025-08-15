@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class GoogleIdTokenRequest {
-    @NotBlank
-    private String idToken;
+  @NotBlank
+  private String idToken;
 }
 

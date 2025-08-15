@@ -12,15 +12,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ValidationError {
 
-    @JsonProperty("field")
-    private String field;
+  @JsonProperty("field")
+  private String field;
 
-    @JsonProperty("rejected_value")
-    private Object rejectedValue;
+  @JsonProperty("rejected_value")
+  private Object rejectedValue;
 
-    @JsonProperty("message")
-    private String message;
+  @JsonProperty("message")
+  private String message;
 
-    @JsonProperty("code")
-    private String code;
+  @JsonProperty("code")
+  private String code;
 }

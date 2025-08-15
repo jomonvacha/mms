@@ -29,82 +29,84 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
+  private final RoleRepository roleRepository;
+  private final PasswordEncoder passwordEncoder;
 
-    public UserResponse getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return toResponse(user);
-    }
+  public UserResponse getUserById(Long id) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    return toResponse(user);
+  }
 
-    public UserResponse updateProfile(Long id, UpdateUserProfileRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
-        if (request.getLastName() != null) user.setLastName(request.getLastName());
-        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
-        userRepository.save(user);
-        return toResponse(user);
-    }
+  public UserResponse updateProfile(Long id, UpdateUserProfileRequest request) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+    if (request.getLastName() != null) user.setLastName(request.getLastName());
+    if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+    userRepository.save(user);
+    return toResponse(user);
+  }
 
-    public void changePassword(Long id, ChangePasswordRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BusinessRuleException("Current password is incorrect");
-        }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+  public void changePassword(Long id, ChangePasswordRequest request) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+      throw new BusinessRuleException("Current password is incorrect");
     }
+    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+    userRepository.save(user);
+  }
 
-    public Page<UserResponse> listUsers(int page, int size, String sortBy, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        return userRepository.findAll(pageable).map(this::toResponse);
-    }
+  public Page<UserResponse> listUsers(int page, int size, String sortBy, String sortDir) {
+    Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    return userRepository.findAll(pageable).map(this::toResponse);
+  }
 
-    public UserResponse updateRoles(Long id, UpdateUserRolesRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        Set<Role> newRoles = new HashSet<>();
-        for (String roleName : request.getRoles()) {
-            ERole eRole;
-            try {
-                eRole = ERole.valueOf(roleName);
-            } catch (IllegalArgumentException ex) {
-                throw new BusinessRuleException("Invalid role: " + roleName);
-            }
-            Role role = roleRepository.findByName(eRole)
-                    .orElseThrow(() -> new ResourceNotFoundException("Role", "name", eRole));
-            newRoles.add(role);
-        }
-        user.setRoles(newRoles);
-        userRepository.save(user);
-        return toResponse(user);
+  public UserResponse updateRoles(Long id, UpdateUserRolesRequest request) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    Set<Role> newRoles = new HashSet<>();
+    for (String roleName : request.getRoles()) {
+      ERole eRole;
+      try {
+        eRole = ERole.valueOf(roleName);
+      } catch (IllegalArgumentException ex) {
+        throw new BusinessRuleException("Invalid role: " + roleName);
+      }
+      Role role = roleRepository.findByName(eRole)
+        .orElseThrow(() -> new ResourceNotFoundException("Role", "name", eRole));
+      newRoles.add(role);
     }
+    user.setRoles(newRoles);
+    userRepository.save(user);
+    return toResponse(user);
+  }
 
-    public UserResponse updateStatus(Long id, UpdateUserStatusRequest request) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        user.setActive(request.getActive());
-        userRepository.save(user);
-        return toResponse(user);
-    }
+  public UserResponse updateStatus(Long id, UpdateUserStatusRequest request) {
+    User user = userRepository.findById(id)
+      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+    user.setActive(request.getActive());
+    userRepository.save(user);
+    return toResponse(user);
+  }
 
-    private UserResponse toResponse(User user) {
-        UserResponse response = new UserResponse();
-        response.setId(user.getId());
-        response.setUsername(user.getUsername());
-        response.setEmail(user.getEmail());
-        response.setFirstName(user.getFirstName());
-        response.setLastName(user.getLastName());
-        response.setPhoneNumber(user.getPhoneNumber());
-        response.setActive(user.getActive());
-        response.setCreatedAt(user.getCreatedAt());
-        response.setUpdatedAt(user.getUpdatedAt());
-        response.setRoles(user.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toList()));
-        return response;
-    }
+  private UserResponse toResponse(User user) {
+    UserResponse response = new UserResponse();
+    response.setId(user.getId());
+    response.setUsername(user.getUsername());
+    response.setEmail(user.getEmail());
+    response.setFirstName(user.getFirstName());
+    response.setLastName(user.getLastName());
+    response.setPhoneNumber(user.getPhoneNumber());
+    response.setActive(user.getActive());
+    response.setCreatedAt(user.getCreatedAt());
+    response.setUpdatedAt(user.getUpdatedAt());
+    response.setRoles(user.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toList()));
+    // If password is empty or null, treat as no local password (OAuth-only)
+    response.setHasPassword(user.getPassword() != null && !user.getPassword().isBlank());
+    return response;
+  }
 }

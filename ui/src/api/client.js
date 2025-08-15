@@ -24,30 +24,35 @@ try {
     refreshToken = saved.refreshToken || null;
     tokenType = saved.tokenType || 'Bearer';
   }
-} catch (_) {}
+} catch (_) {
+}
 
 export function setAuthTokens(tokens) {
   accessToken = tokens?.accessToken || tokens?.token || null;
   refreshToken = tokens?.refreshToken || null;
   tokenType = tokens?.tokenType || 'Bearer';
   try {
-    localStorage.setItem('mms_auth', JSON.stringify({ accessToken, refreshToken, tokenType }));
-  } catch (_) {}
+    localStorage.setItem('mms_auth', JSON.stringify({accessToken, refreshToken, tokenType}));
+  } catch (_) {
+  }
 }
 
 export function clearAuthTokens() {
   accessToken = null;
   refreshToken = null;
   tokenType = 'Bearer';
-  try { localStorage.removeItem('mms_auth'); } catch (_) {}
+  try {
+    localStorage.removeItem('mms_auth');
+  } catch (_) {
+  }
 }
 
 let refreshInFlight = null;
 
 async function fetchJson(path, options = {}) {
   const url = isAbsoluteUrl(path) ? path : `${API_BASE}${path}`;
-  const headers = options.headers ? { ...options.headers } : {};
-  const opts = { ...options, credentials: 'include', headers };
+  const headers = options.headers ? {...options.headers} : {};
+  const opts = {...options, credentials: 'include', headers};
 
   if (opts.body && !headers['Content-Type'] && !(opts.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
@@ -76,7 +81,7 @@ async function fetchJson(path, options = {}) {
     if (canRefresh) {
       try {
         await refreshTokens();
-        return fetchJson(path, { ...options, _retry: true });
+        return fetchJson(path, {...options, _retry: true});
       } catch (_) {
         clearAuthTokens();
       }
@@ -108,7 +113,7 @@ export async function validateEndpoint(path, method = 'POST') {
   }
 }
 
-export function signin({ username, password }) {
+export function signin({username, password}) {
   if (!SIGNIN_PATH) {
     const err = new Error('Local signin is not configured');
     err.status = 501;
@@ -116,7 +121,7 @@ export function signin({ username, password }) {
   }
   return fetchJson(SIGNIN_PATH, {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({username, password}),
   }).then((res) => {
     if (res && (res.accessToken || res.token)) {
       setAuthTokens({
@@ -145,16 +150,16 @@ export function signout() {
   if (!SIGNOUT_PATH) {
     // No server endpoint; clear tokens client-side
     clearAuthTokens();
-    return Promise.resolve({ ok: true });
+    return Promise.resolve({ok: true});
   }
-  return fetchJson(SIGNOUT_PATH, { method: 'POST' }).finally(() => clearAuthTokens());
+  return fetchJson(SIGNOUT_PATH, {method: 'POST'}).finally(() => clearAuthTokens());
 }
 
 export function me() {
   return fetchJson('/api/users/me');
 }
 
-export function listMembers({ page = 0, size = 25 } = {}) {
+export function listMembers({page = 0, size = 25} = {}) {
   const qs = `?page=${encodeURIComponent(page)}&size=${encodeURIComponent(size)}`;
   return fetchJson(`/api/members${qs}`).then((data) => {
     if (data && Array.isArray(data.content)) return data.content;
@@ -197,12 +202,16 @@ export async function refreshTokens() {
   refreshInFlight = fetch(urlWithParam, {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
   })
     .then(async (res) => {
       const text = await res.text();
       let data = null;
-      try { data = text ? JSON.parse(text) : null; } catch (_) { data = text || null; }
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch (_) {
+        data = text || null;
+      }
       if (!res.ok) {
         const e = new Error((data && (data.message || data.error || data.detail)) || res.statusText);
         e.status = res.status;

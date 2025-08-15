@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../hooks/useAuth.js';
-import { me, signout, clearAuthTokens, setAuthTokens } from '../api/client.js';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {AuthContext} from '../hooks/useAuth.js';
+import {clearAuthTokens, me, setAuthTokens, signout} from '../api/client.js';
 
-export function AuthProvider({ children }) {
+export function AuthProvider({children}) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,14 +40,15 @@ export function AuthProvider({ children }) {
       const token = params.get('token');
       const refresh = params.get('refreshToken');
       if (token || refresh) {
-        setAuthTokens({ accessToken: token, refreshToken: refresh, tokenType: 'Bearer' });
+        setAuthTokens({accessToken: token, refreshToken: refresh, tokenType: 'Bearer'});
         const url = new URL(window.location.href);
         url.searchParams.delete('token');
         url.searchParams.delete('refreshToken');
         window.history.replaceState({}, '', url.toString());
         setJustAuthed(true);
       }
-    } catch (_) {}
+    } catch (_) {
+    }
 
     loadMe();
   }, [loadMe]);
@@ -56,7 +57,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (justAuthed && user && !loading) {
       setJustAuthed(false);
-      navigate('/members', { replace: true });
+      navigate('/members', {replace: true});
     }
   }, [justAuthed, user, loading, navigate]);
 
@@ -77,11 +78,17 @@ export function AuthProvider({ children }) {
               clearInterval(warnIntervalRef.current);
               // Time's up - perform signout
               (async () => {
-                try { await signout(); } catch (_) {}
-                try { clearAuthTokens(); } catch (_) {}
+                try {
+                  await signout();
+                } catch (_) {
+                }
+                try {
+                  clearAuthTokens();
+                } catch (_) {
+                }
                 setUser(null);
                 setIdleWarning(false);
-                navigate('/signin?autoSignedOut=1', { replace: true });
+                navigate('/signin?autoSignedOut=1', {replace: true});
               })();
               return 0;
             }
@@ -92,7 +99,7 @@ export function AuthProvider({ children }) {
     };
 
     const events = ['mousemove', 'keydown', 'scroll', 'click', 'touchstart', 'visibilitychange'];
-    events.forEach((evt) => window.addEventListener(evt, resetTimer, { passive: true }));
+    events.forEach((evt) => window.addEventListener(evt, resetTimer, {passive: true}));
     resetTimer();
 
     return () => {
@@ -119,11 +126,17 @@ export function AuthProvider({ children }) {
           if (s <= 1) {
             clearInterval(warnIntervalRef.current);
             (async () => {
-              try { await signout(); } catch (_) {}
-              try { clearAuthTokens(); } catch (_) {}
+              try {
+                await signout();
+              } catch (_) {
+              }
+              try {
+                clearAuthTokens();
+              } catch (_) {
+              }
               setUser(null);
               setIdleWarning(false);
-              navigate('/signin?autoSignedOut=1', { replace: true });
+              navigate('/signin?autoSignedOut=1', {replace: true});
             })();
             return 0;
           }
@@ -134,13 +147,19 @@ export function AuthProvider({ children }) {
   }, [AUTO_SIGNOUT_MS, IDLE_WARNING_SECONDS, navigate]);
 
   const confirmSignout = useCallback(async () => {
-    try { await signout(); } catch (_) {}
-    try { clearAuthTokens(); } catch (_) {}
+    try {
+      await signout();
+    } catch (_) {
+    }
+    try {
+      clearAuthTokens();
+    } catch (_) {
+    }
     setUser(null);
     setIdleWarning(false);
     if (warnIntervalRef.current) clearInterval(warnIntervalRef.current);
     if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
-    navigate('/signin?autoSignedOut=1', { replace: true });
+    navigate('/signin?autoSignedOut=1', {replace: true});
   }, [navigate]);
 
   const ctx = {

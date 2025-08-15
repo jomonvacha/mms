@@ -1,14 +1,17 @@
-import { createContext, useContext } from 'react';
+import {createContext, useContext} from 'react';
 
 export const AuthContext = createContext({
   user: null,
   loading: true,
   error: null,
-  refreshMe: async () => {},
+  refreshMe: async () => {
+  },
   idleWarning: false,
   idleCountdown: 0,
-  extendSession: () => {},
-  confirmSignout: () => {},
+  extendSession: () => {
+  },
+  confirmSignout: () => {
+  },
 });
 
 export function useAuth() {

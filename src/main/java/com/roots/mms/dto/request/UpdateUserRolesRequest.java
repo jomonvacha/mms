@@ -13,6 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UpdateUserRolesRequest {
-    @NotEmpty
-    private List<String> roles; // e.g., ["ROLE_USER","ROLE_ADMIN"]
+  @NotEmpty
+  private List<String> roles; // e.g., ["ROLE_USER","ROLE_ADMIN"]
 }

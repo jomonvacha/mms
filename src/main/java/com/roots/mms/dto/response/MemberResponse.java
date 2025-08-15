@@ -15,15 +15,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class MemberResponse {
-    private Long id;
-    private String membershipId;
-    private UserResponse user;
-    private MembershipType membershipType;
-    private MembershipStatus status;
-    private LocalDate membershipStartDate;
-    private LocalDate membershipEndDate;
-    private String notes;
-    private Boolean isActive;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+  private Long id;
+  private String membershipId;
+  private UserResponse user;
+  private MembershipType membershipType;
+  private MembershipStatus status;
+  private LocalDate membershipStartDate;
+  private LocalDate membershipEndDate;
+  private String notes;
+  private Boolean isActive;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 }

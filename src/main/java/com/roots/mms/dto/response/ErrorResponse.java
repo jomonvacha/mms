@@ -17,34 +17,34 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ErrorResponse {
-    @JsonProperty("timestamp")
-    @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+  @JsonProperty("timestamp")
+  @Builder.Default
+  private LocalDateTime timestamp = LocalDateTime.now();
 
-    @JsonProperty("status")
-    private int status;
+  @JsonProperty("status")
+  private int status;
 
-    @JsonProperty("error")
-    private String error;
+  @JsonProperty("error")
+  private String error;
 
-    @JsonProperty("error_code")
-    private String errorCode;
+  @JsonProperty("error_code")
+  private String errorCode;
 
-    @JsonProperty("message")
-    private String message;
+  @JsonProperty("message")
+  private String message;
 
-    @JsonProperty("details")
-    private String details;
+  @JsonProperty("details")
+  private String details;
 
-    @JsonProperty("path")
-    private String path;
+  @JsonProperty("path")
+  private String path;
 
-    @JsonProperty("trace_id")
-    private String traceId;
+  @JsonProperty("trace_id")
+  private String traceId;
 
-    @JsonProperty("validation_errors")
-    private List<ValidationError> validationErrors;
+  @JsonProperty("validation_errors")
+  private List<ValidationError> validationErrors;
 
-    @JsonProperty("metadata")
-    private Map<String, Object> metadata;
+  @JsonProperty("metadata")
+  private Map<String, Object> metadata;
 }

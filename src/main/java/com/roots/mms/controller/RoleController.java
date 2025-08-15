@@ -18,10 +18,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/roles")
 public class RoleController {
 
-    @GetMapping
-    @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
-    public List<String> listRoles() {
-        log.debug("[Role] List roles");
-        return Arrays.stream(ERole.values()).map(Enum::name).collect(Collectors.toList());
-    }
+  @GetMapping
+  @PreAuthorize("hasRole('ADMIN') or hasRole('MODERATOR') or hasRole('MANAGER')")
+  public List<String> listRoles() {
+    log.debug("[Role] List roles");
+    return Arrays.stream(ERole.values()).map(Enum::name).collect(Collectors.toList());
+  }
 }

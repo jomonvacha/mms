@@ -15,11 +15,11 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class UpdateMemberRequest {
-    private MembershipType membershipType;
-    private MembershipStatus status;
-    private LocalDate membershipStartDate;
-    private LocalDate membershipEndDate;
-    @Size(max = 500)
-    private String notes;
-    private Boolean isActive;
+  private MembershipType membershipType;
+  private MembershipStatus status;
+  private LocalDate membershipStartDate;
+  private LocalDate membershipEndDate;
+  @Size(max = 500)
+  private String notes;
+  private Boolean isActive;
 }

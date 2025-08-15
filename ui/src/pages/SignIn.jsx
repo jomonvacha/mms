@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth.js';
-import { signin, API_BASE, SIGNIN_PATH, REGISTER_PATH, validateEndpoint } from '../api/client.js';
+import React, {useEffect, useState} from 'react';
+import {Link, useLocation, useNavigate} from 'react-router-dom';
+import {useAuth} from '../hooks/useAuth.js';
+import {API_BASE, REGISTER_PATH, signin, SIGNIN_PATH, validateEndpoint} from '../api/client.js';
 
 export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { refreshMe } = useAuth();
+  const {refreshMe} = useAuth();
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -22,9 +22,9 @@ export default function SignIn() {
     setError(null);
     setLoading(true);
     try {
-      await signin({ username, password });
+      await signin({username, password});
       await refreshMe();
-      navigate(from === '/signin' ? '/' : from, { replace: true });
+      navigate(from === '/signin' ? '/' : from, {replace: true});
     } catch (err) {
       setError(err?.message || 'Sign in failed');
     } finally {
@@ -47,7 +47,9 @@ export default function SignIn() {
       const ok = await validateEndpoint(SIGNIN_PATH, 'POST');
       if (!cancelled) setEndpointOk(ok);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [localAuthEnabled]);
 
   return (

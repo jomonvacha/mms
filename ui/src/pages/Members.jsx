@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { listMembers, getMemberByUserId } from '../api/client.js';
-import { useAuth } from '../hooks/useAuth.js';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {getMemberByUserId, listMembers} from '../api/client.js';
+import {useAuth} from '../hooks/useAuth.js';
 
 export default function Members() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const {user} = useAuth();
   const [members, setMembers] = useState([]);
   const [myMember, setMyMember] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +13,7 @@ export default function Members() {
 
   useEffect(() => {
     let cancelled = false;
+
     async function load() {
       try {
         // Determine if user is privileged to list all members
@@ -30,7 +31,7 @@ export default function Members() {
         }
       } catch (err) {
         if (err?.status === 401) {
-          navigate('/signin', { replace: true, state: { from: { pathname: '/members' } } });
+          navigate('/signin', {replace: true, state: {from: {pathname: '/members'}}});
           return;
         }
         if (err?.status === 403 && user?.id) {
@@ -49,8 +50,11 @@ export default function Members() {
         if (!cancelled) setLoading(false);
       }
     }
+
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
 
   return (
@@ -71,25 +75,25 @@ export default function Members() {
         <div className="table-responsive">
           <table className="table table-striped align-middle">
             <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Name</th>
-                <th scope="col">Email</th>
-              </tr>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Name</th>
+              <th scope="col">Email</th>
+            </tr>
             </thead>
             <tbody>
-              {members.map((m, idx) => {
-                const u = m.user || {};
-                const name = u.firstName || u.lastName ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim() : (u.username || '—');
-                const email = u.email || '—';
-                return (
-                  <tr key={m.id || idx}>
-                    <th scope="row">{idx + 1}</th>
-                    <td>{name || '—'}</td>
-                    <td>{email}</td>
-                  </tr>
-                );
-              })}
+            {members.map((m, idx) => {
+              const u = m.user || {};
+              const name = u.firstName || u.lastName ? `${u.firstName || ''}${u.lastName ? ' ' + u.lastName : ''}`.trim() : (u.username || '—');
+              const email = u.email || '—';
+              return (
+                <tr key={m.id || idx}>
+                  <th scope="row">{idx + 1}</th>
+                  <td>{name || '—'}</td>
+                  <td>{email}</td>
+                </tr>
+              );
+            })}
             </tbody>
           </table>
         </div>
@@ -130,7 +134,8 @@ export default function Members() {
       )}
 
       {!loading && !error && (!members || members.length === 0) && !myMember && (
-        <div className="alert alert-info">No members to display. You may not have permission to view the full list, and no personal membership was found.</div>
+        <div className="alert alert-info">No members to display. You may not have permission to view the full list, and
+          no personal membership was found.</div>
       )}
     </div>
   );

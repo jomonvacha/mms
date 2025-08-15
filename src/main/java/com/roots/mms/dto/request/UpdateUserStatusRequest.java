@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UpdateUserStatusRequest {
-    @NotNull
-    private Boolean active;
+  @NotNull
+  private Boolean active;
 }

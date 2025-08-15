@@ -13,14 +13,15 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UserResponse {
-    private Long id;
-    private String username;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private String phoneNumber;
-    private Boolean active;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private List<String> roles;
+  private Long id;
+  private String username;
+  private String email;
+  private String firstName;
+  private String lastName;
+  private String phoneNumber;
+  private Boolean active;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+  private List<String> roles;
+  private Boolean hasPassword;
 }

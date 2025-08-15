@@ -20,52 +20,52 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+  @Autowired
+  private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+  @Autowired
+  private ObjectMapper objectMapper;
 
-    @Test
-    void testSignup() throws Exception {
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setUsername("testuser");
-        signupRequest.setEmail("test@example.com");
-        signupRequest.setPassword("password123");
-        signupRequest.setFirstName("Test");
-        signupRequest.setLastName("User");
+  @Test
+  void testSignup() throws Exception {
+    SignupRequest signupRequest = new SignupRequest();
+    signupRequest.setUsername("testuser");
+    signupRequest.setEmail("test@example.com");
+    signupRequest.setPassword("password123");
+    signupRequest.setFirstName("Test");
+    signupRequest.setLastName("User");
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signupRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("User registered successfully!"));
-    }
+    mockMvc.perform(post("/api/auth/signup")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(signupRequest)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.message").value("User registered successfully!"));
+  }
 
-    @Test
-    void testSignin() throws Exception {
-        // First, create a user
-        SignupRequest signupRequest = new SignupRequest();
-        signupRequest.setUsername("loginuser");
-        signupRequest.setEmail("login@example.com");
-        signupRequest.setPassword("password123");
-        signupRequest.setFirstName("Login");
-        signupRequest.setLastName("User");
+  @Test
+  void testSignin() throws Exception {
+    // First, create a user
+    SignupRequest signupRequest = new SignupRequest();
+    signupRequest.setUsername("loginuser");
+    signupRequest.setEmail("login@example.com");
+    signupRequest.setPassword("password123");
+    signupRequest.setFirstName("Login");
+    signupRequest.setLastName("User");
 
-        mockMvc.perform(post("/api/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signupRequest)));
+    mockMvc.perform(post("/api/auth/signup")
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(objectMapper.writeValueAsString(signupRequest)));
 
-        // Then, try to login
-        LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("loginuser");
-        loginRequest.setPassword("password123");
+    // Then, try to login
+    LoginRequest loginRequest = new LoginRequest();
+    loginRequest.setUsername("loginuser");
+    loginRequest.setPassword("password123");
 
-        mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.username").value("loginuser"));
-    }
+    mockMvc.perform(post("/api/auth/signin")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(loginRequest)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.accessToken").exists())
+      .andExpect(jsonPath("$.username").value("loginuser"));
+  }
 }

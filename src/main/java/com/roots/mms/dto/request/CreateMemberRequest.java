@@ -15,16 +15,16 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class CreateMemberRequest {
-    @NotNull
-    private Long userId;
+  @NotNull
+  private Long userId;
 
-    @NotNull
-    private MembershipType membershipType;
+  @NotNull
+  private MembershipType membershipType;
 
-    private LocalDate membershipStartDate;
+  private LocalDate membershipStartDate;
 
-    private LocalDate membershipEndDate;
+  private LocalDate membershipEndDate;
 
-    @Size(max = 500)
-    private String notes;
+  @Size(max = 500)
+  private String notes;
 }

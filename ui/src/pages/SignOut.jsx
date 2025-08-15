@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { signout, clearAuthTokens } from '../api/client.js';
-import { useAuth } from '../hooks/useAuth.js';
+import React, {useEffect} from 'react';
+import {useNavigate} from 'react-router-dom';
+import {clearAuthTokens, signout} from '../api/client.js';
+import {useAuth} from '../hooks/useAuth.js';
 
 export default function SignOut() {
   const navigate = useNavigate();
-  const { refreshMe } = useAuth();
+  const {refreshMe} = useAuth();
 
   useEffect(() => {
     let cancelled = false;
+
     async function doSignout() {
       try {
         await signout();
@@ -17,14 +18,20 @@ export default function SignOut() {
       } finally {
         if (!cancelled) {
           // Ensure tokens are cleared
-          try { clearAuthTokens(); } catch (_) {}
+          try {
+            clearAuthTokens();
+          } catch (_) {
+          }
           await refreshMe();
-          navigate('/signin', { replace: true });
+          navigate('/signin', {replace: true});
         }
       }
     }
+
     doSignout();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [navigate, refreshMe]);
 
   return (

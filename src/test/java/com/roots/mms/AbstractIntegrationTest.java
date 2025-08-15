@@ -20,40 +20,40 @@ import java.util.List;
 import java.util.Set;
 
 @SpringBootTest(properties = {
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration,org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientWebSecurityAutoConfiguration"
+  "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientAutoConfiguration,org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientWebSecurityAutoConfiguration"
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public abstract class AbstractIntegrationTest {
 
-    @Autowired
-    protected MockMvc mockMvc;
-    @Autowired
-    protected ObjectMapper objectMapper;
-    @Autowired
-    protected UserRepository userRepository;
-    @Autowired
-    protected RoleRepository roleRepository;
-    @Autowired
-    protected PasswordEncoder passwordEncoder;
-    @Autowired
-    protected MemberRepository memberRepository;
+  @Autowired
+  protected MockMvc mockMvc;
+  @Autowired
+  protected ObjectMapper objectMapper;
+  @Autowired
+  protected UserRepository userRepository;
+  @Autowired
+  protected RoleRepository roleRepository;
+  @Autowired
+  protected PasswordEncoder passwordEncoder;
+  @Autowired
+  protected MemberRepository memberRepository;
 
-    @BeforeEach
-    void clearUsers() {
-        // clean members first to avoid FK violations, then users
-        memberRepository.deleteAll();
-        userRepository.deleteAll();
-    }
+  @BeforeEach
+  void clearUsers() {
+    // clean members first to avoid FK violations, then users
+    memberRepository.deleteAll();
+    userRepository.deleteAll();
+  }
 
-    protected User createUser(String username, String email, String rawPassword, List<ERole> roles) {
-        User u = new User(username, email, passwordEncoder.encode(rawPassword), "Test", "User");
-        Set<Role> rs = new HashSet<>();
-        for (ERole r : roles) {
-            rs.add(roleRepository.findByName(r).orElseThrow());
-        }
-        u.setRoles(rs);
-        u.setActive(true);
-        return userRepository.save(u);
+  protected User createUser(String username, String email, String rawPassword, List<ERole> roles) {
+    User u = new User(username, email, passwordEncoder.encode(rawPassword), "Test", "User");
+    Set<Role> rs = new HashSet<>();
+    for (ERole r : roles) {
+      rs.add(roleRepository.findByName(r).orElseThrow());
     }
+    u.setRoles(rs);
+    u.setActive(true);
+    return userRepository.save(u);
+  }
 }

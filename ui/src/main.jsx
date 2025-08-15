@@ -1,8 +1,8 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import {createRoot} from 'react-dom/client';
+import {BrowserRouter} from 'react-router-dom';
 import App from './App.jsx';
-import { AuthProvider } from './context/AuthProvider.jsx';
+import {AuthProvider} from './context/AuthProvider.jsx';
 import ThemeProvider from './context/ThemeProvider.jsx';
 
 const rootEl = document.getElementById('root');
@@ -13,7 +13,7 @@ root.render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <App />
+          <App/>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

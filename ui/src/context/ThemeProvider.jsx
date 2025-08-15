@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ThemeContext } from '../hooks/useTheme.js';
+import React, {useEffect, useMemo, useState} from 'react';
+import {ThemeContext} from '../hooks/useTheme.js';
 
-export default function ThemeProvider({ children }) {
+export default function ThemeProvider({children}) {
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('mms_theme');
@@ -12,7 +12,10 @@ export default function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
-    try { localStorage.setItem('mms_theme', theme); } catch (_) {}
+    try {
+      localStorage.setItem('mms_theme', theme);
+    } catch (_) {
+    }
     const el = document.documentElement;
     el.setAttribute('data-bs-theme', theme);
   }, [theme]);

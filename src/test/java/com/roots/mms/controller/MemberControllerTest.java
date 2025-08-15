@@ -22,66 +22,66 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class MemberControllerTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private MemberRepository memberRepository;
+  @Autowired
+  private MemberRepository memberRepository;
 
-    private String modToken;
-    private String userToken;
-    private Long userId;
+  private String modToken;
+  private String userToken;
+  private Long userId;
 
-    @BeforeEach
-    void setup() throws Exception {
-        createUser("mod", "mod@example.com", "pass", List.of(ERole.ROLE_MODERATOR, ERole.ROLE_USER));
-        modToken = loginAndGetToken("mod", "pass");
+  @BeforeEach
+  void setup() throws Exception {
+    createUser("mod", "mod@example.com", "pass", List.of(ERole.ROLE_MODERATOR, ERole.ROLE_USER));
+    modToken = loginAndGetToken("mod", "pass");
 
-        userId = createUser("u1", "u1@example.com", "p1", List.of(ERole.ROLE_USER)).getId();
-        userToken = loginAndGetToken("u1", "p1");
-    }
+    userId = createUser("u1", "u1@example.com", "p1", List.of(ERole.ROLE_USER)).getId();
+    userToken = loginAndGetToken("u1", "p1");
+  }
 
-    @Test
-    void createMemberAsModerator_andAccessRules() throws Exception {
-        CreateMemberRequest req = new CreateMemberRequest();
-        req.setUserId(userId);
-        req.setMembershipType(MembershipType.BASIC);
-        req.setMembershipStartDate(LocalDate.now());
+  @Test
+  void createMemberAsModerator_andAccessRules() throws Exception {
+    CreateMemberRequest req = new CreateMemberRequest();
+    req.setUserId(userId);
+    req.setMembershipType(MembershipType.BASIC);
+    req.setMembershipStartDate(LocalDate.now());
 
-        MvcResult created = mockMvc.perform(post("/api/members")
-                        .header("Authorization", "Bearer " + modToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andReturn();
-        Long memberId = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asLong();
-        assertThat(memberId).isNotNull();
+    MvcResult created = mockMvc.perform(post("/api/members")
+        .header("Authorization", "Bearer " + modToken)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+      .andExpect(status().isOk())
+      .andReturn();
+    Long memberId = objectMapper.readTree(created.getResponse().getContentAsString()).get("id").asLong();
+    assertThat(memberId).isNotNull();
 
-        // owner can access own member via /user/{id}
-        mockMvc.perform(get("/api/members/user/" + userId)
-                        .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isOk());
+    // owner can access own member via /user/{id}
+    mockMvc.perform(get("/api/members/user/" + userId)
+        .header("Authorization", "Bearer " + userToken))
+      .andExpect(status().isOk());
 
-        // non-owner user denied
-        createUser("u2", "u2@example.com", "p2", List.of(ERole.ROLE_USER));
-        String otherToken = loginAndGetToken("u2", "p2");
-        mockMvc.perform(get("/api/members/" + memberId)
-                        .header("Authorization", "Bearer " + otherToken))
-                .andExpect(status().isForbidden());
+    // non-owner user denied
+    createUser("u2", "u2@example.com", "p2", List.of(ERole.ROLE_USER));
+    String otherToken = loginAndGetToken("u2", "p2");
+    mockMvc.perform(get("/api/members/" + memberId)
+        .header("Authorization", "Bearer " + otherToken))
+      .andExpect(status().isForbidden());
 
-        // moderator can list
-        mockMvc.perform(get("/api/members?page=0&size=10")
-                        .header("Authorization", "Bearer " + modToken))
-                .andExpect(status().isOk());
-    }
+    // moderator can list
+    mockMvc.perform(get("/api/members?page=0&size=10")
+        .header("Authorization", "Bearer " + modToken))
+      .andExpect(status().isOk());
+  }
 
-    private String loginAndGetToken(String username, String password) throws Exception {
-        LoginRequest login = new LoginRequest();
-        login.setUsername(username);
-        login.setPassword(password);
-        MvcResult res = mockMvc.perform(post("/api/auth/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(login)))
-                .andExpect(status().isOk())
-                .andReturn();
-        return objectMapper.readTree(res.getResponse().getContentAsString()).get("accessToken").asText();
-    }
+  private String loginAndGetToken(String username, String password) throws Exception {
+    LoginRequest login = new LoginRequest();
+    login.setUsername(username);
+    login.setPassword(password);
+    MvcResult res = mockMvc.perform(post("/api/auth/signin")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(login)))
+      .andExpect(status().isOk())
+      .andReturn();
+    return objectMapper.readTree(res.getResponse().getContentAsString()).get("accessToken").asText();
+  }
 }
 
