@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../hooks/useAuth.js';
-import { me, signout, clearAuthTokens } from '../api/client.js';
+import { me, signout, clearAuthTokens, setAuthTokens } from '../api/client.js';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const navigate = useNavigate();
   const idleTimerRef = useRef(null);
   const warnIntervalRef = useRef(null);
+  const [justAuthed, setJustAuthed] = useState(false);
   const AUTO_SIGNOUT_MINUTES = Number(import.meta.env.VITE_AUTO_SIGNOUT_MINUTES || 0);
   const AUTO_SIGNOUT_MS = AUTO_SIGNOUT_MINUTES > 0 ? AUTO_SIGNOUT_MINUTES * 60 * 1000 : 0;
   const IDLE_WARNING_SECONDS = Number(import.meta.env.VITE_IDLE_WARNING_SECONDS || 60);
@@ -33,8 +34,31 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
+    // If OAuth2 success handler redirected with tokens (?token=&refreshToken=), capture them once
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('token');
+      const refresh = params.get('refreshToken');
+      if (token || refresh) {
+        setAuthTokens({ accessToken: token, refreshToken: refresh, tokenType: 'Bearer' });
+        const url = new URL(window.location.href);
+        url.searchParams.delete('token');
+        url.searchParams.delete('refreshToken');
+        window.history.replaceState({}, '', url.toString());
+        setJustAuthed(true);
+      }
+    } catch (_) {}
+
     loadMe();
   }, [loadMe]);
+
+  // After successful OAuth token capture and user load, redirect to /members
+  useEffect(() => {
+    if (justAuthed && user && !loading) {
+      setJustAuthed(false);
+      navigate('/members', { replace: true });
+    }
+  }, [justAuthed, user, loading, navigate]);
 
   // Idle auto-signout with confirmation modal
   useEffect(() => {

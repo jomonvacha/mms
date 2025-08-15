@@ -87,7 +87,9 @@ docker compose up --build ui
 - Buttons on the Sign In page redirect to backend-managed routes:
   - Google: `/oauth2/authorization/google`
   - Apple: `/oauth2/authorization/apple`
-- After OAuth, the backend redirects back to the UI (e.g., `http://localhost:3000/`). The UI then calls `/api/users/me` to finalize the session.
+- After OAuth, the backend should redirect back to the UI (e.g., `http://localhost:3000/`).
+  - Configure in MMS backend: `app.oauth2.authorized-redirect-uri=http://localhost:3000/` (or your deployed UI URL).
+  - The backend success handler appends `?token=...&refreshToken=...` to the redirect. The UI captures these once and stores them, then calls `/api/users/me` and auto-redirects to `/members`.
 - Configure OAuth redirect URIs in your identity providers to match your backend’s endpoints and UI origin.
 
 ## Auth Model

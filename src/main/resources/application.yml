@@ -32,7 +32,7 @@ spring:
   web:
     resources:
       add-mappings: false
-  
+
   # Jackson Configuration
   jackson:
     serialization:
@@ -72,7 +72,8 @@ app:
   auth:
     auto-provision: true
   oauth2:
-    authorized-redirect-uri: http://localhost:8080/oauth2/callback-dev
+#    authorized-redirect-uri: http://localhost:8080/oauth2/callback-dev
+    authorized-redirect-uri: http://localhost:3000
   admin:
     enabled: true
     username: admin
