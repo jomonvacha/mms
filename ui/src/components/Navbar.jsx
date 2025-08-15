@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {useAuth} from '../hooks/useAuth.js';
-import {REGISTER_PATH, getMyAvatarBlob} from '../api/client.js';
+import {getMyAvatarBlob} from '../api/client.js';
 import AccountModal from './AccountModal.jsx';
 
 export default function Navbar() {
@@ -198,13 +198,7 @@ export default function Navbar() {
                     Sign In
                   </NavLink>
                 </li>
-                {Boolean(REGISTER_PATH) && (
-                  <li className="nav-item">
-                    <NavLink className={({isActive}) => 'nav-link' + (isActive ? ' active' : '')} to="/signup">
-                      Sign Up
-                    </NavLink>
-                  </li>
-                )}
+                {/* Sign Up removed from navbar as requested */}
               </>
             )}
 
