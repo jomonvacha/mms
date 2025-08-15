@@ -70,7 +70,8 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState(null);
@@ -88,7 +89,8 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     if (user && isOpen) {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
-      setDisplayName([user.firstName, user.lastName].filter(Boolean).join(' '));
+      setEmail(user.email || '');
+      setPhoneNumber(user.phoneNumber || '');
       (async () => {
         try {
           const blob = await fetchAvatarBlob();
@@ -125,7 +127,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     }
     setSubmitting(true);
     try {
-      await updateMe({firstName, lastName, phoneNumber: user?.phoneNumber});
+      await updateMe({firstName, lastName, email, phoneNumber});
       await refreshMe();
       setAlert({type: 'success', text: 'Profile updated.'});
     } catch (err) {
@@ -194,8 +196,12 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           <input className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)}/>
         </div>
         <div className="mb-3">
-          <label className="form-label">Display name</label>
-          <input className="form-control" value={displayName} onChange={(e) => setDisplayName(e.target.value)}/>
+          <label className="form-label">Email</label>
+          <input className="form-control" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
+        </div>
+        <div className="mb-3">
+          <label className="form-label">Phone</label>
+          <input className="form-control" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Optional"/>
         </div>
         <div className="mb-3">
           <label className="form-label">Profile picture</label>
@@ -323,7 +329,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
         </div>
       </form>
     );
-  }, [activeTab, firstName, lastName, displayName, avatarUrl, currentPassword, newPassword, confirmPassword, prefs, submitting]);
+  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, currentPassword, newPassword, confirmPassword, prefs, submitting]);
 
   if (!isOpen) return null;
 

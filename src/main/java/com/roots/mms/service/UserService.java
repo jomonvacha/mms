@@ -9,6 +9,7 @@ import com.roots.mms.entity.ERole;
 import com.roots.mms.entity.Role;
 import com.roots.mms.entity.User;
 import com.roots.mms.exception.BusinessRuleException;
+import com.roots.mms.exception.DuplicateResourceException;
 import com.roots.mms.exception.ResourceNotFoundException;
 import com.roots.mms.repository.RoleRepository;
 import com.roots.mms.repository.UserRepository;
@@ -39,14 +40,23 @@ public class UserService {
     return toResponse(user);
   }
 
-  public UserResponse updateProfile(Long id, UpdateUserProfileRequest request) {
-    User user = userRepository.findById(id)
-      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-    if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
-    if (request.getLastName() != null) user.setLastName(request.getLastName());
-    if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
-    userRepository.save(user);
-    return toResponse(user);
+    public UserResponse updateProfile(Long id, UpdateUserProfileRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        if (request.getEmail() != null) {
+            String newEmail = request.getEmail();
+            if (!newEmail.equalsIgnoreCase(user.getEmail())) {
+                if (userRepository.existsByEmail(newEmail)) {
+                    throw new DuplicateResourceException("User", "email", newEmail);
+                }
+                user.setEmail(newEmail);
+            }
+        }
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        userRepository.save(user);
+        return toResponse(user);
   }
 
   public void changePassword(Long id, ChangePasswordRequest request) {
