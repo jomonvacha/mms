@@ -43,7 +43,9 @@ export default function Navbar() {
   }, [user]);
 
   // Load navbar display preference
-  const [navbarDisplay, setNavbarDisplay] = React.useState('avatar');
+  const [navbarDisplay, setNavbarDisplay] = React.useState(() => {
+    try { return localStorage.getItem('mms_navbarDisplay') || 'avatar'; } catch (_) { return 'avatar'; }
+  });
   React.useEffect(() => {
     let cancelled = false;
     async function loadPrefs() {
@@ -52,12 +54,25 @@ export default function Navbar() {
         const prefs = await res.getPreferences();
         if (!cancelled && prefs && (prefs.navbarDisplay === 'name' || prefs.navbarDisplay === 'avatar')) {
           setNavbarDisplay(prefs.navbarDisplay);
+          try { localStorage.setItem('mms_navbarDisplay', prefs.navbarDisplay); } catch (_) {}
         }
       } catch (_) {}
     }
     if (user) loadPrefs();
     return () => { cancelled = true; };
   }, [user]);
+
+  // Listen for preference updates to apply instantly
+  React.useEffect(() => {
+    const handler = (e) => {
+      const prefs = e.detail || {};
+      if (prefs.navbarDisplay === 'name' || prefs.navbarDisplay === 'avatar') {
+        setNavbarDisplay(prefs.navbarDisplay);
+      }
+    };
+    window.addEventListener('mms:prefsUpdated', handler);
+    return () => window.removeEventListener('mms:prefsUpdated', handler);
+  }, []);
 
   const navClass = 'navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom';
 

@@ -214,6 +214,9 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           emailNotifications: Boolean(saved.emailNotifications),
           navbarDisplay: saved.navbarDisplay || 'avatar',
         });
+        // Persist navbar display locally and notify listeners for instant UI update
+        try { localStorage.setItem('mms_navbarDisplay', saved.navbarDisplay || 'avatar'); } catch (_) {}
+        try { window.dispatchEvent(new CustomEvent('mms:prefsUpdated', { detail: saved })); } catch (_) {}
       }
       // Apply theme immediately
       if (saved && saved.theme) {
@@ -246,11 +249,11 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     if (activeTab === 'profile') return (
       <form onSubmit={submitProfile}>
         <div className="mb-3">
-          <label className="form-label">First name</label>
+          <label className="form-label">First Name</label>
           <input className="form-control" value={firstName} onChange={(e) => setFirstName(e.target.value)}/>
         </div>
         <div className="mb-3">
-          <label className="form-label">Last name</label>
+          <label className="form-label">Last Name</label>
           <input className="form-control" value={lastName} onChange={(e) => setLastName(e.target.value)}/>
         </div>
         <div className="mb-3">
@@ -262,7 +265,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           <input className="form-control" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Optional"/>
         </div>
         <div className="mb-3">
-          <label className="form-label">Profile picture</label>
+          <label className="form-label">Profile Picture</label>
           <div
             className="border rounded p-3 text-center"
             onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
@@ -296,7 +299,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 {initials}
               </div>
             )}
-            <div className="text-muted small">Drag & drop an image here to upload (PNG/JPG/GIF, max 5MB)</div>
+            <div className="text-muted small">Drag and drop an image here to upload (PNG/JPG/GIF, max 5 MB).</div>
             {uploadingAvatar && <div className="text-info small mt-2">Uploading…</div>}
             {avatarError && <div className="text-danger small mt-2">{avatarError}</div>}
           </div>
@@ -326,17 +329,17 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       return (
         <form onSubmit={submitPassword}>
           <div className="mb-3">
-            <label className="form-label">Current password</label>
+            <label className="form-label">Current Password</label>
             <input type="password" className="form-control" value={currentPassword}
                    onChange={(e) => setCurrentPassword(e.target.value)} required/>
           </div>
           <div className="mb-3">
-            <label className="form-label">New password</label>
+            <label className="form-label">New Password</label>
             <input type="password" className="form-control" value={newPassword}
                    onChange={(e) => setNewPassword(e.target.value)} required/>
           </div>
           <div className="mb-3">
-            <label className="form-label">Confirm new password</label>
+            <label className="form-label">Confirm New Password</label>
             <input type="password" className="form-control" value={confirmPassword}
                    onChange={(e) => setConfirmPassword(e.target.value)} required/>
           </div>
@@ -354,18 +357,38 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     }
     return (
       <form onSubmit={submitPreferences}>
-        <fieldset className="mb-3">
-          <legend className="form-label">Theme</legend>
-          {['system', 'light', 'dark'].map((opt) => (
-            <div className="form-check" key={opt}>
-              <input className="form-check-input" type="radio" name="theme" id={`theme-${opt}`}
-                     checked={prefs.theme === opt} onChange={() => setPrefs({...prefs, theme: opt})}/>
-              <label className="form-check-label" htmlFor={`theme-${opt}`}>{opt}</label>
+        <div className="mb-3">
+          <div className="border rounded p-3">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="btn-group" role="group" aria-label="Theme selection">
+                <input type="radio" className="btn-check" name="theme" id="theme-system"
+                       checked={prefs.theme === 'system'} onChange={() => setPrefs({...prefs, theme: 'system'})}/>
+                <label className="btn btn-outline-secondary" htmlFor="theme-system">
+                  System
+                  <span className="text-muted ms-1 small">({(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'Dark' : 'Light'})</span>
+                </label>
+
+                <input type="radio" className="btn-check" name="theme" id="theme-light"
+                       checked={prefs.theme === 'light'} onChange={() => setPrefs({...prefs, theme: 'light'})}/>
+                <label className="btn btn-outline-secondary" htmlFor="theme-light">Light</label>
+
+                <input type="radio" className="btn-check" name="theme" id="theme-dark"
+                       checked={prefs.theme === 'dark'} onChange={() => setPrefs({...prefs, theme: 'dark'})}/>
+                <label className="btn btn-outline-secondary" htmlFor="theme-dark">Dark</label>
+              </div>
             </div>
-          ))}
-        </fieldset>
+            <div data-bs-theme={(prefs.theme === 'system') ? ((window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light') : prefs.theme}>
+              <div className="card">
+                <div className="card-body">
+                  <h6 className="card-title mb-1">Preview</h6>
+                  <p className="card-text text-muted mb-0">This is how the UI looks.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         <fieldset className="mb-3">
-          <legend className="form-label">Navbar display</legend>
+          <legend className="form-label">Navbar Display</legend>
           {['avatar','name'].map((opt) => (
             <div className="form-check" key={opt}>
               <input className="form-check-input" type="radio" name="navbarDisplay" id={`nav-${opt}`}
@@ -386,7 +409,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
         <div className="form-check form-switch mb-3">
           <input className="form-check-input" type="checkbox" id="emailNotifications" checked={prefs.emailNotifications}
                  onChange={(e) => setPrefs({...prefs, emailNotifications: e.target.checked})}/>
-          <label className="form-check-label" htmlFor="emailNotifications">Email notifications</label>
+          <label className="form-check-label" htmlFor="emailNotifications">Email Notifications</label>
         </div>
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary"
@@ -413,7 +436,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
              tabIndex={-1}>
           <div className="d-flex align-items-start gap-3 p-4 border-bottom">
             <div className="flex-grow-1">
-              <h2 id="accountSettingsTitle" className="h5 mb-0">Account settings</h2>
+              <h2 id="accountSettingsTitle" className="h5 mb-0">Account Settings</h2>
               <div className="text-muted small">{user?.firstName} {user?.lastName}</div>
             </div>
             <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => {
