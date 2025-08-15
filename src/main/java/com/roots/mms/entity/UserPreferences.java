@@ -28,5 +28,7 @@ public class UserPreferences {
 
     @Column(name = "email_notifications")
     private Boolean emailNotifications = Boolean.TRUE;
-}
 
+    @Column(name = "navbar_display", length = 10)
+    private String navbarDisplay = "avatar"; // avatar | name
+}

@@ -13,5 +13,5 @@ public class UserPreferencesResponse {
     private String theme;
     private String language;
     private boolean emailNotifications;
+    private String navbarDisplay;
 }
-

@@ -20,5 +20,7 @@ public class UserPreferencesRequest {
     private String language;
 
     private boolean emailNotifications;
-}
 
+    @Pattern(regexp = "^(avatar|name)$")
+    private String navbarDisplay;
+}

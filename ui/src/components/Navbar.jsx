@@ -42,6 +42,23 @@ export default function Navbar() {
     return () => { if (revoke && revoke.startsWith('blob:')) URL.revokeObjectURL(revoke); };
   }, [user]);
 
+  // Load navbar display preference
+  const [navbarDisplay, setNavbarDisplay] = React.useState('avatar');
+  React.useEffect(() => {
+    let cancelled = false;
+    async function loadPrefs() {
+      try {
+        const res = await import('../api/client.js');
+        const prefs = await res.getPreferences();
+        if (!cancelled && prefs && (prefs.navbarDisplay === 'name' || prefs.navbarDisplay === 'avatar')) {
+          setNavbarDisplay(prefs.navbarDisplay);
+        }
+      } catch (_) {}
+    }
+    if (user) loadPrefs();
+    return () => { cancelled = true; };
+  }, [user]);
+
   const navClass = 'navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom';
 
   return (
@@ -83,23 +100,36 @@ export default function Navbar() {
             ) : user ? (
               <>
                 <li className="nav-item dropdown d-flex align-items-center">
-                  <a
-                    href="#"
-                    className="nav-link p-0"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                    id="userMenuDropdown"
-                    aria-label="Open user menu"
-                  >
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
-                    ) : (
-                      <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white" style={{ width: 32, height: 32, fontSize: 12, fontWeight: 600 }}>
-                        {initials}
-                      </span>
-                    )}
-                  </a>
+                  {navbarDisplay === 'name' ? (
+                    <a
+                      className="nav-link dropdown-toggle"
+                      href="#"
+                      id="userMenuDropdown"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      {firstName}
+                    </a>
+                  ) : (
+                    <a
+                      href="#"
+                      className="nav-link p-0"
+                      role="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                      id="userMenuDropdown"
+                      aria-label="Open user menu"
+                    >
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white" style={{ width: 32, height: 32, fontSize: 12, fontWeight: 600 }}>
+                          {initials}
+                        </span>
+                      )}
+                    </a>
+                  )}
                   <ul className="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuDropdown"
                       style={{minWidth: '16rem'}}>
                     <li>

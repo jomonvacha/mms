@@ -32,7 +32,7 @@ public class UserPreferencesController {
         return preferencesRepository.findById(userId)
                 .map(up -> ResponseEntity.ok(toResponse(up)))
                 .orElse(ResponseEntity.ok(UserPreferencesResponse.builder()
-                        .theme("system").language("en").emailNotifications(true).build()));
+                        .theme("system").language("en").emailNotifications(true).navbarDisplay("avatar").build()));
     }
 
     @PostMapping
@@ -47,6 +47,12 @@ public class UserPreferencesController {
         prefs.setTheme(req.getTheme());
         prefs.setLanguage(req.getLanguage());
         prefs.setEmailNotifications(req.isEmailNotifications());
+        // Validate navbarDisplay
+        String nav = req.getNavbarDisplay();
+        if (nav == null || !(nav.equals("avatar") || nav.equals("name"))) {
+            nav = "avatar";
+        }
+        prefs.setNavbarDisplay(nav);
         preferencesRepository.save(prefs);
         log.info("Updated preferences for userId={} theme={} lang={}", userId, req.getTheme(), req.getLanguage());
         return ResponseEntity.ok(toResponse(prefs));
@@ -57,6 +63,7 @@ public class UserPreferencesController {
                 .theme(up.getTheme())
                 .language(up.getLanguage())
                 .emailNotifications(Boolean.TRUE.equals(up.getEmailNotifications()))
+                .navbarDisplay(up.getNavbarDisplay() == null ? "avatar" : up.getNavbarDisplay())
                 .build();
     }
 }

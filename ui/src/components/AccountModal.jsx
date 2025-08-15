@@ -121,6 +121,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           theme: p.theme || 'system',
           language: p.language || 'en',
           emailNotifications: Boolean(p.emailNotifications),
+          navbarDisplay: p.navbarDisplay || 'avatar',
         });
       } catch (_) {
         // keep defaults
@@ -134,7 +135,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [prefs, setPrefs] = useState({theme: 'system', language: 'en', emailNotifications: true});
+  const [prefs, setPrefs] = useState({theme: 'system', language: 'en', emailNotifications: true, navbarDisplay: 'avatar'});
 
   const canClose = !submitting;
   const closeIfAllowed = useCallback(() => {
@@ -211,6 +212,7 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           theme: saved.theme || 'system',
           language: saved.language || 'en',
           emailNotifications: Boolean(saved.emailNotifications),
+          navbarDisplay: saved.navbarDisplay || 'avatar',
         });
       }
       // Apply theme immediately
@@ -359,6 +361,16 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
               <input className="form-check-input" type="radio" name="theme" id={`theme-${opt}`}
                      checked={prefs.theme === opt} onChange={() => setPrefs({...prefs, theme: opt})}/>
               <label className="form-check-label" htmlFor={`theme-${opt}`}>{opt}</label>
+            </div>
+          ))}
+        </fieldset>
+        <fieldset className="mb-3">
+          <legend className="form-label">Navbar display</legend>
+          {['avatar','name'].map((opt) => (
+            <div className="form-check" key={opt}>
+              <input className="form-check-input" type="radio" name="navbarDisplay" id={`nav-${opt}`}
+                     checked={prefs.navbarDisplay === opt} onChange={() => setPrefs({...prefs, navbarDisplay: opt})}/>
+              <label className="form-check-label" htmlFor={`nav-${opt}`}>{opt.charAt(0).toUpperCase()+opt.slice(1)}</label>
             </div>
           ))}
         </fieldset>
