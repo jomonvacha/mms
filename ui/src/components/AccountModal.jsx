@@ -239,11 +239,20 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     }
   };
 
-  const SidebarItem = ({tab, label}) => (
-    <button type="button"
-            className={'btn w-100 text-start mb-1 ' + (activeTab === tab ? 'btn-light' : 'btn-outline-secondary')}
-            onClick={() => setActiveTab(tab)}>{label}</button>
-  );
+  const SidebarItem = ({tab, label}) => {
+    const isActive = activeTab === tab;
+    return (
+      <button
+        type="button"
+        className={'btn w-100 text-start mb-1 btn-outline-secondary ' + (isActive ? 'fw-semibold' : '')}
+        aria-current={isActive ? 'page' : undefined}
+        onClick={() => setActiveTab(tab)}
+        style={isActive ? { boxShadow: 'inset 0.25rem 0 0 var(--bs-primary)' } : undefined}
+      >
+        {label}
+      </button>
+    );
+  };
 
   const rightPanel = useMemo(() => {
     if (activeTab === 'profile') return (
@@ -422,7 +431,6 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 <div className="border rounded-3 p-3 bg-body" data-bs-theme={resolved}>
                   <h6 className="mb-1">Preview</h6>
                   <p className="text-body-secondary mb-3">Colors and contrast reflect the theme.</p>
-                  <button type="button" className="btn btn-primary btn-sm mb-3">Primary action</button>
                   <div className="card">
                     <div className="card-body">
                       <div className="fw-semibold mb-1">Card title</div>
