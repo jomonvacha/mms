@@ -1,7 +1,7 @@
 import React from 'react';
 import {Link, NavLink} from 'react-router-dom';
 import {useAuth} from '../hooks/useAuth.js';
-import {REGISTER_PATH} from '../api/client.js';
+import {REGISTER_PATH, getMyAvatarBlob} from '../api/client.js';
 import AccountModal from './AccountModal.jsx';
 
 export default function Navbar() {
@@ -13,6 +13,34 @@ export default function Navbar() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [initialTab, setInitialTab] = React.useState('profile');
   const canChangePassword = Boolean(user?.hasPassword === true);
+  const [avatarUrl, setAvatarUrl] = React.useState('');
+  const initials = React.useMemo(() => {
+    const fn = (user?.firstName || '').trim();
+    const ln = (user?.lastName || '').trim();
+    const a = fn ? fn[0] : '';
+    const b = ln ? ln[0] : '';
+    if (a || b) return (a + b).toUpperCase();
+    const un = (user?.username || user?.email || '').trim();
+    return un ? un[0].toUpperCase() : '?';
+  }, [user]);
+
+  // Load avatar blob for navbar display
+  React.useEffect(() => {
+    let revoke;
+    async function load() {
+      if (!user) { setAvatarUrl(''); return; }
+      try {
+        const blob = await getMyAvatarBlob();
+        const url = URL.createObjectURL(blob);
+        revoke = url;
+        setAvatarUrl(url);
+      } catch (_) {
+        setAvatarUrl('');
+      }
+    }
+    load();
+    return () => { if (revoke && revoke.startsWith('blob:')) URL.revokeObjectURL(revoke); };
+  }, [user]);
 
   const navClass = 'navbar navbar-expand-lg sticky-top bg-body-tertiary border-bottom';
 
@@ -54,7 +82,7 @@ export default function Navbar() {
               </li>
             ) : user ? (
               <>
-                <li className="nav-item dropdown">
+                <li className="nav-item dropdown d-flex align-items-center">
                   <a
                     className="nav-link dropdown-toggle"
                     href="#"
@@ -64,6 +92,22 @@ export default function Navbar() {
                     aria-expanded="false"
                   >
                     {firstName}
+                  </a>
+                  <a
+                    href="#"
+                    className="nav-link p-0 ms-2"
+                    role="button"
+                    data-bs-toggle="dropdown"
+                    aria-expanded="false"
+                    aria-label="Open user menu"
+                  >
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} />
+                    ) : (
+                      <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-secondary text-white" style={{ width: 32, height: 32, fontSize: 12, fontWeight: 600 }}>
+                        {initials}
+                      </span>
+                    )}
                   </a>
                   <ul className="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userMenuDropdown"
                       style={{minWidth: '16rem'}}>
