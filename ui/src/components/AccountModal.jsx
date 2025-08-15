@@ -428,11 +428,15 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
                 }
               }
               return (
-                <div className="border rounded-3 p-3 bg-body" data-bs-theme={resolved}>
-                  <h6 className="mb-1">Preview</h6>
-                  <p className="text-body-secondary mb-3">Colors and contrast reflect the theme.</p>
+                <div
+                  className="border rounded-3 p-2 bg-body small"
+                  style={{ maxWidth: 360 }}
+                  data-bs-theme={resolved}
+                >
+                  <div className="h6 mb-2">Preview</div>
+                  <p className="text-body-secondary mb-2">Colors and contrast reflect the theme.</p>
                   <div className="card">
-                    <div className="card-body">
+                    <div className="card-body p-2">
                       <div className="fw-semibold mb-1">Card title</div>
                       <p className="text-body-secondary mb-0">Example text to show contrast.</p>
                     </div>
