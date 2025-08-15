@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 3000 --strictPort"
+    "preview": "vite preview --port 3000 --strictPort",
+    "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "lint": "eslint ."
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -15,7 +17,10 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "prettier": "^3.6.2",
     "vite": "^5.4.1"
   }
 }
-

@@ -6,7 +6,6 @@ import SignUp from './pages/SignUp.jsx';
 import Members from './pages/Members.jsx';
 import SignOut from './pages/SignOut.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import Profile from './pages/Profile.jsx';
 
 export default function RoutesConfig() {
   return (
@@ -19,14 +18,6 @@ export default function RoutesConfig() {
         element={
           <ProtectedRoute>
             <Members />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
           </ProtectedRoute>
         }
       />

@@ -1,0 +1,12 @@
+node_modules
+dist
+build
+target
+.idea
+.vscode
+logs
+coverage
+*.log
+ui/dist
+ui/node_modules
+

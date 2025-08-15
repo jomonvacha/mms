@@ -48,6 +48,26 @@ npm run build
 npm run preview   # serves dist/ on port 3000
 ```
 
+## Linting & Formatting
+- Install tools (once):
+  ```
+  cd ui
+  npm i -D prettier eslint @eslint/js eslint-plugin-react eslint-plugin-react-hooks globals
+  ```
+- Format code:
+  ```
+  npm run format
+  ```
+- Lint JS/JSX in `ui/`:
+  ```
+  npx eslint . --ext .js,.jsx
+  ```
+- Lint TS/TSX in `src/` (TypeScript components):
+  ```
+  npm i -D @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint-plugin-react eslint-plugin-react-hooks @eslint/js globals
+  npx eslint ../src --ext .ts,.tsx
+  ```
+
 ## Docker
 Build and run the UI with Docker and Nginx (port 3000). You can optionally pass build-time env vars to bake in an absolute API base.
 
@@ -106,7 +126,6 @@ ui/
       SignIn.jsx
       SignUp.jsx
       Members.jsx
-      Profile.jsx
       SignOut.jsx
 ```
 
