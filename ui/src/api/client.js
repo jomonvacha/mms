@@ -192,6 +192,32 @@ export function updatePreferences(payload) {
   });
 }
 
+export function uploadAvatar(file) {
+  const form = new FormData();
+  form.append('file', file);
+  return fetchJson('/api/users/me/avatar', {
+    method: 'POST',
+    body: form,
+  });
+}
+
+export async function getMyAvatarBlob() {
+  const headers = {};
+  if (accessToken) headers['Authorization'] = `${tokenType} ${accessToken}`;
+  const res = await fetch(`${API_BASE}/api/users/me/avatar`, {
+    method: 'GET',
+    headers,
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    const err = new Error(text || res.statusText);
+    err.status = res.status;
+    throw err;
+  }
+  return res.blob();
+}
+
 export async function refreshTokens() {
   if (refreshInFlight) return refreshInFlight;
   if (!refreshToken) throw new Error('No refresh token');

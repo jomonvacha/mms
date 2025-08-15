@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useAuth} from '../hooks/useAuth.js';
-import {changePassword, SIGNIN_PATH, updateMe, updatePreferences as apiUpdatePreferences} from '../api/client.js';
+import {changePassword, SIGNIN_PATH, updateMe, updatePreferences as apiUpdatePreferences, uploadAvatar, getMyAvatarBlob as fetchAvatarBlob} from '../api/client.js';
 
 export default function AccountModal({isOpen, initialTab = 'profile', onClose}) {
   const {user, refreshMe} = useAuth();
@@ -66,14 +66,29 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const [lastName, setLastName] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState(null);
   useEffect(() => {
+    let revokeUrl;
     if (user && isOpen) {
       setFirstName(user.firstName || '');
       setLastName(user.lastName || '');
       setDisplayName([user.firstName, user.lastName].filter(Boolean).join(' '));
-      setAvatarUrl(user.avatarUrl || '');
       setAlert(null);
+      (async () => {
+        try {
+          const blob = await fetchAvatarBlob();
+          const url = URL.createObjectURL(blob);
+          revokeUrl = url;
+          setAvatarUrl(url);
+        } catch (_) {
+          setAvatarUrl('');
+        }
+      })();
     }
+    return () => {
+      if (revokeUrl && revokeUrl.startsWith('blob:')) URL.revokeObjectURL(revokeUrl);
+    };
   }, [user, isOpen]);
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -167,9 +182,38 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
           <input className="form-control" value={displayName} onChange={(e) => setDisplayName(e.target.value)}/>
         </div>
         <div className="mb-3">
-          <label className="form-label">Avatar URL (optional)</label>
-          <input className="form-control" value={avatarUrl} onChange={(e) => setAvatarUrl(e.target.value)}
-                 placeholder="https://…"/>
+          <label className="form-label">Profile picture</label>
+          <div
+            className="border rounded p-3 text-center"
+            onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onDrop={async (e) => {
+              e.preventDefault();
+              const file = e.dataTransfer.files && e.dataTransfer.files[0];
+              if (!file) return;
+              setAvatarError(null);
+              if (!file.type.startsWith('image/')) { setAvatarError('Only image files are allowed.'); return; }
+              if (file.size > 5 * 1024 * 1024) { setAvatarError('Max size is 5MB.'); return; }
+              setUploadingAvatar(true);
+              try {
+                await uploadAvatar(file);
+                const blob = await fetchAvatarBlob();
+                const url = URL.createObjectURL(blob);
+                setAvatarUrl((old) => {
+                  if (old && old.startsWith('blob:')) URL.revokeObjectURL(old);
+                  return url;
+                });
+              } catch (err) {
+                setAvatarError(err?.message || 'Failed to upload avatar');
+              } finally {
+                setUploadingAvatar(false);
+              }
+            }}
+          >
+            <img src={avatarUrl || 'https://via.placeholder.com/96?text=Avatar'} onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/96?text=Avatar'; }} alt="avatar" className="rounded-circle mb-2" style={{ width: 96, height: 96, objectFit: 'cover' }} />
+            <div className="text-muted small">Drag & drop an image here to upload (PNG/JPG/GIF, max 5MB)</div>
+            {uploadingAvatar && <div className="text-info small mt-2">Uploading…</div>}
+            {avatarError && <div className="text-danger small mt-2">{avatarError}</div>}
+          </div>
         </div>
         <div className="d-flex gap-2">
           <button type="submit" className="btn btn-primary"
