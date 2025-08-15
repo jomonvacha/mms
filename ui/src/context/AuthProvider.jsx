@@ -1,13 +1,15 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useNavigate} from 'react-router-dom';
 import {AuthContext} from '../hooks/useAuth.js';
-import {clearAuthTokens, me, setAuthTokens, signout} from '../api/client.js';
+import {clearAuthTokens, me, setAuthTokens, signout, getPreferences} from '../api/client.js';
+import { useTheme } from '../hooks/useTheme.js';
 
 export function AuthProvider({children}) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
   const idleTimerRef = useRef(null);
   const warnIntervalRef = useRef(null);
   const [justAuthed, setJustAuthed] = useState(false);
@@ -60,6 +62,31 @@ export function AuthProvider({children}) {
       navigate('/members', {replace: true});
     }
   }, [justAuthed, user, loading, navigate]);
+
+  // Apply user preferences (theme) on login
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPrefs() {
+      if (!user) return;
+      try {
+        const prefs = await getPreferences();
+        if (cancelled || !prefs) return;
+        // Compute effective theme for 'system'
+        let effective = 'light';
+        if (prefs.theme === 'dark') effective = 'dark';
+        else if (prefs.theme === 'system') {
+          const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          effective = isDark ? 'dark' : 'light';
+        }
+        setTheme(effective);
+        try { localStorage.setItem('mms_lang', prefs.language || 'en'); } catch (_) {}
+      } catch (_) {
+        // ignore
+      }
+    }
+    loadPrefs();
+    return () => { cancelled = true; };
+  }, [user, setTheme]);
 
   // Idle auto-signout with confirmation modal
   useEffect(() => {

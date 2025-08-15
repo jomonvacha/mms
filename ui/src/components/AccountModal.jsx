@@ -1,9 +1,11 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useAuth} from '../hooks/useAuth.js';
-import {changePassword, SIGNIN_PATH, updateMe, updatePreferences as apiUpdatePreferences, uploadAvatar, getMyAvatarBlob as fetchAvatarBlob} from '../api/client.js';
+import {changePassword, SIGNIN_PATH, updateMe, updatePreferences as apiUpdatePreferences, uploadAvatar, getMyAvatarBlob as fetchAvatarBlob, getPreferences} from '../api/client.js';
+import { useTheme } from '../hooks/useTheme.js';
 
 export default function AccountModal({isOpen, initialTab = 'profile', onClose}) {
   const {user, refreshMe} = useAuth();
+  const { setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -107,6 +109,27 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     };
   }, [user, isOpen]);
 
+  // Load preferences into controls when modal opens or when switching to Preferences tab
+  useEffect(() => {
+    let cancelled = false;
+    async function loadPrefs() {
+      if (!isOpen) return;
+      try {
+        const p = await getPreferences();
+        if (cancelled || !p) return;
+        setPrefs({
+          theme: p.theme || 'system',
+          language: p.language || 'en',
+          emailNotifications: Boolean(p.emailNotifications),
+        });
+      } catch (_) {
+        // keep defaults
+      }
+    }
+    loadPrefs();
+    return () => { cancelled = true; };
+  }, [isOpen, activeTab]);
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -121,8 +144,18 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
   const submitProfile = async (e) => {
     e.preventDefault();
     setAlert(null);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[0-9.\-\s()]{7,20}$/;
     if (!firstName || !lastName) {
       setAlert({type: 'danger', text: 'First and last name are required.'});
+      return;
+    }
+    if (!email || !emailRegex.test(email)) {
+      setAlert({type: 'danger', text: 'A valid email is required.'});
+      return;
+    }
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+      setAlert({type: 'danger', text: 'Invalid phone number format.'});
       return;
     }
     setSubmitting(true);
@@ -131,7 +164,10 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
       await refreshMe();
       setAlert({type: 'success', text: 'Profile updated.'});
     } catch (err) {
-      setAlert({type: 'danger', text: 'Profile update failed.'});
+      // Attempt to show a specific backend error when available
+      const detail = (err && (err.data && (err.data.message || err.data.error || err.data.detail))) || err?.message || '';
+      const text = detail ? `Profile update failed. ${detail}` : 'Profile update failed.';
+      setAlert({type: 'danger', text});
     } finally {
       setSubmitting(false);
     }
@@ -169,7 +205,27 @@ export default function AccountModal({isOpen, initialTab = 'profile', onClose}) 
     setAlert(null);
     setSubmitting(true);
     try {
-      await apiUpdatePreferences(prefs);
+      const saved = await apiUpdatePreferences(prefs);
+      if (saved) {
+        setPrefs({
+          theme: saved.theme || 'system',
+          language: saved.language || 'en',
+          emailNotifications: Boolean(saved.emailNotifications),
+        });
+      }
+      // Apply theme immediately
+      if (saved && saved.theme) {
+        let effective = 'light';
+        if (saved.theme === 'dark') effective = 'dark';
+        else if (saved.theme === 'system') {
+          const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          effective = isDark ? 'dark' : 'light';
+        }
+        setTheme(effective);
+      }
+      if (saved && saved.language) {
+        try { localStorage.setItem('mms_lang', saved.language); } catch (_) {}
+      }
       setAlert({type: 'success', text: 'Preferences updated.'});
     } catch (err) {
       setAlert({type: 'danger', text: 'Preferences update failed.'});

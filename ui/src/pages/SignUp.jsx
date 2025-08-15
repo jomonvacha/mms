@@ -27,6 +27,24 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[0-9.\-\s()]{7,20}$/;
+    if (!username || !firstName || !lastName || !email || !password) {
+      setError('All required fields must be filled.');
+      return;
+    }
+    if (!emailRegex.test(email)) {
+      setError('A valid email is required.');
+      return;
+    }
+    if (phoneNumber && !phoneRegex.test(phoneNumber)) {
+      setError('Invalid phone number format.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     if (password !== confirm) {
       setError('Passwords do not match');
       return;

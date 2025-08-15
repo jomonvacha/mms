@@ -52,22 +52,46 @@ public class UserService {
                 user.setEmail(newEmail);
             }
         }
-        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
-        if (request.getLastName() != null) user.setLastName(request.getLastName());
-        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getFirstName() != null) {
+            String fn = request.getFirstName().trim();
+            if (fn.isEmpty()) throw new BusinessRuleException("First name cannot be empty");
+            user.setFirstName(fn);
+        }
+        if (request.getLastName() != null) {
+            String ln = request.getLastName().trim();
+            if (ln.isEmpty()) throw new BusinessRuleException("Last name cannot be empty");
+            user.setLastName(ln);
+        }
+        if (request.getPhoneNumber() != null) {
+            String phone = request.getPhoneNumber().trim();
+            if (!phone.isEmpty()) {
+                // Basic phone validation (E.164-ish / common formats)
+                if (!phone.matches("^\\+?[0-9.\\-\\s()]{7,20}$")) {
+                    throw new BusinessRuleException("Invalid phone number format");
+                }
+            }
+            user.setPhoneNumber(phone.isEmpty() ? null : phone);
+        }
         userRepository.save(user);
         return toResponse(user);
-  }
-
-  public void changePassword(Long id, ChangePasswordRequest request) {
-    User user = userRepository.findById(id)
-      .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-    if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-      throw new BusinessRuleException("Current password is incorrect");
     }
-    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-    userRepository.save(user);
-  }
+
+    public void changePassword(Long id, ChangePasswordRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BusinessRuleException("Current password is incorrect");
+        }
+        String newPw = request.getNewPassword();
+        if (newPw == null || newPw.length() < 8 || !newPw.matches(".*[A-Za-z].*") || !newPw.matches(".*[0-9].*")) {
+            throw new BusinessRuleException("New password must be at least 8 characters and include letters and numbers");
+        }
+        if (passwordEncoder.matches(newPw, user.getPassword())) {
+            throw new BusinessRuleException("New password must be different from current password");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 
   public Page<UserResponse> listUsers(int page, int size, String sortBy, String sortDir) {
     Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();

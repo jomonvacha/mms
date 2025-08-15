@@ -218,6 +218,10 @@ export async function getMyAvatarBlob() {
   return res.blob();
 }
 
+export function getPreferences() {
+  return fetchJson('/api/user/preferences');
+}
+
 export async function refreshTokens() {
   if (refreshInFlight) return refreshInFlight;
   if (!refreshToken) throw new Error('No refresh token');

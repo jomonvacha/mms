@@ -26,6 +26,10 @@ export default function SignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    if (!username || !password) {
+      setError('Username and password are required.');
+      return;
+    }
     setLoading(true);
     try {
       await signin({username, password});
