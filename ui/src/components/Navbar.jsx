@@ -79,7 +79,12 @@ export default function Navbar() {
   return (
     <nav className={navClass}>
       <div className="container">
-        <Link className="navbar-brand" to="/">MMS</Link>
+        <Link className="navbar-brand d-flex align-items-center gap-1" to="/">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2l9 5v10l-9 5-9-5V7l9-5zm0 2.236L5 7.5v9l7 3.764 7-3.764v-9l-7-3.264z"/>
+          </svg>
+          <span>MMS</span>
+        </Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -94,20 +99,26 @@ export default function Navbar() {
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
             <li className="nav-item">
-              <NavLink className={({isActive}) => 'nav-link' + (isActive ? ' active' : '')} to="/">
-                Home
+              <NavLink className={({isActive}) => 'nav-link d-inline-flex align-items-center gap-1' + (isActive ? ' active' : '')} to="/">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                </svg>
+                <span>Home</span>
               </NavLink>
             </li>
             {user && (
               <li className="nav-item">
-                <NavLink className={({isActive}) => 'nav-link' + (isActive ? ' active' : '')} to="/members">
-                  Members
+                <NavLink className={({isActive}) => 'nav-link d-inline-flex align-items-center gap-1' + (isActive ? ' active' : '')} to="/members">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm-7 8a7 7 0 0 1 14 0v1H5z"/>
+                  </svg>
+                  <span>Members</span>
                 </NavLink>
               </li>
             )}
           </ul>
 
-          <ul className="navbar-nav ms-auto align-items-center gap-2">
+          <ul className="navbar-nav ms-auto align-items-center gap-1">
             {loading ? (
               <li className="nav-item">
                 <span className="navbar-text text-body-secondary">Loading…</span>
@@ -158,34 +169,44 @@ export default function Navbar() {
                       <hr className="dropdown-divider"/>
                     </li>
                     <li>
-                      <button className="dropdown-item" onClick={() => {
+                      <button className="dropdown-item d-flex align-items-center gap-1" onClick={() => {
                         setInitialTab('profile');
                         setModalOpen(true);
-                      }}>Profile
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.33 0-8 2.17-8 5v1h16v-1c0-2.83-3.67-5-8-5z"/></svg>
+                        <span>Profile</span>
                       </button>
                     </li>
                     {canChangePassword && (
                       <li>
-                        <button className="dropdown-item" onClick={() => {
+                        <button className="dropdown-item d-flex align-items-center gap-1" onClick={() => {
                           setInitialTab('account');
                           setModalOpen(true);
-                        }}>Account
+                        }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17a2 2 0 0 0 2-2V9a2 2 0 1 0-4 0v6a2 2 0 0 0 2 2zm7-7h-1.18A6 6 0 0 0 6.18 10H5a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3z"/></svg>
+                          <span>Account</span>
                         </button>
                       </li>
                     )}
                     <li>
-                      <button className="dropdown-item" onClick={() => {
+                      <button className="dropdown-item d-flex align-items-center gap-1" onClick={() => {
                         setInitialTab('preferences');
                         setModalOpen(true);
-                      }}>Preferences
+                      }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 10h4v2H4zm0 5h7v2H4zM4 5h10v2H4zm14.5 6a2.5 2.5 0 1 0-2.45-3h-5.1a2.5 2.5 0 1 0 0 2h5.1a2.49 2.49 0 0 0 2.45 1z"/></svg>
+                        <span>Preferences</span>
                       </button>
                     </li>
                     <li>
                       <hr className="dropdown-divider"/>
                     </li>
                     <li>
-                      <NavLink className={({isActive}) => 'dropdown-item' + (isActive ? ' active' : '')} to="/signout">
-                        Sign out
+                      <NavLink className={({isActive}) => 'dropdown-item d-flex align-items-center gap-1' + (isActive ? ' active' : '')} to="/signout">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                          <path d="M14 7v-2h6v14h-6v-2h4V7z"/>
+                          <path d="M3 12l5-5v3h6v4H8v3z"/>
+                        </svg>
+                        <span>Sign out</span>
                       </NavLink>
                     </li>
                   </ul>
@@ -194,8 +215,12 @@ export default function Navbar() {
             ) : (
               <>
                 <li className="nav-item">
-                  <NavLink className={({isActive}) => 'nav-link' + (isActive ? ' active' : '')} to="/signin">
-                    Sign In
+                  <NavLink className={({isActive}) => 'nav-link d-inline-flex align-items-center gap-1' + (isActive ? ' active' : '')} to="/signin">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M10 17l5-5-5-5v3H3v4h7z"/>
+                      <path d="M19 3h-6v2h6v14h-6v2h6a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
+                    </svg>
+                    <span>Sign In</span>
                   </NavLink>
                 </li>
                 {/* Sign Up removed from navbar as requested */}
