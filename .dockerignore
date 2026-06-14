@@ -1,0 +1,10 @@
+.git
+.github
+.env
+.DS_Store
+**/target
+**/node_modules
+**/dist
+**/logs
+mms-ui
+MMS-Settings-Enhancements.md

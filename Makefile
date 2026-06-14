@@ -1,53 +1,44 @@
-.PHONY: help db-up db-down db-destroy db-logs up down logs app-up build test verify clean
+.PHONY: help up down logs build test verify clean ui-install ui-build ui-dev
 
 help:
-	@echo "Common targets:"
-	@echo "  db-up       - Start PostgreSQL container"
-	@echo "  db-down     - Stop PostgreSQL container"
-	@echo "  db-destroy  - Stop and remove DB volume (DATA LOSS)"
-	@echo "  db-logs     - Tail PostgreSQL logs"
-	@echo "  up          - Start app + postgres via docker-compose"
-	@echo "  app-up      - Start only the app (depends on healthy DB)"
-	@echo "  down        - Stop all compose services"
-	@echo "  logs        - Tail app logs"
-	@echo "  build       - Maven clean package"
-	@echo "  test        - Maven test"
-	@echo "  verify      - Maven verify (with JaCoCo)"
-	@echo "  clean       - Maven clean"
-
-db-up:
-	docker-compose up -d postgres
-
-db-down:
-	docker-compose stop postgres
-
-db-destroy:
-	docker-compose down -v
-
-db-logs:
-	docker-compose logs -f postgres
+	@echo "MMS standalone commands:"
+	@echo "  make up         Start PostgreSQL, MMS API, and MMS UI"
+	@echo "  make down       Stop the standalone stack"
+	@echo "  make logs       Follow stack logs"
+	@echo "  make build      Build backend and frontend"
+	@echo "  make test       Run backend tests"
+	@echo "  make verify     Run backend verification and frontend build"
+	@echo "  make clean      Clean backend and frontend build output"
 
 up:
-	docker-compose up -d
-
-app-up:
-	docker-compose up -d app
+	docker compose up --build -d
 
 down:
-	docker-compose down
+	docker compose down
 
 logs:
-	docker-compose logs -f app
+	docker compose logs -f
 
 build:
-	mvn clean package
+	mvn -B -ntp package
+	npm --prefix mms-ui run build
 
 test:
-	mvn test
+	mvn -B -ntp test
 
 verify:
-	mvn verify
+	mvn -B -ntp verify
+	npm --prefix mms-ui run build
 
 clean:
-	mvn clean
+	mvn -B -ntp clean
+	rm -rf mms-ui/dist
 
+ui-install:
+	npm --prefix mms-ui ci
+
+ui-build:
+	npm --prefix mms-ui run build
+
+ui-dev:
+	npm --prefix mms-ui run dev

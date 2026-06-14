@@ -1,0 +1,338 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Navbar design tokens — light */
+    --nav-bg: 255 255 255;
+    --nav-fg: 17 24 39;
+    --nav-fg-muted: 107 114 128;
+    --nav-fg-soft: 75 85 99;
+    --nav-hover-bg: 243 244 246;
+    --nav-active-bg: 238 242 255;
+    --nav-active-fg: 79 70 229;
+    --nav-border: 229 231 235;
+    --nav-ring: 99 102 241;
+    --nav-accent: 99 102 241;
+
+    /* App surface & text tokens — light */
+    --surface-1: 255 255 255;
+    --surface-2: 249 250 251;
+    --surface-3: 243 244 246;
+    --border-subtle: 229 231 235;
+    --border-strong: 209 213 219;
+    --text-primary: 17 24 39;
+    --text-secondary: 55 65 81;
+    --text-muted: 107 114 128;
+    --accent: 99 102 241;
+    --accent-strong: 79 70 229;
+    --accent-soft: 238 242 255;
+    --shadow-color: 15 23 42;
+  }
+
+  .dark {
+    /* Navbar design tokens — dark */
+    --nav-bg: 11 15 26;
+    --nav-fg: 243 244 246;
+    --nav-fg-muted: 156 163 175;
+    --nav-fg-soft: 209 213 219;
+    --nav-hover-bg: 31 41 55;
+    --nav-active-bg: 67 56 202;
+    --nav-active-fg: 199 210 254;
+    --nav-border: 31 41 55;
+    --nav-ring: 129 140 248;
+    --nav-accent: 129 140 248;
+
+    /* App surface & text tokens — dark */
+    --surface-1: 17 22 35;
+    --surface-2: 22 28 44;
+    --surface-3: 31 41 59;
+    --border-subtle: 31 41 55;
+    --border-strong: 55 65 81;
+    --text-primary: 243 244 246;
+    --text-secondary: 209 213 219;
+    --text-muted: 156 163 175;
+    --accent: 129 140 248;
+    --accent-strong: 165 180 252;
+    --accent-soft: 30 27 75;
+    --shadow-color: 0 0 0;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply dark:bg-gray-950 dark:text-gray-100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg font-medium
+           hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg font-medium border border-gray-300
+           hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-offset-gray-900;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-medium
+           hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed transition-colors;
+    @apply dark:focus:ring-offset-gray-900;
+  }
+
+  /* Compact icon-only button for table row actions. */
+  .icon-btn {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-md
+           text-gray-500 hover:text-gray-800 hover:bg-gray-100
+           dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800
+           transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500;
+  }
+  .icon-btn-danger {
+    @apply hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-500/10;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+    @apply dark:bg-gray-800 dark:border-gray-700;
+  }
+
+  .input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white
+           focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500
+           placeholder:text-gray-400
+           disabled:opacity-60 disabled:cursor-not-allowed;
+    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-500;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+  }
+
+  .badge-active {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700;
+    @apply dark:bg-emerald-900/30 dark:text-emerald-400;
+  }
+
+  .badge-inactive {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600;
+    @apply dark:bg-gray-700 dark:text-gray-300;
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600;
+    @apply dark:bg-gray-700 dark:text-gray-300;
+  }
+
+  /* Top navigation surface — uses CSS variables defined in :root/.dark */
+  .nav-surface {
+    background-color: rgb(var(--nav-bg) / 0.85);
+    border-bottom: 1px solid rgb(var(--nav-border));
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  }
+
+  /* Nav link pill. Active = brand-tinted; inactive = subtle hover. */
+  .nav-link {
+    @apply relative inline-flex items-center gap-1.5 h-9 px-3 rounded-md
+           text-[13px] font-medium tracking-tight whitespace-nowrap
+           transition-colors duration-150 ease-out
+           focus:outline-none;
+    color: rgb(var(--nav-fg-soft));
+  }
+  .nav-link:hover {
+    color: rgb(var(--nav-fg));
+    background-color: rgb(var(--nav-hover-bg) / 0.7);
+  }
+  .nav-link:focus-visible {
+    box-shadow: 0 0 0 2px rgb(var(--nav-bg)), 0 0 0 4px rgb(var(--nav-ring) / 0.6);
+  }
+  .nav-link.is-active {
+    color: rgb(var(--nav-active-fg));
+    background-color: rgb(var(--nav-active-bg) / 0.35);
+  }
+  .dark .nav-link.is-active {
+    background-color: rgb(var(--nav-active-bg) / 0.22);
+  }
+  .nav-link .nav-link__icon {
+    opacity: 0.8;
+    transition: opacity 150ms ease-out;
+  }
+  .nav-link:hover .nav-link__icon,
+  .nav-link.is-active .nav-link__icon {
+    opacity: 1;
+  }
+
+  /* Icon-only toolbar button (theme toggle, mobile hamburger). */
+  .nav-icon-btn {
+    @apply inline-flex items-center justify-center h-9 w-9 rounded-md
+           transition-colors duration-150 ease-out
+           focus:outline-none;
+    color: rgb(var(--nav-fg-muted));
+  }
+  .nav-icon-btn:hover {
+    color: rgb(var(--nav-fg));
+    background-color: rgb(var(--nav-hover-bg) / 0.7);
+  }
+  .nav-icon-btn:focus-visible {
+    box-shadow: 0 0 0 2px rgb(var(--nav-bg)), 0 0 0 4px rgb(var(--nav-ring) / 0.6);
+  }
+
+  /* User menu avatar trigger. */
+  .nav-avatar-btn {
+    @apply relative inline-flex items-center gap-2 h-9 pl-1 pr-2 rounded-full
+           transition-colors duration-150 ease-out
+           focus:outline-none;
+  }
+  .nav-avatar-btn:hover {
+    background-color: rgb(var(--nav-hover-bg) / 0.7);
+  }
+  .nav-avatar-btn:focus-visible {
+    box-shadow: 0 0 0 2px rgb(var(--nav-bg)), 0 0 0 4px rgb(var(--nav-ring) / 0.6);
+  }
+
+  /* ============================================================
+   * Admin console content primitives — tokenized, reusable.
+   * Used by the My Access page; safe to use on other admin pages.
+   * ============================================================ */
+
+  .page-eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em];
+    color: rgb(var(--text-muted));
+  }
+  .page-title {
+    @apply text-[26px] leading-tight font-semibold tracking-tight;
+    color: rgb(var(--text-primary));
+  }
+  .page-subtitle {
+    @apply text-sm leading-relaxed;
+    color: rgb(var(--text-muted));
+  }
+
+  /* Elevated panel with a 1px top highlight — used for the access summary. */
+  .stat-panel {
+    @apply relative rounded-2xl overflow-hidden;
+    background-color: rgb(var(--surface-1));
+    border: 1px solid rgb(var(--border-subtle));
+  }
+  .stat-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      rgb(var(--accent) / 0) 0%,
+      rgb(var(--accent) / 0.5) 50%,
+      rgb(var(--accent) / 0) 100%);
+    pointer-events: none;
+  }
+  .stat-cell {
+    @apply flex flex-col gap-2.5 p-5 sm:p-6 min-w-0;
+  }
+  .stat-label {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em];
+    color: rgb(var(--text-muted));
+  }
+  .stat-value {
+    @apply text-[15px] font-semibold min-h-[1.75rem] flex items-center;
+    color: rgb(var(--text-primary));
+  }
+  /* Tailwind's divide-x/divide-y set border-*-width on children but leave
+     border-color to whatever the element inherits — which renders too bright
+     in dark mode. Retarget the child selector so dividers use our token. */
+  .stat-divider > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgb(var(--border-subtle));
+  }
+
+  /* Section heading used above a group of feature tiles. */
+  .section-heading {
+    @apply flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em];
+    color: rgb(var(--text-muted));
+  }
+  .section-heading__icon {
+    @apply inline-flex items-center justify-center w-4 h-4;
+    color: rgb(var(--text-muted));
+  }
+  .section-count {
+    @apply inline-flex items-center justify-center h-[18px] min-w-[20px] px-1.5 rounded-full
+           text-[10px] font-semibold;
+    background-color: rgb(var(--surface-3));
+    color: rgb(var(--text-secondary));
+  }
+
+  /* Feature tile — clickable launcher card. */
+  .feature-tile {
+    @apply relative flex items-start gap-4 p-5 rounded-xl
+           transition-all duration-200 ease-out outline-none;
+    background-color: rgb(var(--surface-1));
+    border: 1px solid rgb(var(--border-subtle));
+  }
+  a.feature-tile,
+  button.feature-tile {
+    cursor: pointer;
+  }
+  a.feature-tile:hover,
+  button.feature-tile:hover {
+    background-color: rgb(var(--surface-2));
+    border-color: rgb(var(--accent) / 0.45);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -18px rgb(var(--shadow-color) / 0.5);
+  }
+  .feature-tile:focus-visible {
+    border-color: rgb(var(--accent) / 0.55);
+    box-shadow: 0 0 0 3px rgb(var(--accent) / 0.25);
+  }
+  .feature-tile__icon {
+    @apply inline-flex items-center justify-center w-11 h-11 rounded-xl shrink-0
+           transition-colors duration-200;
+    background-color: rgb(var(--accent-soft) / 0.85);
+    color: rgb(var(--accent-strong));
+    border: 1px solid rgb(var(--accent) / 0.15);
+  }
+  .dark .feature-tile__icon {
+    background-color: rgb(var(--accent-soft) / 0.55);
+    color: rgb(var(--accent));
+  }
+  a.feature-tile:hover .feature-tile__icon,
+  button.feature-tile:hover .feature-tile__icon {
+    background-color: rgb(var(--accent) / 0.18);
+    color: rgb(var(--accent-strong));
+  }
+  .feature-tile__body {
+    @apply flex-1 min-w-0;
+  }
+  .feature-tile__title {
+    @apply text-[14px] font-semibold leading-tight;
+    color: rgb(var(--text-primary));
+  }
+  .feature-tile__desc {
+    @apply text-[12.5px] leading-snug mt-1 line-clamp-2;
+    color: rgb(var(--text-muted));
+  }
+  .feature-tile__arrow {
+    @apply shrink-0 mt-0.5 transition-all duration-200;
+    color: rgb(var(--text-muted) / 0.6);
+  }
+  a.feature-tile:hover .feature-tile__arrow,
+  button.feature-tile:hover .feature-tile__arrow {
+    color: rgb(var(--accent));
+    transform: translate(2px, -2px);
+  }
+
+  /* Chip — compact status/role pill. */
+  .chip {
+    @apply inline-flex items-center gap-1 px-2 h-[22px] rounded-md
+           text-[11px] font-semibold tracking-wide uppercase;
+  }
+  .chip--neutral { @apply bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300; }
+  .chip--brand   { @apply bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300; }
+  .chip--danger  { @apply bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400; }
+  .chip--warn    { @apply bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300; }
+  .chip--success { @apply bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300; }
+}

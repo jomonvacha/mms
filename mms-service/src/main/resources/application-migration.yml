@@ -1,0 +1,58 @@
+# Data-migration profile: Mongo → Postgres copy.
+# Activate with:
+#   mvn -pl mms-service spring-boot:run \
+#     -Dspring-boot.run.profiles=migration \
+#     -Dspring-boot.run.arguments="--migration.mode=dry-run"
+#
+# The app does NOT serve HTTP in this profile; the MigrationRunner owns the
+# lifecycle and exits when done.
+
+spring:
+  main:
+    web-application-type: none
+  autoconfigure:
+    # Re-enable Mongo auto-config for the source read path by clearing the
+    # default-profile exclusion list. Without this, the default profile's
+    # Mongo excludes would leak into the migration profile and leave us with
+    # no MongoTemplate to read from.
+    exclude:
+  data:
+    mongodb:
+      auto-index-creation: false
+
+  # Source database — MongoDB Atlas (or any Mongo URI). Read-only use.
+  # No localhost fallback: the migration tool MUST point at the real Atlas
+  # source explicitly. Running against the wrong DB by accident is the
+  # worst-case failure mode for a one-shot data copy.
+  mongodb:
+    uri: ${MMS_MONGODB_URI:${MONGODB_URI:}}
+    database: ${MMS_MONGODB_DATABASE:${MONGODB_DATABASE:roots-mms}}
+
+  # Target database — Postgres (Neon). Same as default profile but kept explicit here
+  # so operators can read the migration command and see both source and target at once.
+  datasource:
+    url:      ${MMS_DATABASE_URL:${DATABASE_URL}}
+    username: ${MMS_DATABASE_USERNAME:${DATABASE_USERNAME}}
+    password: ${MMS_DATABASE_PASSWORD:${DATABASE_PASSWORD}}
+
+migration:
+  # dry-run | migrate | verify
+  mode: ${MIGRATION_MODE:dry-run}
+  # Skip DataInitializer seeding — we only want the copy from Mongo.
+  skip-seeding: true
+  batch-size: 500
+
+app:
+  # Migration profile never auto-provisions users, never seeds demo data.
+  auth:
+    auto-provision: false
+  admin:
+    enabled: false
+  demo:
+    seed-members: false
+
+logging:
+  level:
+    "com.roots.mms.migration": INFO
+    "org.springframework.data.mongodb.core": WARN
+    "org.hibernate.SQL": WARN

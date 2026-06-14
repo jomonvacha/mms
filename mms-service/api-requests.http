@@ -1,0 +1,194 @@
+# Member Management System API Test Requests
+
+## 1. User Registration
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "admin@example.com",
+  "password": "admin123",
+  "firstName": "Admin",
+  "lastName": "User",
+  "phoneNumber": "1234567890"
+}
+
+###
+
+## 2. User Login
+POST http://localhost:8080/api/auth/signin
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+###
+
+## 3. Create Another User (for member creation)
+POST http://localhost:8080/api/auth/signup
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "email": "john@example.com",
+  "password": "password123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "9876543210"
+}
+
+###
+
+## 4. Create Member (Replace JWT_TOKEN with actual token from login)
+POST http://localhost:8080/api/members
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "userId": 2,
+  "membershipType": "PREMIUM",
+  "membershipStartDate": "2024-01-01",
+  "membershipEndDate": "2024-12-31",
+  "notes": "Premium member with full access"
+}
+
+###
+
+## 5. Get All Members
+GET http://localhost:8080/api/members?page=0&size=10&sortBy=id&sortDir=asc
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 6. Get Member by ID
+GET http://localhost:8080/api/members/1
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 7. Search Members
+GET http://localhost:8080/api/members/search?keyword=john&page=0&size=10
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 8. Update Member
+PUT http://localhost:8080/api/members/1
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "membershipType": "VIP",
+  "status": "ACTIVE",
+  "notes": "Updated to VIP membership"
+}
+
+###
+
+## 9. Get Members by Status
+GET http://localhost:8080/api/members/status/ACTIVE
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 10. Get Active Members Count
+GET http://localhost:8080/api/members/stats/active-count
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 11. Deactivate Member
+PUT http://localhost:8080/api/members/1/deactivate
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 12. Activate Member
+PUT http://localhost:8080/api/members/1/activate
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 13. Test Public Endpoint
+GET http://localhost:8080/api/test/all
+
+###
+
+## 14. Test User Endpoint (requires authentication)
+GET http://localhost:8080/api/test/user
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 15. Refresh Token
+POST http://localhost:8080/api/auth/refresh?refreshToken=YOUR_REFRESH_TOKEN
+
+###
+
+## 16. Get Own Profile
+GET http://localhost:8080/api/users/me
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 17. Update Own Profile
+PUT http://localhost:8080/api/users/me
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "phoneNumber": "1112223333"
+}
+
+###
+
+## 18. Change Password
+PUT http://localhost:8080/api/users/me/password
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "currentPassword": "password123",
+  "newPassword": "newPassword456"
+}
+
+###
+
+## 19. List Roles (ADMIN/MOD/MANAGER)
+GET http://localhost:8080/api/roles
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 20. Admin - List Users
+GET http://localhost:8080/api/admin/users?page=0&size=10
+Authorization: Bearer JWT_TOKEN
+
+###
+
+## 21. Admin - Update User Roles
+PUT http://localhost:8080/api/admin/users/2/roles
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "roles": [
+    "ROLE_MEMBER",
+    "ROLE_MODERATOR"
+  ]
+}
+
+###
+
+## 22. Admin - Update User Status
+PUT http://localhost:8080/api/admin/users/2/status
+Content-Type: application/json
+Authorization: Bearer JWT_TOKEN
+
+{
+  "active": true
+}

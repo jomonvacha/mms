@@ -1,0 +1,29 @@
+spring:
+  # Datasource/JPA/Flyway wiring comes from @ServiceConnection on the
+  # PostgreSQLContainer in AbstractIntegrationTest — no manual URL needed.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+
+app:
+  jwt:
+    secret: testSecretKey123456789012345678901234567890123456789012345678
+    expiration: 3600000
+    refresh-expiration: 7200000
+  auth:
+    auto-provision: false
+  admin:
+    enabled: false

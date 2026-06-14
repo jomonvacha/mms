@@ -1,0 +1,114 @@
+{
+  "adminModels": {
+    "eyebrow": "AI Governance",
+    "title": "AI Models",
+    "subtitle": "Manage which AI models are available across membership categories and tiers. Members see only the models their tier includes; locked models show an upgrade prompt.",
+    "tabs": {
+      "registry": "Registry",
+      "audit": "Audit log"
+    },
+    "actions": {
+      "providers": "Providers",
+      "addModel": "Add model",
+      "edit": "Edit",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "save": "Save",
+      "done": "Done",
+      "apply": "Apply",
+      "retry": "Retry"
+    },
+    "empty": {
+      "noModels": "No models yet",
+      "noModelsHint": "Add the first model to start governing availability.",
+      "noAudit": "No audit events."
+    },
+    "table": {
+      "model": "Model",
+      "provider": "Provider",
+      "quality": "Quality",
+      "cost": "Cost",
+      "qualityCost": "Quality / Cost",
+      "status": "Status",
+      "lockStyle": "Lock style",
+      "sort": "Sort",
+      "actions": "Actions",
+      "when": "When",
+      "actor": "Actor",
+      "action": "Action",
+      "binding": "Binding",
+      "ip": "IP"
+    },
+    "status": {
+      "enabled": "Enabled",
+      "deprecated": "Deprecated",
+      "disabled": "Disabled"
+    },
+    "statusMenu": {
+      "currentBadge": "current"
+    },
+    "editor": {
+      "titleCreate": "Add model",
+      "titleEdit": "Edit {{name}}",
+      "code": "Code",
+      "codePlaceholder": "gpt-5.4-mini",
+      "codeImmutable": "Code is immutable after creation.",
+      "displayName": "Display name",
+      "description": "Description",
+      "descriptionPlaceholder": "Short marketing blurb shown on selection cards",
+      "qualityLabel": "Quality",
+      "costLabel": "Cost",
+      "sortOrder": "Sort order",
+      "lockStyleLabel": "Lock style",
+      "lockStyleHelpLock": "Unavailable tiers see the model with an Upgrade prompt.",
+      "lockStyleHelpHide": "Unavailable tiers don't see the model at all.",
+      "replaces": "Replaces (optional)",
+      "replacesPlaceholder": "e.g. gpt-5.3",
+      "replacesHelp": "Code of the model this one replaces, for migration hints.",
+      "levelHint": "(1-4)",
+      "requiredFields": "Code, provider, and display name are required.",
+      "createdToast": "Model created",
+      "updatedToast": "Model updated",
+      "fieldErrorsToast": "Some fields need attention.",
+      "saveFailed": "Failed to save model",
+      "savingEllipsis": "Saving…"
+    },
+    "bindings": {
+      "title": "Tier bindings — {{name}}",
+      "description": "Check a cell to include this model for that category/tier. Click the star to mark it as the tier default.",
+      "included": "Included",
+      "notIncluded": "Not included",
+      "setDefault": "Set default",
+      "defaultBadge": "Default",
+      "removedFromToast": "Removed from {{key}}",
+      "includedInToast": "Included in {{key}}",
+      "defaultForToast": "Default for {{key}}",
+      "updateFailed": "Failed to update binding",
+      "setDefaultFailed": "Failed to set default",
+      "loadFailed": "Failed to load bindings"
+    },
+    "providers": {
+      "title": "AI providers",
+      "codeRequired": "Code is required.",
+      "enabled": "Enabled",
+      "newPlaceholder": "new-provider",
+      "displayNamePlaceholder": "Display name",
+      "baseUrlPlaceholder": "Base URL (optional)",
+      "savedToast": "{{code}} saved",
+      "addedToast": "{{code}} added",
+      "saveFailed": "Failed to save provider",
+      "addFailed": "Failed to add provider",
+      "add": "Add"
+    },
+    "audit": {
+      "filterPlaceholder": "Filter by model code",
+      "loadFailed": "Failed to load audit log"
+    },
+    "deleteConfirm": "Delete model \"{{code}}\"? All tier bindings will be removed.",
+    "statusToast": "Model {{code}} → {{status}}",
+    "statusFailed": "Failed to change status",
+    "deletedToast": "Model {{code}} deleted",
+    "deleteFailed": "Failed to delete model",
+    "loadFailed": "Failed to load AI model registry"
+  }
+}

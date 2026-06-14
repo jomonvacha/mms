@@ -1,0 +1,88 @@
+# Docker Environment Configuration
+# This configuration is used when running with Docker Compose
+
+spring:
+  # Postgres in docker-compose (service name `postgres`). See docker-compose.yml.
+  # No hardcoded fallbacks — the operator must set DATABASE_URL / DATABASE_USERNAME
+  # / DATABASE_PASSWORD (docker-compose.yml does this via .env or shell env).
+  # Startup fails loudly if they're unset rather than silently using a known account.
+  datasource:
+    url: ${DATABASE_URL:}
+    username: ${DATABASE_USERNAME:}
+    password: ${DATABASE_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  # Web Configuration
+  web:
+    resources:
+      add-mappings: false
+
+  # Jackson Configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: UTC
+
+  # MVC Configuration
+  mvc:
+    problemdetails:
+      enabled: true
+
+# JWT Configuration
+app:
+  jwt:
+    # No default. If a stale value ever shipped to production, rotate it —
+    # anything signed by the previous committed default must be considered
+    # forgeable. Generate a fresh 64-byte key with:  openssl rand -base64 64
+    secret: ${JWT_SECRET:}
+    expiration: 86400000
+    refresh-expiration: 604800000
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    whitelabel:
+      enabled: false
+    include-stacktrace: never
+    include-message: always
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+# Application Information
+info:
+  app:
+    name: Member Management System
+    description: Enterprise-grade Member Management System with JWT Authentication
+    version: 1.0.0
+    java:
+      version: '@java.version@'
+
+# Logging for Docker
+logging:
+  level:
+    "com.roots.mms": INFO
+    "org.springframework.security": WARN
+    "org.hibernate.SQL": WARN
+  file:
+    name: /app/logs/mms-application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
