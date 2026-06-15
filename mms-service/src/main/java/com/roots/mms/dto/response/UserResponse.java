@@ -30,4 +30,8 @@ public class UserResponse {
     private Boolean emailVerified;
     /** True if the user has TOTP-based two-factor authentication enabled. */
     private Boolean twoFactorEnabled;
+    /** True while the account is in the reversible deletion grace window. */
+    private Boolean pendingDeletion;
+    /** When the account will be permanently purged if deletion isn't cancelled. */
+    private LocalDateTime deletionScheduledAt;
 }

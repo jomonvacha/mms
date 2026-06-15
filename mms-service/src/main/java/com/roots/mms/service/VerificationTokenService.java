@@ -55,6 +55,9 @@ public class VerificationTokenService {
     @Value("${app.auth.email-verification-url:http://localhost:3001/verify-email?token=}")
     private String verifyUrlBase;
 
+    @Value("${app.auth.email-change-url:http://localhost:3001/confirm-email-change?token=}")
+    private String emailChangeUrlBase;
+
     // ── Issue ───────────────────────────────────────────────────────────────
 
     /**
@@ -140,6 +143,51 @@ public class VerificationTokenService {
         emailService.send(OutgoingEmail.of(user.getEmail(), "Verify your email", body));
     }
 
+    /**
+     * Starts a verified email-change. Emails a confirmation link to the NEW
+     * address and a heads-up notice to the OLD address (so a compromised account
+     * can't silently move its email). The change only takes effect once the new
+     * address is confirmed via {@link #redeemEmailChange(String)}.
+     */
+    public void startEmailChange(User user, String newEmail) {
+        if (user == null || newEmail == null || newEmail.isBlank()) return;
+        tokenRepository.deleteByUserIdAndType(user.getId(), VerificationToken.TokenType.EMAIL_CHANGE);
+
+        String raw = generateToken();
+        VerificationToken t = VerificationToken.builder()
+                .token(raw)
+                .userId(user.getId())
+                .type(VerificationToken.TokenType.EMAIL_CHANGE)
+                .newEmail(newEmail)
+                .createdAt(Instant.now())
+                .expiresAt(Instant.now().plus(Duration.ofHours(verifyTtlHours)))
+                .build();
+        tokenRepository.save(t);
+
+        String link = emailChangeUrlBase + raw;
+        String confirmBody = String.format("""
+                Hi %s,
+
+                Please confirm that you want to use this address for your account by
+                clicking the link below (valid for %d hours):
+
+                %s
+
+                If you didn't request this change, you can ignore this email.
+                """, firstNameOrFallback(user), verifyTtlHours, link);
+        emailService.send(OutgoingEmail.of(newEmail, "Confirm your new email address", confirmBody));
+
+        // Heads-up to the current address — never contains the confirmation link.
+        String noticeBody = String.format("""
+                Hi %s,
+
+                We received a request to change the email address on your account to
+                %s. If this wasn't you, please change your password immediately and
+                review your active sessions — your current email has not been changed.
+                """, firstNameOrFallback(user), newEmail);
+        emailService.send(OutgoingEmail.of(user.getEmail(), "Email change requested", noticeBody));
+    }
+
     // ── Redeem ──────────────────────────────────────────────────────────────
 
     /**
@@ -176,6 +224,34 @@ public class VerificationTokenService {
         t.setConsumedAt(Instant.now());
         tokenRepository.save(t);
         log.info("Email verified for userId={}", user.getId());
+    }
+
+    /**
+     * Consumes an email-change token and moves the account to the new address,
+     * marking it verified. Re-checks uniqueness at redeem time in case the
+     * address was taken between request and confirmation.
+     */
+    public void redeemEmailChange(String token) {
+        VerificationToken t = loadValid(token, VerificationToken.TokenType.EMAIL_CHANGE);
+        String newEmail = t.getNewEmail();
+        if (newEmail == null || newEmail.isBlank()) {
+            throw new BusinessRuleException("Invalid or expired token");
+        }
+        User user = userRepository.findById(t.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", t.getUserId()));
+
+        if (!newEmail.equalsIgnoreCase(user.getEmail())
+                && userRepository.existsByEmail(newEmail)) {
+            throw new BusinessRuleException("That email address is no longer available.");
+        }
+
+        user.setEmail(newEmail);
+        user.setEmailVerified(true);
+        userRepository.save(user);
+
+        t.setConsumedAt(Instant.now());
+        tokenRepository.save(t);
+        log.info("Email changed for userId={}", user.getId());
     }
 
     // ── helpers ─────────────────────────────────────────────────────────────

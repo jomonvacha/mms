@@ -29,7 +29,9 @@ public class UserPreferencesController {
         return preferencesRepository.findById(java.util.UUID.fromString(userId))
                 .map(up -> ResponseEntity.ok(toResponse(up)))
                 .orElse(ResponseEntity.ok(UserPreferencesResponse.builder()
-                        .theme("system").language("en").emailNotifications(true).navbarDisplay("avatar").build()));
+                        .theme("system").language("en").emailNotifications(true).navbarDisplay("avatar")
+                        .notificationPrefs(com.roots.mms.service.NotificationPreferences.effective(null))
+                        .build()));
     }
 
     @PostMapping
@@ -48,6 +50,10 @@ public class UserPreferencesController {
         String nav = req.getNavbarDisplay();
         if (nav == null || !(nav.equals("avatar") || nav.equals("initials") || nav.equals("name"))) nav = "avatar";
         prefs.setNavbarDisplay(nav);
+        if (req.getNotificationPrefs() != null) {
+            prefs.setNotificationPrefs(
+                    com.roots.mms.service.NotificationPreferences.sanitize(req.getNotificationPrefs()));
+        }
         preferencesRepository.save(prefs);
         log.info("Updated preferences for userId={} theme={} lang={}", userId, req.getTheme(), req.getLanguage());
         return ResponseEntity.ok(toResponse(prefs));
@@ -61,6 +67,7 @@ public class UserPreferencesController {
                 .timezone(up.getTimezone())
                 .emailNotifications(Boolean.TRUE.equals(up.getEmailNotifications()))
                 .navbarDisplay(up.getNavbarDisplay() != null ? up.getNavbarDisplay() : "avatar")
+                .notificationPrefs(com.roots.mms.service.NotificationPreferences.effective(up.getNotificationPrefs()))
                 .build();
     }
 }

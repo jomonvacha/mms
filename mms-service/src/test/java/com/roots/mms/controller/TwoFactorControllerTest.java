@@ -121,6 +121,28 @@ class TwoFactorControllerTest {
     }
 
     @Test
+    void regenerateRecoveryCodes_returnsFreshCodes() throws Exception {
+        UUID id = authenticateUser();
+        TwoFactorService.EnableResult result = new TwoFactorService.EnableResult(
+                List.of("EEEEE-FFFFF", "GGGGG-HHHHH"));
+        when(service.regenerateRecoveryCodes(id.toString())).thenReturn(result);
+
+        mockMvc.perform(post("/api/users/me/2fa/recovery-codes"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.recoveryCodes.length()").value(2))
+                .andExpect(jsonPath("$.recoveryCodes[0]").value("EEEEE-FFFFF"));
+
+        verify(service).regenerateRecoveryCodes(id.toString());
+    }
+
+    @Test
+    void regenerateRecoveryCodes_unauthenticated_returns401() throws Exception {
+        mockMvc.perform(post("/api/users/me/2fa/recovery-codes"))
+                .andExpect(status().isUnauthorized());
+        verify(service, never()).regenerateRecoveryCodes(anyString());
+    }
+
+    @Test
     void disable_blankCode_failsValidation() throws Exception {
         authenticateUser();
 

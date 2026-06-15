@@ -1,5 +1,6 @@
 package com.roots.mms.scheduled;
 
+import com.roots.mms.repository.UserSessionRepository;
 import com.roots.mms.repository.VerificationTokenRepository;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,12 +17,15 @@ import static org.mockito.Mockito.when;
 class TokenCleanupJobTest {
 
     private VerificationTokenRepository tokenRepo;
+    private UserSessionRepository sessionRepo;
     private TokenCleanupJob job;
 
     @BeforeEach
     void setUp() {
         tokenRepo = mock(VerificationTokenRepository.class);
-        job = new TokenCleanupJob(tokenRepo, new SimpleMeterRegistry());
+        sessionRepo = mock(UserSessionRepository.class);
+        when(sessionRepo.deleteAllByExpiresAtBefore(any())).thenReturn(0);
+        job = new TokenCleanupJob(tokenRepo, sessionRepo, new SimpleMeterRegistry());
     }
 
     @Test

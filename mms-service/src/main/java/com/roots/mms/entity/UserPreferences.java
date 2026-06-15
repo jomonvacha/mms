@@ -7,7 +7,10 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -43,4 +46,14 @@ public class UserPreferences {
 
     @Column(name = "navbar_display", length = 16, nullable = false)
     private String navbarDisplay = "avatar"; // avatar | name
+
+    /**
+     * Per-category x per-channel notification matrix, e.g.
+     * {@code {"security": {"email": true, "push": false}, "marketing": {"email": false}}}.
+     * Variable shape, so stored as JSONB. Null until the user customises it, in
+     * which case effective values fall back to sensible defaults in the service.
+     */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "notification_prefs", columnDefinition = "jsonb")
+    private Map<String, Map<String, Boolean>> notificationPrefs;
 }

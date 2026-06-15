@@ -69,4 +69,14 @@ public class TwoFactorController {
         twoFactorService.disable(userId, req.getCurrentPasswordOrCode());
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Mints a fresh batch of one-time recovery codes (replacing any unused ones)
+     * for a user who already has 2FA enabled. Returned exactly once.
+     */
+    @PostMapping("/recovery-codes")
+    public ResponseEntity<TwoFactorService.EnableResult> regenerateRecoveryCodes() {
+        String userId = SecurityUtils.getCurrentUserIdOrThrow();
+        return ResponseEntity.ok(twoFactorService.regenerateRecoveryCodes(userId));
+    }
 }

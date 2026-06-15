@@ -1,5 +1,6 @@
 package com.roots.mms.scheduled;
 
+import com.roots.mms.repository.UserSessionRepository;
 import com.roots.mms.repository.VerificationTokenRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -28,11 +29,14 @@ import java.time.Instant;
 public class TokenCleanupJob {
 
     private final VerificationTokenRepository tokens;
+    private final UserSessionRepository sessions;
     private final Timer runTimer;
     private final Counter deletedCounter;
 
-    public TokenCleanupJob(VerificationTokenRepository tokens, MeterRegistry meterRegistry) {
+    public TokenCleanupJob(VerificationTokenRepository tokens, UserSessionRepository sessions,
+                           MeterRegistry meterRegistry) {
         this.tokens = tokens;
+        this.sessions = sessions;
         this.runTimer = Timer.builder("mms.tokens.cleanup.runs")
                 .description("Time spent sweeping expired verification tokens")
                 .register(meterRegistry);
@@ -46,9 +50,13 @@ public class TokenCleanupJob {
     public void sweepExpiredTokens() {
         Instant cutoff = Instant.now();
         int removed = runTimer.record(() -> tokens.deleteAllByExpiresAtBefore(cutoff));
+        int removedSessions = sessions.deleteAllByExpiresAtBefore(cutoff);
         if (removed > 0) {
             deletedCounter.increment(removed);
             log.info("Token cleanup: removed {} expired verification tokens (cutoff={})", removed, cutoff);
+        }
+        if (removedSessions > 0) {
+            log.info("Session cleanup: removed {} expired sessions (cutoff={})", removedSessions, cutoff);
         }
     }
 }

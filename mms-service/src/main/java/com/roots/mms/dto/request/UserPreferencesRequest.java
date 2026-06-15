@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,4 +28,12 @@ public class UserPreferencesRequest {
 
     @Pattern(regexp = "^(avatar|initials|name)$")
     private String navbarDisplay;
+
+    /**
+     * Per-category x per-channel notification matrix, e.g.
+     * {@code {"security": {"email": true}, "marketing": {"email": false}}}.
+     * Unknown categories/channels are ignored; missing entries fall back to
+     * defaults. Null leaves the existing matrix untouched.
+     */
+    private Map<String, Map<String, Boolean>> notificationPrefs;
 }

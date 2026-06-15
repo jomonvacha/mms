@@ -1,5 +1,7 @@
 package com.roots.mms.controller;
 
+import com.roots.mms.dto.request.AccountDeletionRequest;
+import com.roots.mms.dto.request.ChangeEmailRequest;
 import com.roots.mms.dto.request.ChangePasswordRequest;
 import com.roots.mms.dto.request.SetPasswordRequest;
 import com.roots.mms.dto.request.UpdateUserProfileRequest;
@@ -28,6 +30,14 @@ public class UserController {
 
     private final UserService userService;
     private final UserAvatarRepository userAvatarRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${app.account.deletion-grace-days:30}")
+    private int deletionGraceDays;
+
+    /** Explicit avatar limits (surfaced to the UI as upload hints). */
+    private static final long MAX_AVATAR_BYTES = 2L * 1024 * 1024; // 2 MB
+    private static final java.util.Set<String> ALLOWED_AVATAR_TYPES =
+            java.util.Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
@@ -62,6 +72,44 @@ public class UserController {
      * <p>After this call, the user is treated identically to any local user:
      * they can change their password, change their email, etc.
      */
+    /**
+     * Starts a verified email change. Sends a confirmation link to the new
+     * address and a heads-up to the current address; the email only changes
+     * after the new address is confirmed via
+     * {@code GET /api/auth/confirm-email-change}.
+     */
+    @PostMapping("/me/email-change/request")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MessageResponse> requestEmailChange(@Valid @RequestBody ChangeEmailRequest request) {
+        String userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) throw new AuthorizationException("User", "change_email");
+        userService.requestEmailChange(userId, request.getNewEmail(), request.getCurrentPassword());
+        return ResponseEntity.ok(new MessageResponse(
+                "Confirmation sent to your new address. The change takes effect once you confirm it."));
+    }
+
+    /**
+     * Schedules self-service account deletion after a reversible grace window.
+     * The account stays usable (so the user can cancel) until it is purged.
+     */
+    @PostMapping("/me/deletion")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponse> requestDeletion(@RequestBody(required = false) AccountDeletionRequest request) {
+        String userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) throw new AuthorizationException("User", "request_deletion");
+        String pw = request != null ? request.getCurrentPassword() : null;
+        return ResponseEntity.ok(userService.requestDeletion(userId, pw, deletionGraceDays));
+    }
+
+    /** Cancels (halts) a pending account deletion. */
+    @DeleteMapping("/me/deletion")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserResponse> cancelDeletion() {
+        String userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) throw new AuthorizationException("User", "cancel_deletion");
+        return ResponseEntity.ok(userService.cancelDeletion(userId));
+    }
+
     @PostMapping("/me/disconnect-provider")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserResponse> disconnectProvider(@Valid @RequestBody SetPasswordRequest request) {
@@ -91,11 +139,13 @@ public class UserController {
         if (userId == null) throw new AuthorizationException("User", "upload_avatar");
         if (file.isEmpty()) return ResponseEntity.badRequest().body(new MessageResponse("No file uploaded"));
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Only image files are allowed"));
+        String ct = contentType == null ? "" : contentType.toLowerCase();
+        if (!ALLOWED_AVATAR_TYPES.contains(ct)) {
+            return ResponseEntity.badRequest().body(new MessageResponse(
+                    "Unsupported image type. Allowed: JPG, PNG, GIF, WebP."));
         }
-        if (file.getSize() > 5 * 1024 * 1024) {
-            return ResponseEntity.status(413).body(new MessageResponse("File is too large (max 5MB)"));
+        if (file.getSize() > MAX_AVATAR_BYTES) {
+            return ResponseEntity.status(413).body(new MessageResponse("Image is too large (max 2 MB)"));
         }
         try {
             java.util.UUID userUuid = java.util.UUID.fromString(userId);

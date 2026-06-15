@@ -10,7 +10,6 @@ import com.roots.mms.entity.ERole;
 import com.roots.mms.entity.Role;
 import com.roots.mms.entity.User;
 import com.roots.mms.exception.BusinessRuleException;
-import com.roots.mms.exception.DuplicateResourceException;
 import com.roots.mms.exception.ResourceNotFoundException;
 import com.roots.mms.repository.RoleRepository;
 import com.roots.mms.repository.UserRepository;
@@ -33,6 +32,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationTokenService verificationTokenService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.account.username-change-cooldown-days:30}")
+    private int usernameCooldownDays;
 
     public UserResponse getUserById(String id) {
         User user = userRepository.findById(java.util.UUID.fromString(id))
@@ -46,17 +49,36 @@ public class UserService {
         if (request.getEmail() != null) {
             String newEmail = request.getEmail();
             if (!newEmail.equalsIgnoreCase(user.getEmail())) {
-                // Federated accounts: email is the identifier owned by the IdP and cannot
-                // be changed locally without breaking the OAuth subject linkage.
-                if (isFederated(user)) {
+                // Email is NOT changed via the profile PUT — that would be a silent
+                // swap. It must go through the verified change-email flow
+                // (POST /api/users/me/email-change/request) which confirms the new
+                // address and notifies the old one.
+                throw new BusinessRuleException(
+                        "Email cannot be changed here. Use the verified change-email flow.");
+            }
+        }
+        if (request.getUsername() != null) {
+            String newUsername = request.getUsername().trim();
+            if (!newUsername.equals(user.getUsername())) {
+                if (!newUsername.matches("^[A-Za-z0-9_]{3,20}$")) {
                     throw new BusinessRuleException(
-                            "Email is managed by " + providerLabel(user) + " and cannot be changed here. "
-                                    + "Update it with your identity provider.");
+                            "Username must be 3–20 characters: letters, numbers, and underscores only");
                 }
-                if (userRepository.existsByEmail(newEmail)) {
-                    throw new DuplicateResourceException("An account with this information already exists.");
+                java.time.LocalDateTime changedAt = user.getUsernameChangedAt();
+                if (changedAt != null) {
+                    java.time.LocalDateTime nextAllowed = changedAt.plusDays(usernameCooldownDays);
+                    if (java.time.LocalDateTime.now().isBefore(nextAllowed)) {
+                        long days = Math.max(1, java.time.Duration.between(
+                                java.time.LocalDateTime.now(), nextAllowed).toDays());
+                        throw new BusinessRuleException(
+                                "Username was changed recently. You can change it again in " + days + " day(s).");
+                    }
                 }
-                user.setEmail(newEmail);
+                if (userRepository.existsByUsername(newUsername)) {
+                    throw new BusinessRuleException("That username is already taken.");
+                }
+                user.setUsername(newUsername);
+                user.setUsernameChangedAt(java.time.LocalDateTime.now());
             }
         }
         if (request.getFirstName() != null) {
@@ -78,6 +100,38 @@ public class UserService {
         }
         userRepository.save(user);
         return toResponse(user);
+    }
+
+    /**
+     * Starts a verified email-change for the signed-in user. Validates the
+     * caller's password, blocks federated accounts (their email is owned by the
+     * IdP), and rejects already-taken addresses, then dispatches the
+     * confirmation + notice emails. The address only changes once confirmed.
+     */
+    public void requestEmailChange(String id, String newEmail, String currentPassword) {
+        User user = userRepository.findById(java.util.UUID.fromString(id))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        if (isFederated(user)) {
+            throw new BusinessRuleException(
+                    "Email is managed by " + providerLabel(user) + " and cannot be changed here. "
+                            + "Update it with your identity provider.");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()
+                || !passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BusinessRuleException("Current password is incorrect");
+        }
+        String normalized = newEmail == null ? "" : newEmail.trim();
+        if (normalized.isEmpty()) {
+            throw new BusinessRuleException("New email is required");
+        }
+        if (normalized.equalsIgnoreCase(user.getEmail())) {
+            throw new BusinessRuleException("That is already your email address");
+        }
+        if (userRepository.existsByEmail(normalized)) {
+            // Non-enumerating message — same wording the signup flow uses.
+            throw new BusinessRuleException("That email address is not available.");
+        }
+        verificationTokenService.startEmailChange(user, normalized);
     }
 
     /**
@@ -159,6 +213,39 @@ public class UserService {
         userRepository.delete(user);
     }
 
+    /**
+     * Schedules self-service account deletion after a reversible grace window.
+     * Re-authenticates local users with their password; federated users are
+     * already proven by their OAuth session. The account is only purged after
+     * the window elapses (by {@code AccountDeletionJob}) and can be cancelled
+     * via {@link #cancelDeletion(String)} at any point before then.
+     */
+    public UserResponse requestDeletion(String id, String currentPassword, int graceDays) {
+        User user = userRepository.findById(java.util.UUID.fromString(id))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        boolean hasPassword = user.getPassword() != null && !user.getPassword().isBlank();
+        if (hasPassword && !passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BusinessRuleException("Current password is incorrect");
+        }
+        user.setPendingDeletion(true);
+        user.setDeletionScheduledAt(java.time.LocalDateTime.now().plusDays(graceDays));
+        userRepository.save(user);
+        return toResponse(user);
+    }
+
+    /** Halts a pending deletion, restoring the account to normal. */
+    public UserResponse cancelDeletion(String id) {
+        User user = userRepository.findById(java.util.UUID.fromString(id))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        if (!Boolean.TRUE.equals(user.getPendingDeletion())) {
+            throw new BusinessRuleException("No account deletion is currently scheduled.");
+        }
+        user.setPendingDeletion(false);
+        user.setDeletionScheduledAt(null);
+        userRepository.save(user);
+        return toResponse(user);
+    }
+
     public UserResponse updateProvider(String id, String providerName) {
         User user = userRepository.findById(java.util.UUID.fromString(id))
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
@@ -188,6 +275,8 @@ public class UserService {
         response.setProvider(user.getProvider() != null ? user.getProvider().name() : AuthProvider.LOCAL.name());
         response.setEmailVerified(Boolean.TRUE.equals(user.getEmailVerified()));
         response.setTwoFactorEnabled(Boolean.TRUE.equals(user.getTotpEnabled()));
+        response.setPendingDeletion(Boolean.TRUE.equals(user.getPendingDeletion()));
+        response.setDeletionScheduledAt(user.getDeletionScheduledAt());
         return response;
     }
 

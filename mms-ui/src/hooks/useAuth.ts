@@ -18,6 +18,10 @@ export interface MmsUser {
   emailVerified?: boolean
   /** True if TOTP 2FA is enabled. */
   twoFactorEnabled?: boolean
+  /** True while the account is in the reversible deletion grace window. */
+  pendingDeletion?: boolean
+  /** ISO timestamp when the account will be purged if deletion isn't cancelled. */
+  deletionScheduledAt?: string
 }
 
 export interface AuthContextValue {

@@ -25,13 +25,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
   private final JwtUtils jwtUtils;
   private final UserDetailsServiceImpl userDetailsService;
   private final TokenBlacklistService tokenBlacklist;
+  private final com.roots.mms.service.SessionService sessionService;
 
   @Override
   protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
     throws ServletException, IOException {
     try {
       String jwt = parseJwt(request);
-      if (jwt != null && jwtUtils.validateJwtToken(jwt) && !tokenBlacklist.isRevoked(jwt)) {
+      if (jwt != null && jwtUtils.validateJwtToken(jwt) && !tokenBlacklist.isRevoked(jwt)
+          && sessionValid(jwt)) {
         String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -54,6 +56,17 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+  }
+
+  /**
+   * Tokens minted before sessions existed (and OAuth redirect tokens) carry no
+   * {@code sid} claim — those are accepted as before. Tokens that DO carry a
+   * {@code sid} are only honoured while that session is still active, so a
+   * remote "sign out" invalidates them immediately.
+   */
+  private boolean sessionValid(String jwt) {
+    String sid = jwtUtils.getSessionId(jwt);
+    return sid == null || sessionService.isActive(sid);
   }
 
   private String parseJwt(HttpServletRequest request) {

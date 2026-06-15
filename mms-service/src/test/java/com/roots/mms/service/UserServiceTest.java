@@ -43,6 +43,7 @@ class UserServiceTest {
     private UserRepository userRepo;
     private RoleRepository roleRepo;
     private PasswordEncoder passwordEncoder;
+    private VerificationTokenService verificationTokenService;
     private UserService service;
 
     @BeforeEach
@@ -50,7 +51,8 @@ class UserServiceTest {
         userRepo = mock(UserRepository.class);
         roleRepo = mock(RoleRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
-        service = new UserService(userRepo, roleRepo, passwordEncoder);
+        verificationTokenService = mock(VerificationTokenService.class);
+        service = new UserService(userRepo, roleRepo, passwordEncoder, verificationTokenService);
     }
 
     private User localUser() {
@@ -94,15 +96,17 @@ class UserServiceTest {
     // ── updateProfile ─────────────────────────────────────────────────
 
     @Test
-    void updateProfile_emailChange_blockedForFederatedUser() {
-        User u = googleUser();
+    void updateProfile_emailChange_blockedViaProfilePut() {
+        // Silent email swap through the profile PUT is closed — all real email
+        // changes must go through the verified change-email flow.
+        User u = localUser();
         when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
         UpdateUserProfileRequest req = new UpdateUserProfileRequest();
         req.setEmail("new@example.com");
 
         assertThatThrownBy(() -> service.updateProfile(u.getId().toString(), req))
                 .isInstanceOf(BusinessRuleException.class)
-                .hasMessageContaining("Google");
+                .hasMessageContaining("verified change-email");
         verify(userRepo, never()).save(any());
     }
 
@@ -122,29 +126,63 @@ class UserServiceTest {
     }
 
     @Test
-    void updateProfile_emailChange_duplicate_throws() {
+    void updateProfile_emailChange_neverPersistsViaProfilePut() {
+        // Even for a brand-new, available address, the profile PUT refuses the
+        // change and persists nothing — the verified flow is the only path.
         User u = localUser();
         when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
-        when(userRepo.existsByEmail("taken@example.com")).thenReturn(true);
-        UpdateUserProfileRequest req = new UpdateUserProfileRequest();
-        req.setEmail("taken@example.com");
-
-        assertThatThrownBy(() -> service.updateProfile(u.getId().toString(), req))
-                .isInstanceOf(DuplicateResourceException.class);
-    }
-
-    @Test
-    void updateProfile_emailChange_local_savesNewEmail() {
-        User u = localUser();
-        when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
-        when(userRepo.existsByEmail("new@example.com")).thenReturn(false);
         UpdateUserProfileRequest req = new UpdateUserProfileRequest();
         req.setEmail("new@example.com");
 
+        assertThatThrownBy(() -> service.updateProfile(u.getId().toString(), req))
+                .isInstanceOf(BusinessRuleException.class);
+        assertThat(u.getEmail()).isEqualTo("alice@example.com");
+        verify(userRepo, never()).save(any());
+    }
+
+    @Test
+    void updateProfile_username_changesWhenValidAndUnique() {
+        User u = localUser(); // username "alice"
+        when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
+        when(userRepo.existsByUsername("alice2")).thenReturn(false);
+        when(userRepo.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+        UpdateUserProfileRequest req = new UpdateUserProfileRequest();
+        req.setUsername("alice2");
+
         service.updateProfile(u.getId().toString(), req);
 
-        assertThat(u.getEmail()).isEqualTo("new@example.com");
-        verify(userRepo).save(u);
+        assertThat(u.getUsername()).isEqualTo("alice2");
+        assertThat(u.getUsernameChangedAt()).isNotNull();
+    }
+
+    @Test
+    void updateProfile_username_duplicate_throws() {
+        User u = localUser();
+        when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
+        when(userRepo.existsByUsername("taken")).thenReturn(true);
+        UpdateUserProfileRequest req = new UpdateUserProfileRequest();
+        req.setUsername("taken");
+
+        assertThatThrownBy(() -> service.updateProfile(u.getId().toString(), req))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("taken");
+        assertThat(u.getUsername()).isEqualTo("alice");
+    }
+
+    @Test
+    void updateProfile_username_withinCooldown_throws() {
+        org.springframework.test.util.ReflectionTestUtils.setField(service, "usernameCooldownDays", 30);
+        User u = localUser();
+        u.setUsernameChangedAt(java.time.LocalDateTime.now().minusDays(5));
+        when(userRepo.findById(u.getId())).thenReturn(Optional.of(u));
+        UpdateUserProfileRequest req = new UpdateUserProfileRequest();
+        req.setUsername("alice3");
+
+        assertThatThrownBy(() -> service.updateProfile(u.getId().toString(), req))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("changed recently");
+        assertThat(u.getUsername()).isEqualTo("alice");
+        verify(userRepo, never()).existsByUsername(anyString());
     }
 
     @Test

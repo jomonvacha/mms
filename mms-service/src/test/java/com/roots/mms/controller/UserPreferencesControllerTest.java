@@ -173,6 +173,41 @@ class UserPreferencesControllerTest {
     }
 
     @Test
+    void getMyPreferences_missing_includesDefaultNotificationMatrix() throws Exception {
+        UUID id = authenticateUser();
+        when(repo.findById(id)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/user/preferences"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notificationPrefs.security.email").value(true))
+                .andExpect(jsonPath("$.notificationPrefs.marketing.email").value(false));
+    }
+
+    @Test
+    void setMyPreferences_savesNotificationMatrix_andMergesDefaults() throws Exception {
+        UUID id = authenticateUser();
+        when(repo.findById(id)).thenReturn(Optional.empty());
+        when(repo.save(any(UserPreferences.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserPreferencesRequest req = UserPreferencesRequest.builder()
+                .theme("light").language("en")
+                .notificationPrefs(java.util.Map.of("marketing", java.util.Map.of("email", true)))
+                .build();
+
+        mockMvc.perform(post("/api/user/preferences")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.notificationPrefs.marketing.email").value(true))
+                // security defaults are merged into the effective response
+                .andExpect(jsonPath("$.notificationPrefs.security.email").value(true));
+
+        var captor = forClass(UserPreferences.class);
+        verify(repo).save(captor.capture());
+        assertThat(captor.getValue().getNotificationPrefs().get("marketing").get("email")).isTrue();
+    }
+
+    @Test
     void setMyPreferences_existingRow_updatesInPlace() throws Exception {
         UUID id = authenticateUser();
         UserPreferences existing = new UserPreferences();

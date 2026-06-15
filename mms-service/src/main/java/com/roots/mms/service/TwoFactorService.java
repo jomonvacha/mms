@@ -144,6 +144,31 @@ public class TwoFactorService {
         log.info("2FA disabled for userId={}", userId);
     }
 
+    /**
+     * Mints a fresh set of one-time recovery codes, replacing any unused ones.
+     * Available any time 2FA is enabled (TradingView "Generate new codes"
+     * parity), not just at first setup. Returns the new plaintext codes, which
+     * are shown to the user exactly once.
+     */
+    public EnableResult regenerateRecoveryCodes(String userId) {
+        User user = userRepository.findById(java.util.UUID.fromString(userId))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (!Boolean.TRUE.equals(user.getTotpEnabled())) {
+            throw new BusinessRuleException("Enable two-factor authentication first.");
+        }
+        List<String> plaintext = new ArrayList<>(RECOVERY_CODE_COUNT);
+        List<String> hashed = new ArrayList<>(RECOVERY_CODE_COUNT);
+        for (int i = 0; i < RECOVERY_CODE_COUNT; i++) {
+            String c = randomRecoveryCode();
+            plaintext.add(c);
+            hashed.add(passwordEncoder.encode(c));
+        }
+        user.setTotpRecoveryCodes(hashed);
+        userRepository.save(user);
+        log.info("Recovery codes regenerated for userId={}", userId);
+        return new EnableResult(plaintext);
+    }
+
     // ── Signin verification ─────────────────────────────────────────────────
 
     /**

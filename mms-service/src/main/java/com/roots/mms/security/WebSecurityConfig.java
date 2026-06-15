@@ -40,6 +40,7 @@ public class WebSecurityConfig {
   private final AuthEntryPointJwt unauthorizedHandler;
   private final JwtUtils jwtUtils;
   private final TokenBlacklistService tokenBlacklist;
+  private final com.roots.mms.service.SessionService sessionService;
   private final AuthRateLimitFilter authRateLimitFilter;
   private final ObjectProvider<ClientRegistrationRepository> clientRegistrationRepositoryProvider;
   private final ObjectProvider<CustomOAuth2UserService> customOAuth2UserServiceProvider;
@@ -54,7 +55,7 @@ public class WebSecurityConfig {
 
   @Bean
   public AuthTokenFilter authenticationJwtTokenFilter() {
-    return new AuthTokenFilter(jwtUtils, userDetailsService, tokenBlacklist);
+    return new AuthTokenFilter(jwtUtils, userDetailsService, tokenBlacklist, sessionService);
   }
 
   /**

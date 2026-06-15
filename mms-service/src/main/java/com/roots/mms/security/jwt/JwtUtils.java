@@ -96,20 +96,48 @@ public class JwtUtils {
   }
 
   public String generateTokenFromUsername(String username) {
-    return Jwts.builder()
-      .subject(username)
-      .issuedAt(new Date())
-      .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
-      .signWith(key())
-      .compact();
+    return generateTokenFromUsername(username, null);
   }
 
   public String generateRefreshTokenFromUsername(String username) {
-    return Jwts.builder()
+    return generateRefreshTokenFromUsername(username, null);
+  }
+
+  /**
+   * Access token carrying a {@code sid} (session id) claim. The filter uses
+   * {@code sid} to enforce remote session revocation; refresh uses it to find
+   * and rotate the owning session record.
+   */
+  public String generateTokenFromUsername(String username, String sessionId) {
+    var builder = Jwts.builder()
       .subject(username)
       .issuedAt(new Date())
-      .expiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs))
-      .signWith(key())
-      .compact();
+      .expiration(new Date((new Date()).getTime() + jwtExpirationMs));
+    if (sessionId != null) builder.claim("sid", sessionId);
+    return builder.signWith(key()).compact();
+  }
+
+  public String generateRefreshTokenFromUsername(String username, String sessionId) {
+    var builder = Jwts.builder()
+      .subject(username)
+      .issuedAt(new Date())
+      .expiration(new Date((new Date()).getTime() + jwtRefreshExpirationMs));
+    if (sessionId != null) builder.claim("sid", sessionId);
+    return builder.signWith(key()).compact();
+  }
+
+  /** Returns the {@code sid} session-id claim, or null if the token has none. */
+  public String getSessionId(String token) {
+    try {
+      Object sid = Jwts.parser().verifyWith(key()).build()
+        .parseSignedClaims(token).getPayload().get("sid");
+      return sid != null ? sid.toString() : null;
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  public long refreshExpirationMs() {
+    return jwtRefreshExpirationMs;
   }
 }

@@ -36,7 +36,8 @@ public class VerificationToken {
 
     public enum TokenType {
         PASSWORD_RESET,
-        EMAIL_VERIFICATION
+        EMAIL_VERIFICATION,
+        EMAIL_CHANGE
     }
 
     @Id
@@ -62,4 +63,8 @@ public class VerificationToken {
 
     @Column(name = "consumed_at")
     private Instant consumedAt;
+
+    /** Pending new address — only populated for {@link TokenType#EMAIL_CHANGE} rows. */
+    @Column(name = "new_email", length = 254)
+    private String newEmail;
 }

@@ -15,6 +15,7 @@ import NotFound from './pages/NotFound'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
+import ConfirmEmailChange from './pages/ConfirmEmailChange'
 import ProtectedRoute from './components/ProtectedRoute'
 import RoleProtectedRoute from './components/RoleProtectedRoute'
 
@@ -29,6 +30,7 @@ export default function RoutesConfig() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/confirm-email-change" element={<ConfirmEmailChange />} />
       <Route path="/members" element={<Navigate to="/" replace />} />
       <Route
         path="/admin/users"

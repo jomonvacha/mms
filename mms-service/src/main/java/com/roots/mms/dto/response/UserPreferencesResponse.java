@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,4 +18,6 @@ public class UserPreferencesResponse {
     private String timezone;
     private boolean emailNotifications;
     private String navbarDisplay;
+    /** Effective per-category x per-channel notification matrix (defaults merged in). */
+    private Map<String, Map<String, Boolean>> notificationPrefs;
 }

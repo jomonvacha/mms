@@ -45,7 +45,8 @@ class AuthTokenFilterTest {
 
         userDetailsService = mock(UserDetailsServiceImpl.class);
         blacklist = new TokenBlacklistService();
-        filter = new AuthTokenFilter(jwtUtils, userDetailsService, blacklist);
+        filter = new AuthTokenFilter(jwtUtils, userDetailsService, blacklist,
+                mock(com.roots.mms.service.SessionService.class));
         chain = mock(FilterChain.class);
 
         SecurityContextHolder.clearContext();

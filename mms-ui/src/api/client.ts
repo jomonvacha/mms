@@ -183,6 +183,70 @@ export function twoFactorDisable(currentPasswordOrCode: string) {
   })
 }
 
+/** Mints a fresh batch of one-time recovery codes (2FA must already be enabled). */
+export function twoFactorRegenerateRecoveryCodes() {
+  return fetchJson<{ recoveryCodes: string[] }>('/api/users/me/2fa/recovery-codes', { method: 'POST' })
+}
+
+// ── Active sessions (device registry + remote revoke) ───────────────────────
+
+export interface SessionRecord {
+  id: string
+  deviceLabel?: string
+  userAgent?: string
+  ip?: string
+  createdAt?: string
+  lastActiveAt?: string
+  expiresAt?: string
+  current: boolean
+}
+
+export function listSessions() {
+  return fetchJson<SessionRecord[]>('/api/users/me/sessions')
+}
+
+/** Revokes (signs out) a single session by id. */
+export function revokeSession(id: string) {
+  return fetchJson(`/api/users/me/sessions/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+/** Signs out every other session, keeping the current one. */
+export function revokeOtherSessions() {
+  return fetchJson('/api/users/me/sessions', { method: 'DELETE' })
+}
+
+// ── Verified email change ───────────────────────────────────────────────────
+
+/** Starts a verified email change: confirmation sent to the new address. */
+export function requestEmailChange(newEmail: string, currentPassword: string) {
+  return fetchJson('/api/users/me/email-change/request', {
+    method: 'POST',
+    body: JSON.stringify({ newEmail, currentPassword }),
+  })
+}
+
+/** Confirms an email change from the link sent to the new address (GET ?token=). */
+export function confirmEmailChange(token: string) {
+  return fetchJson(`/api/auth/confirm-email-change?token=${encodeURIComponent(token)}`, {
+    method: 'GET', noAuth: true,
+  })
+}
+
+// ── Self-service account deletion ───────────────────────────────────────────
+
+/** Schedules account deletion after a reversible grace window. */
+export function requestAccountDeletion(currentPassword?: string) {
+  return fetchJson('/api/users/me/deletion', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword: currentPassword || null }),
+  })
+}
+
+/** Halts a pending account deletion. */
+export function cancelAccountDeletion() {
+  return fetchJson('/api/users/me/deletion', { method: 'DELETE' })
+}
+
 export function register(data: Record<string, unknown>) {
   if (!REGISTER_PATH) {
     const err = new Error('Local registration is not configured') as ApiError
@@ -590,8 +654,12 @@ export function deleteLocaleOption(id: string) {
 export interface PrefsRecord {
   theme?: string
   language?: string
+  country?: string
+  timezone?: string
   emailNotifications?: boolean
   navbarDisplay?: string
+  /** Per-category x per-channel notification matrix (effective values with defaults merged). */
+  notificationPrefs?: Record<string, Record<string, boolean>>
 }
 
 // ── Enforcement Rules management ────────────────────────────────────

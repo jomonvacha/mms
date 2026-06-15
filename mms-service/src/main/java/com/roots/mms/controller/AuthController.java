@@ -61,11 +61,14 @@ public class AuthController {
   private final MemberService memberService;
   private final SignupInviteCodeService inviteCodeService;
   private final AppSettingService appSettingService;
+  private final com.roots.mms.service.SessionService sessionService;
+  private final com.roots.mms.service.email.EmailService emailService;
   @Value("${spring.security.oauth2.client.registration.google.client-id:}")
   private String googleClientId;
 
   @PostMapping("/signin")
-  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+  public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest,
+                                            HttpServletRequest request) {
     log.info("Authentication attempt for user: {}", loginRequest.getUsername());
 
     try {
@@ -92,8 +95,23 @@ public class AuthController {
       }
 
       SecurityContextHolder.getContext().setAuthentication(authentication);
-      String jwt = jwtUtils.generateJwtToken(authentication);
-      String refreshToken = jwtUtils.generateRefreshToken(authentication);
+
+      // Register the device/session BEFORE minting tokens so the session id can
+      // be embedded as the JWT `sid` claim (enables remote revoke + listing).
+      String userAgent = request.getHeader("User-Agent");
+      String ip = com.roots.mms.service.SessionService.clientIp(request);
+      String sid = null;
+      if (userEntity != null) {
+        boolean newDevice = sessionService.isNewDevice(userEntity, userAgent, ip);
+        sid = sessionService.create(userEntity, userAgent, ip, jwtUtils.refreshExpirationMs())
+                .getId().toString();
+        if (newDevice) {
+          sendNewDeviceAlert(userEntity, userAgent, ip);
+        }
+      }
+
+      String jwt = jwtUtils.generateTokenFromUsername(userDetails.getUsername(), sid);
+      String refreshToken = jwtUtils.generateRefreshTokenFromUsername(userDetails.getUsername(), sid);
 
       List<String> roles = userDetails.getAuthorities().stream()
         .map(GrantedAuthority::getAuthority)
@@ -109,6 +127,31 @@ public class AuthController {
     } catch (BadCredentialsException e) {
       log.warn("Failed authentication attempt for user: {}", loginRequest.getUsername());
       throw new AuthenticationException("Invalid username or password");
+    }
+  }
+
+  /** Fire-and-forget security alert on sign-in from an unrecognised device/IP. */
+  private void sendNewDeviceAlert(User user, String userAgent, String ip) {
+    try {
+      String body = String.format("""
+              Hi %s,
+
+              We noticed a new sign-in to your account:
+
+                Device:  %s
+                IP:      %s
+
+              If this was you, no action is needed. If you don't recognise this
+              activity, change your password and review your active sessions in
+              account settings right away.
+              """,
+              (user.getFirstName() != null && !user.getFirstName().isBlank()) ? user.getFirstName() : "there",
+              com.roots.mms.service.SessionService.deviceLabel(userAgent),
+              ip != null ? ip : "unknown");
+      emailService.send(com.roots.mms.service.email.OutgoingEmail.of(
+              user.getEmail(), "New sign-in to your account", body));
+    } catch (Exception e) {
+      log.warn("Failed to send new-device alert for {}: {}", user.getEmail(), e.getMessage());
     }
   }
 
@@ -234,6 +277,16 @@ public class AuthController {
   }
 
   /**
+   * Confirms a verified email change from the link sent to the new address.
+   * On success the account's email is updated and marked verified.
+   */
+  @GetMapping("/confirm-email-change")
+  public ResponseEntity<?> confirmEmailChange(@RequestParam String token) {
+    verificationTokenService.redeemEmailChange(token);
+    return ResponseEntity.ok(new MessageResponse("Email address updated."));
+  }
+
+  /**
    * Stateless JWT signout: revoke the bearer access token (and optional refresh token)
    * by adding them to the in-memory blacklist until their natural expiry. The frontend
    * also clears its local storage. Idempotent — always returns 200.
@@ -247,6 +300,13 @@ public class AuthController {
       try {
         if (jwtUtils.validateJwtToken(accessToken)) {
           tokenBlacklist.revoke(accessToken, jwtUtils.getExpirationEpochMs(accessToken));
+          // Tear down the owning session so any sibling tokens stop working too.
+          String sid = jwtUtils.getSessionId(accessToken);
+          if (sid != null) {
+            String username = jwtUtils.getUserNameFromJwtToken(accessToken);
+            userRepository.findByUsername(username).ifPresent(u ->
+                sessionService.revoke(u.getId().toString(), sid));
+          }
         }
       } catch (Exception e) {
         log.debug("Could not revoke access token on signout: {}", e.getMessage());
@@ -277,8 +337,18 @@ public class AuthController {
       User user = userRepository.findByUsername(username)
         .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
 
-      String newJwt = jwtUtils.generateTokenFromUsername(user.getUsername());
-      String newRefreshToken = jwtUtils.generateRefreshTokenFromUsername(user.getUsername());
+      // Honour remote revoke: a refresh token whose session was killed is dead,
+      // even if the JWT itself is still within its exp window.
+      String sid = jwtUtils.getSessionId(refreshToken);
+      if (sid != null) {
+        if (!sessionService.isActive(sid)) {
+          throw new AuthenticationException("Session has been signed out");
+        }
+        sessionService.touch(sid);
+      }
+
+      String newJwt = jwtUtils.generateTokenFromUsername(user.getUsername(), sid);
+      String newRefreshToken = jwtUtils.generateRefreshTokenFromUsername(user.getUsername(), sid);
 
       List<String> roles = user.getRoles().stream()
         .map(r -> r.getName())
@@ -295,7 +365,8 @@ public class AuthController {
   }
 
   @PostMapping("/google-id-token")
-  public ResponseEntity<?> exchangeGoogleIdToken(@Valid @RequestBody GoogleIdTokenRequest req) {
+  public ResponseEntity<?> exchangeGoogleIdToken(@Valid @RequestBody GoogleIdTokenRequest req,
+                                                 HttpServletRequest request) {
     try {
       var httpTransport = new com.google.api.client.http.javanet.NetHttpTransport();
       var jsonFactory = com.google.api.client.json.gson.GsonFactory.getDefaultInstance();
@@ -332,8 +403,11 @@ public class AuthController {
         return userRepository.save(u);
       });
 
-      String accessToken = jwtUtils.generateTokenFromUsername(email);
-      String refresh = jwtUtils.generateRefreshTokenFromUsername(email);
+      String sid = sessionService.create(user, request.getHeader("User-Agent"),
+              com.roots.mms.service.SessionService.clientIp(request),
+              jwtUtils.refreshExpirationMs()).getId().toString();
+      String accessToken = jwtUtils.generateTokenFromUsername(email, sid);
+      String refresh = jwtUtils.generateRefreshTokenFromUsername(email, sid);
       java.util.List<String> roles = user.getRoles().stream().map(r -> r.getName()).collect(java.util.stream.Collectors.toList());
 
       return ResponseEntity.ok(new JwtResponse(accessToken, refresh, user.getId() != null ? user.getId().toString() : null, user.getUsername(), user.getEmail(), roles));

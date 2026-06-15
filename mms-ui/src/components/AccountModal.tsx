@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { X, User, KeyRound, Settings, Sun, Moon, Monitor, Globe, Bell, Upload, Loader2, ShieldCheck, Lock, Smartphone, Copy, Check, AlertCircle, Camera, Trash2 } from 'lucide-react'
+import { X, User, KeyRound, Settings, Sun, Moon, Monitor, Globe, Bell, Upload, Loader2, ShieldCheck, Lock, Smartphone, Copy, Check, AlertCircle, Camera, Trash2, Mail, LogOut, Laptop, RefreshCw } from 'lucide-react'
 import { notify } from './Toast'
 import AvatarCropper from './AvatarCropper'
 import { useAuth } from '../hooks/useAuth'
@@ -9,10 +9,12 @@ import type { Theme } from '../hooks/useTheme'
 import {
   changePassword, disconnectProvider, updateMe, updatePreferences as apiUpdatePreferences,
   uploadAvatar, getMyAvatarBlob as fetchAvatarBlob, getPreferences, type PrefsRecord,
-  twoFactorSetup, twoFactorEnable, twoFactorDisable,
+  twoFactorSetup, twoFactorEnable, twoFactorDisable, twoFactorRegenerateRecoveryCodes,
+  listSessions, revokeSession, revokeOtherSessions, type SessionRecord,
+  requestEmailChange, requestAccountDeletion, cancelAccountDeletion,
 } from '../api/client'
 
-type Tab = 'profile' | 'account' | 'preferences' | 'security'
+type Tab = 'profile' | 'account' | 'preferences' | 'security' | 'sessions'
 
 interface Props {
   isOpen: boolean
@@ -127,6 +129,31 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
   const [copiedRecovery, setCopiedRecovery] = useState(false)
   const [disableConfirm, setDisableConfirm] = useState('')
 
+  // Email-change state (Account tab)
+  const [newEmail, setNewEmail] = useState('')
+  const [emailChangePassword, setEmailChangePassword] = useState('')
+
+  // Account-deletion state (Account tab)
+  const [deletePassword, setDeletePassword] = useState('')
+
+  // Active-sessions state (Sessions tab)
+  const [sessions, setSessions] = useState<SessionRecord[]>([])
+  const [sessionsLoading, setSessionsLoading] = useState(false)
+
+  const loadSessions = useCallback(async () => {
+    setSessionsLoading(true)
+    try {
+      setSessions(await listSessions())
+    } catch (err) {
+      const e = err as { message?: string }
+      notify.error(e?.message || 'Could not load sessions.')
+    } finally { setSessionsLoading(false) }
+  }, [])
+
+  useEffect(() => {
+    if (isOpen && activeTab === 'sessions') loadSessions()
+  }, [isOpen, activeTab, loadSessions])
+
   // Prefs state
   const [prefs, setPrefs] = useState<PrefsRecord>({ theme: 'system', language: 'en', emailNotifications: true, navbarDisplay: 'avatar' })
 
@@ -137,7 +164,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       try {
         const p = await getPreferences()
         if (cancelled || !p) return
-        setPrefs({ theme: p.theme || 'system', language: p.language || 'en', emailNotifications: Boolean(p.emailNotifications), navbarDisplay: p.navbarDisplay || 'avatar' })
+        setPrefs({ theme: p.theme || 'system', language: p.language || 'en', emailNotifications: Boolean(p.emailNotifications), navbarDisplay: p.navbarDisplay || 'avatar', notificationPrefs: p.notificationPrefs })
       } catch (_) {}
     }
     loadPrefs()
@@ -227,10 +254,11 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
         language: prefs.language || 'en',
         emailNotifications: Boolean(prefs.emailNotifications),
         navbarDisplay: prefs.navbarDisplay || 'avatar',
+        notificationPrefs: prefs.notificationPrefs,
       }
       const saved = await apiUpdatePreferences(payload as Record<string, unknown>) as PrefsRecord
       if (saved) {
-        setPrefs({ theme: saved.theme || 'system', language: saved.language || 'en', emailNotifications: Boolean(saved.emailNotifications), navbarDisplay: saved.navbarDisplay || 'avatar' })
+        setPrefs({ theme: saved.theme || 'system', language: saved.language || 'en', emailNotifications: Boolean(saved.emailNotifications), navbarDisplay: saved.navbarDisplay || 'avatar', notificationPrefs: saved.notificationPrefs })
         try { window.dispatchEvent(new CustomEvent('mms:prefsUpdated', { detail: saved })) } catch (_) {}
       }
       if (saved?.theme) {
@@ -247,6 +275,54 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const submitEmailChange = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newEmail || !emailChangePassword) { notify.error('New email and current password are required.'); return }
+    setSubmitting(true)
+    try {
+      await requestEmailChange(newEmail, emailChangePassword)
+      setNewEmail(''); setEmailChangePassword('')
+      notify.success('Confirmation sent to your new address. The change takes effect once you confirm it.')
+    } catch (err) {
+      const e2 = err as { data?: { message?: string }; message?: string }
+      notify.error(e2?.data?.message || e2?.message || 'Could not start email change.')
+    } finally { setSubmitting(false) }
+  }
+
+  const submitAccountDeletion = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+    try {
+      await requestAccountDeletion(deletePassword || undefined)
+      setDeletePassword('')
+      await refreshMe()
+      notify.success('Account deletion scheduled. You can cancel any time during the grace period.')
+    } catch (err) {
+      const e2 = err as { data?: { message?: string }; message?: string }
+      notify.error(e2?.data?.message || e2?.message || 'Could not schedule deletion.')
+    } finally { setSubmitting(false) }
+  }
+
+  const handleCancelDeletion = async () => {
+    setSubmitting(true)
+    try {
+      await cancelAccountDeletion()
+      await refreshMe()
+      notify.success('Account deletion cancelled.')
+    } catch (err) {
+      const e2 = err as { message?: string }
+      notify.error(e2?.message || 'Could not cancel deletion.')
+    } finally { setSubmitting(false) }
+  }
+
+  const toggleNotif = (category: string, channel: string, value: boolean) => {
+    setPrefs((prev) => {
+      const matrix = { ...(prev.notificationPrefs || {}) }
+      matrix[category] = { ...(matrix[category] || {}), [channel]: value }
+      return { ...prev, notificationPrefs: matrix }
+    })
   }
 
   const SidebarItem = ({ tab, label, icon: Icon }: { tab: Tab; label: string; icon: React.ElementType }) => (
@@ -480,27 +556,84 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       )
 
       // ── Local user with password: normal change-password form ─────────
+      const pendingDeletion = Boolean(user?.pendingDeletion)
       return (
-        <form onSubmit={submitPassword} className="space-y-4">
-          <div>
-            <label className="label">Current Password</label>
-            <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+        <div className="space-y-6">
+          <form onSubmit={submitPassword} className="space-y-4">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Lock size={15} /> Change password</h3>
+            <div>
+              <label className="label">Current Password</label>
+              <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
+            </div>
+            <div>
+              <label className="label">New Password</label>
+              <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
+            </div>
+            <div>
+              <label className="label">Confirm New Password</label>
+              <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <button type="submit" className="btn-primary text-sm" disabled={submitting}>
+                {submitting ? <><Loader2 size={14} className="animate-spin" />Updating…</> : 'Update Password'}
+              </button>
+            </div>
+          </form>
+
+          {/* Verified email change — never a silent swap via the profile form */}
+          <form onSubmit={submitEmailChange} className="card p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Mail size={15} /> Change email</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Current: <span className="font-medium">{user?.email}</span>. We&apos;ll email a confirmation link to the
+              new address and notify your current one. The change takes effect only after you confirm.
+            </p>
+            <div>
+              <label className="label">New email</label>
+              <input type="email" className="input" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="you@example.com" required />
+            </div>
+            <div>
+              <label className="label">Current password</label>
+              <input type="password" className="input" value={emailChangePassword} onChange={(e) => setEmailChangePassword(e.target.value)} required />
+            </div>
+            <div className="flex justify-end">
+              <button type="submit" className="btn-secondary text-sm" disabled={submitting}>Send confirmation</button>
+            </div>
+          </form>
+
+          {/* Danger zone — self-service account deletion with grace window */}
+          <div className="card p-4 space-y-3 border-rose-200 dark:border-rose-900/50">
+            <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2"><Trash2 size={15} /> Delete account</h3>
+            {pendingDeletion ? (
+              <>
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  Your account is scheduled for deletion
+                  {user?.deletionScheduledAt ? ` on ${new Date(user.deletionScheduledAt).toLocaleDateString()}` : ''}.
+                  You can still cancel until then.
+                </p>
+                <div className="flex justify-end">
+                  <button type="button" className="btn-primary text-sm" disabled={submitting} onClick={handleCancelDeletion}>
+                    {submitting ? <><Loader2 size={14} className="animate-spin" />Cancelling…</> : 'Cancel deletion'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <form onSubmit={submitAccountDeletion} className="space-y-3">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Schedules permanent deletion after a grace period. You can cancel any time before then.
+                </p>
+                <div>
+                  <label className="label">Confirm with your password</label>
+                  <input type="password" className="input" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} required />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" className="btn-danger text-sm" disabled={submitting}>
+                    {submitting ? <><Loader2 size={14} className="animate-spin" />Scheduling…</> : 'Delete my account'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-          <div>
-            <label className="label">New Password</label>
-            <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-          </div>
-          <div>
-            <label className="label">Confirm New Password</label>
-            <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-          </div>
-          <div className="flex gap-2 justify-end pt-2">
-            <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-              {submitting ? <><Loader2 size={14} className="animate-spin" />Updating…</> : 'Update Password'}
-            </button>
-          </div>
-        </form>
+        </div>
       )
     }
 
@@ -568,6 +701,18 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
         } catch (err) {
           const e = err as { message?: string }
           notify.error(e?.message || 'Invalid code. Try again.')
+        } finally { setSubmitting(false) }
+      }
+
+      const regenerateCodes = async () => {
+        setSubmitting(true)
+        try {
+          const r = await twoFactorRegenerateRecoveryCodes()
+          setRecoveryCodes(r.recoveryCodes || [])
+          notify.success('New recovery codes generated. Save them now.')
+        } catch (err) {
+          const e = err as { message?: string }
+          notify.error(e?.message || 'Could not regenerate recovery codes.')
         } finally { setSubmitting(false) }
       }
 
@@ -711,6 +856,10 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
                   Signing in to this account requires a code from your authenticator app.
                 </p>
+                <button type="button" className="btn-secondary text-sm mt-3 inline-flex items-center gap-1.5"
+                  onClick={regenerateCodes} disabled={submitting}>
+                  <RefreshCw size={14} /> Generate new recovery codes
+                </button>
               </div>
             </div>
           </div>
@@ -732,6 +881,61 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
             </button>
           </div>
         </form>
+      )
+    }
+
+    if (activeTab === 'sessions') {
+      const revokeOne = async (id: string) => {
+        setSubmitting(true)
+        try { await revokeSession(id); await loadSessions(); notify.success('Session signed out.') }
+        catch (err) { notify.error((err as { message?: string })?.message || 'Could not sign out session.') }
+        finally { setSubmitting(false) }
+      }
+      const revokeOthers = async () => {
+        setSubmitting(true)
+        try { await revokeOtherSessions(); await loadSessions(); notify.success('Signed out other sessions.') }
+        catch (err) { notify.error((err as { message?: string })?.message || 'Could not sign out other sessions.') }
+        finally { setSubmitting(false) }
+      }
+      return (
+        <div className="space-y-4">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Laptop size={15} /> Active sessions</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Devices currently signed in to your account.</p>
+            </div>
+            <button type="button" className="btn-secondary text-sm inline-flex items-center gap-1.5"
+              onClick={revokeOthers} disabled={submitting || sessions.length <= 1}>
+              <LogOut size={14} /> Sign out others
+            </button>
+          </div>
+          {sessionsLoading ? (
+            <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-brand-500" /></div>
+          ) : sessions.length === 0 ? (
+            <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">No active sessions.</p>
+          ) : (
+            <ul className="space-y-2">
+              {sessions.map((s) => (
+                <li key={s.id} className="card p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                      {s.deviceLabel || 'Unknown device'}
+                      {s.current && <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">This device</span>}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {s.ip || 'unknown IP'}{s.lastActiveAt ? ` · last active ${new Date(s.lastActiveAt).toLocaleString()}` : ''}
+                    </p>
+                  </div>
+                  {!s.current && (
+                    <button type="button" className="btn-secondary text-xs flex-shrink-0" disabled={submitting} onClick={() => revokeOne(s.id)}>
+                      Sign out
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )
     }
 
@@ -800,6 +1004,35 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
           </div>
         </div>
 
+        {prefs.notificationPrefs && Object.keys(prefs.notificationPrefs).length > 0 && (
+          <div className="card p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <Bell size={15} /> Notification preferences
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Choose how you&apos;re notified, per category.</p>
+            <div className="space-y-2">
+              {Object.entries(prefs.notificationPrefs).map(([category, channels]) => (
+                <div key={category} className="flex items-center justify-between gap-3 py-1">
+                  <span className="text-sm capitalize text-gray-700 dark:text-gray-300">{category}</span>
+                  <div className="flex gap-4">
+                    {Object.entries(channels).map(([channel, on]) => (
+                      <label key={channel} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="accent-brand-600"
+                          checked={Boolean(on)}
+                          onChange={(e) => toggleNotif(category, channel, e.target.checked)}
+                        />
+                        <span className="capitalize">{channel}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="card p-4 space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
             <User size={15} /> Navbar display
@@ -836,7 +1069,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       </form>
     )
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, uploadingAvatar, currentPassword, newPassword, confirmPassword, prefs, submitting, user, initials, twoFaSetup, twoFaCode, recoveryCodes, copiedRecovery, disableConfirm])
+  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, uploadingAvatar, currentPassword, newPassword, confirmPassword, prefs, submitting, user, initials, twoFaSetup, twoFaCode, recoveryCodes, copiedRecovery, disableConfirm, newEmail, emailChangePassword, deletePassword, sessions, sessionsLoading, loadSessions])
 
   if (!isOpen) return null
 
@@ -892,6 +1125,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
             <SidebarItem tab="profile" label="Profile" icon={User} />
             <SidebarItem tab="account" label="Account" icon={KeyRound} />
             <SidebarItem tab="security" label="Security" icon={ShieldCheck} />
+            <SidebarItem tab="sessions" label="Sessions" icon={Laptop} />
             <SidebarItem tab="preferences" label="Preferences" icon={Settings} />
           </aside>
 

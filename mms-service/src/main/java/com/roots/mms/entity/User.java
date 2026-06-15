@@ -132,6 +132,19 @@ public class User {
     @Column(name = "totp_recovery_codes", columnDefinition = "jsonb")
     private List<String> totpRecoveryCodes;
 
+    // ── Account lifecycle ────────────────────────────────────────────────────
+    /** True while the account is in the reversible deletion grace window. */
+    @Column(name = "pending_deletion", nullable = false)
+    private Boolean pendingDeletion = false;
+
+    /** When the account will be purged if the user doesn't cancel. */
+    @Column(name = "deletion_scheduled_at")
+    private LocalDateTime deletionScheduledAt;
+
+    /** Last time the username changed — backs the change-cooldown check. */
+    @Column(name = "username_changed_at")
+    private LocalDateTime usernameChangedAt;
+
     public User(String username, String email, String password, String firstName, String lastName) {
         this.username = username;
         this.email = email;
