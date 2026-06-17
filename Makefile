@@ -1,14 +1,22 @@
-.PHONY: help up down logs build test verify clean ui-install ui-build ui-dev
+.PHONY: help start stop up down logs build test verify clean ui-install ui-build ui-dev
 
 help:
 	@echo "MMS standalone commands:"
-	@echo "  make up         Start PostgreSQL, MMS API, and MMS UI"
-	@echo "  make down       Stop the standalone stack"
+	@echo "  make start      Run service + UI locally (./start.sh)"
+	@echo "  make stop       Stop the local service + UI (./stop.sh)"
+	@echo "  make up         Start PostgreSQL, MMS API, and MMS UI (Docker)"
+	@echo "  make down       Stop the standalone stack (Docker)"
 	@echo "  make logs       Follow stack logs"
 	@echo "  make build      Build backend and frontend"
 	@echo "  make test       Run backend tests"
 	@echo "  make verify     Run backend verification and frontend build"
 	@echo "  make clean      Clean backend and frontend build output"
+
+start:
+	./start.sh
+
+stop:
+	./stop.sh
 
 up:
 	docker compose up --build -d

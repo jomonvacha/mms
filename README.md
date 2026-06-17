@@ -30,7 +30,30 @@ Open:
 
 ## Local Development
 
-Start PostgreSQL:
+The fastest path is the start/stop scripts. They load `.env`, bring up a local
+PostgreSQL container when `DATABASE_URL` points at localhost, build and launch
+`mms-service` (port `8081`), then start the `mms-ui` Vite dev server (port
+`3001`). Each process is health-checked and backgrounded with a PID file under
+`logs/`.
+
+```bash
+cp .env.example .env
+# Set a strong JWT_SECRET (openssl rand -base64 64) and ADMIN_PASSWORD.
+
+make start     # or: ./start.sh
+make stop      # or: ./stop.sh
+```
+
+- UI: http://localhost:3001
+- API: http://localhost:8081
+- Logs: `tail -f logs/*.log`
+
+`make stop` leaves the PostgreSQL container running; stop it with
+`docker compose down`.
+
+### Manual
+
+To run the pieces yourself instead, start PostgreSQL:
 
 ```bash
 docker compose up -d postgres
