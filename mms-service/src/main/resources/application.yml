@@ -68,6 +68,10 @@ spring:
 # WebSecurityConfig uses ObjectProvider so it adapts automatically.
 
 app:
+  internal:
+    # Shared secret for service-to-service endpoints (/api/internal/**), e.g. TradeCue sending a
+    # user email through MMS. Blank = those endpoints are disabled (reject every call).
+    service-token: ${INTERNAL_SERVICE_TOKEN:}
   jwt:
     # PQC standard: 512-bit (64-byte) minimum. No weak default — must be set via JWT_SECRET env var.
     secret: ${JWT_SECRET:}

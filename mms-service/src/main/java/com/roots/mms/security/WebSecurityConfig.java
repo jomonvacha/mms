@@ -112,6 +112,9 @@ public class WebSecurityConfig {
           .requestMatchers("/h2-console/**").permitAll()
           .requestMatchers("/oauth2/callback-dev").permitAll()
           .requestMatchers("/api/auth/google-id-token").permitAll()
+          // Service-to-service endpoints: not user-authenticated; guarded by a shared
+          // X-Service-Token checked inside the controller (disabled when the token is unset).
+          .requestMatchers("/api/internal/**").permitAll()
           .anyRequest().authenticated()
       );
 
