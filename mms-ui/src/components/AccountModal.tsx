@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { X, User, KeyRound, Settings, Sun, Moon, Monitor, Globe, Bell, Upload, Loader2, ShieldCheck, Lock, Smartphone, Copy, Check, AlertCircle, Camera, Trash2, Mail, LogOut, Laptop, RefreshCw } from 'lucide-react'
+import { X, User, KeyRound, Settings, ShieldCheck, Laptop } from 'lucide-react'
 import { notify } from './Toast'
 import AvatarCropper from './AvatarCropper'
 import { useAuth } from '../hooks/useAuth'
-import type { AuthProvider } from '../hooks/useAuth'
-import { useTheme } from '../hooks/useTheme'
-import type { Theme } from '../hooks/useTheme'
 import {
-  changePassword, disconnectProvider, updateMe, updatePreferences as apiUpdatePreferences,
-  uploadAvatar, getMyAvatarBlob as fetchAvatarBlob, getPreferences, type PrefsRecord,
-  twoFactorSetup, twoFactorEnable, twoFactorDisable, twoFactorRegenerateRecoveryCodes,
-  listSessions, revokeSession, revokeOtherSessions, type SessionRecord,
-  requestEmailChange, requestAccountDeletion, cancelAccountDeletion,
+  updatePreferences as apiUpdatePreferences, uploadAvatar, getMyAvatarBlob as fetchAvatarBlob,
+  getPreferences, type PrefsRecord,
 } from '../api/client'
+import { isFederated, providerLabel } from './account/shared'
+import ProfileTab from './account/ProfileTab'
+import AccountTab from './account/AccountTab'
+import SecurityTab from './account/SecurityTab'
+import SessionsTab from './account/SessionsTab'
+import PreferencesTab from './account/PreferencesTab'
 
 type Tab = 'profile' | 'account' | 'preferences' | 'security' | 'sessions'
 
@@ -20,16 +20,6 @@ interface Props {
   isOpen: boolean
   initialTab?: Tab
   onClose: () => void
-}
-
-function providerLabel(p?: AuthProvider): string {
-  if (p === 'GOOGLE') return 'Google'
-  if (p === 'APPLE') return 'Apple'
-  return 'your identity provider'
-}
-
-function isFederated(p?: AuthProvider): boolean {
-  return p === 'GOOGLE' || p === 'APPLE'
 }
 
 function getTabbables(container: HTMLElement | null): HTMLElement[] {
@@ -42,8 +32,7 @@ function getTabbables(container: HTMLElement | null): HTMLElement[] {
 }
 
 export default function AccountModal({ isOpen, initialTab = 'profile', onClose }: Props) {
-  const { user, refreshMe } = useAuth()
-  const { setTheme } = useTheme()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<Tab>(initialTab)
   const [submitting, setSubmitting] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -81,11 +70,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     }
   }, [isOpen, submitting, onClose])
 
-  // Profile state
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phoneNumber, setPhoneNumber] = useState('')
+  // Avatar — fetched once per open so it's available for the header regardless of tab
   const [avatarUrl, setAvatarUrl] = useState('')
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [cropSrc, setCropSrc] = useState<string | null>(null) // image to crop before upload
@@ -102,10 +87,6 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
   useEffect(() => {
     let revokeUrl: string | undefined
     if (user && isOpen) {
-      setFirstName(user.firstName || '')
-      setLastName(user.lastName || '')
-      setEmail(user.email || '')
-      setPhoneNumber(user.phoneNumber || '')
       fetchAvatarBlob()
         .then((blob) => {
           const url = URL.createObjectURL(blob)
@@ -117,44 +98,8 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     return () => { if (revokeUrl) URL.revokeObjectURL(revokeUrl) }
   }, [user, isOpen])
 
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-
-  // 2FA state (Security tab)
-  const [twoFaSetup, setTwoFaSetup] = useState<{ secret: string; otpauthUri: string } | null>(null)
-  const [twoFaCode, setTwoFaCode] = useState('')
-  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
-  const [copiedRecovery, setCopiedRecovery] = useState(false)
-  const [disableConfirm, setDisableConfirm] = useState('')
-
-  // Email-change state (Account tab)
-  const [newEmail, setNewEmail] = useState('')
-  const [emailChangePassword, setEmailChangePassword] = useState('')
-
-  // Account-deletion state (Account tab)
-  const [deletePassword, setDeletePassword] = useState('')
-
-  // Active-sessions state (Sessions tab)
-  const [sessions, setSessions] = useState<SessionRecord[]>([])
-  const [sessionsLoading, setSessionsLoading] = useState(false)
-
-  const loadSessions = useCallback(async () => {
-    setSessionsLoading(true)
-    try {
-      setSessions(await listSessions())
-    } catch (err) {
-      const e = err as { message?: string }
-      notify.error(e?.message || 'Could not load sessions.')
-    } finally { setSessionsLoading(false) }
-  }, [])
-
-  useEffect(() => {
-    if (isOpen && activeTab === 'sessions') loadSessions()
-  }, [isOpen, activeTab, loadSessions])
-
-  // Prefs state
+  // Preferences — shared between the Profile tab (avatar → navbarDisplay sync)
+  // and the Preferences tab, so it's loaded once here rather than per-tab.
   const [prefs, setPrefs] = useState<PrefsRecord>({ theme: 'system', language: 'en', emailNotifications: true, navbarDisplay: 'avatar' })
 
   useEffect(() => {
@@ -169,7 +114,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     }
     loadPrefs()
     return () => { cancelled = true }
-  }, [isOpen, activeTab])
+  }, [isOpen])
 
   // Open the cropper when a file is selected
   const handleAvatarFileSelect = (file: File) => {
@@ -178,6 +123,11 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     const reader = new FileReader()
     reader.onload = () => { if (typeof reader.result === 'string') setCropSrc(reader.result) }
     reader.readAsDataURL(file)
+  }
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl('')
+    notify.success('Avatar removed. Save to apply.')
   }
 
   // Called by AvatarCropper after crop is confirmed
@@ -204,127 +154,6 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
     finally { setUploadingAvatar(false) }
   }
 
-  const submitProfile = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!firstName || !lastName) { notify.error('First and last name are required.'); return }
-    if (!email || !emailRegex.test(email)) { notify.error('A valid email is required.'); return }
-    setSubmitting(true)
-    try {
-      // Federated accounts: don't send email — it's owned by the identity provider
-      // and the backend rejects local changes anyway. Sending the unchanged value
-      // would still trigger an unnecessary equality check on the server.
-      const payload: { firstName: string; lastName: string; phoneNumber: string; email?: string } =
-        { firstName, lastName, phoneNumber }
-      if (!isFederated(user?.provider)) payload.email = email
-      await updateMe(payload)
-      await refreshMe()
-      notify.success('Profile updated.')
-    } catch (err) {
-      const e = err as { data?: { message?: string }; message?: string }
-      notify.error(e?.data?.message || e?.message || 'Profile update failed.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const submitPassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!currentPassword || !newPassword) { notify.error('Current and new password are required.'); return }
-    if (newPassword !== confirmPassword) { notify.error('Passwords do not match.'); return }
-    setSubmitting(true)
-    try {
-      await changePassword({ currentPassword, newPassword })
-      setCurrentPassword(''); setNewPassword(''); setConfirmPassword('')
-      notify.success('Password updated.')
-    } catch (err) {
-      const e = err as { data?: { message?: string }; message?: string }
-      notify.error(e?.data?.message || e?.message || 'Password update failed.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const submitPreferences = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    try {
-      const payload = {
-        theme: prefs.theme || 'system',
-        language: prefs.language || 'en',
-        emailNotifications: Boolean(prefs.emailNotifications),
-        navbarDisplay: prefs.navbarDisplay || 'avatar',
-        notificationPrefs: prefs.notificationPrefs,
-      }
-      const saved = await apiUpdatePreferences(payload as Record<string, unknown>) as PrefsRecord
-      if (saved) {
-        setPrefs({ theme: saved.theme || 'system', language: saved.language || 'en', emailNotifications: Boolean(saved.emailNotifications), navbarDisplay: saved.navbarDisplay || 'avatar', notificationPrefs: saved.notificationPrefs })
-        try { window.dispatchEvent(new CustomEvent('mms:prefsUpdated', { detail: saved })) } catch (_) {}
-      }
-      if (saved?.theme) {
-        let effective: Theme = 'light'
-        if (saved.theme === 'dark') effective = 'dark'
-        else if (saved.theme === 'system') effective = window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        setTheme(effective)
-      }
-      if (saved?.language) try { localStorage.setItem('mms_lang', saved.language) } catch (_) {}
-      notify.success('Preferences saved.')
-    } catch (err) {
-      const e = err as { data?: { message?: string }; message?: string }
-      notify.error(e?.data?.message || e?.message || 'Preferences update failed.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const submitEmailChange = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newEmail || !emailChangePassword) { notify.error('New email and current password are required.'); return }
-    setSubmitting(true)
-    try {
-      await requestEmailChange(newEmail, emailChangePassword)
-      setNewEmail(''); setEmailChangePassword('')
-      notify.success('Confirmation sent to your new address. The change takes effect once you confirm it.')
-    } catch (err) {
-      const e2 = err as { data?: { message?: string }; message?: string }
-      notify.error(e2?.data?.message || e2?.message || 'Could not start email change.')
-    } finally { setSubmitting(false) }
-  }
-
-  const submitAccountDeletion = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitting(true)
-    try {
-      await requestAccountDeletion(deletePassword || undefined)
-      setDeletePassword('')
-      await refreshMe()
-      notify.success('Account deletion scheduled. You can cancel any time during the grace period.')
-    } catch (err) {
-      const e2 = err as { data?: { message?: string }; message?: string }
-      notify.error(e2?.data?.message || e2?.message || 'Could not schedule deletion.')
-    } finally { setSubmitting(false) }
-  }
-
-  const handleCancelDeletion = async () => {
-    setSubmitting(true)
-    try {
-      await cancelAccountDeletion()
-      await refreshMe()
-      notify.success('Account deletion cancelled.')
-    } catch (err) {
-      const e2 = err as { message?: string }
-      notify.error(e2?.message || 'Could not cancel deletion.')
-    } finally { setSubmitting(false) }
-  }
-
-  const toggleNotif = (category: string, channel: string, value: boolean) => {
-    setPrefs((prev) => {
-      const matrix = { ...(prev.notificationPrefs || {}) }
-      matrix[category] = { ...(matrix[category] || {}), [channel]: value }
-      return { ...prev, notificationPrefs: matrix }
-    })
-  }
-
   const SidebarItem = ({ tab, label, icon: Icon }: { tab: Tab; label: string; icon: React.ElementType }) => (
     <button
       type="button"
@@ -339,737 +168,6 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       {label}
     </button>
   )
-
-  const rightPanel = useMemo(() => {
-    if (activeTab === 'profile') return (
-      <form onSubmit={submitProfile} className="space-y-5">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Profile Picture</h3>
-          <div className="flex items-center gap-5">
-            {/* Avatar with hover overlay */}
-            <div className="relative group flex-shrink-0">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="avatar" className="w-20 h-20 rounded-full object-cover" />
-              ) : (
-                <div className="w-20 h-20 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-2xl font-semibold text-brand-600 dark:text-brand-400">
-                  {initials}
-                </div>
-              )}
-              {/* Hover overlay */}
-              <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                <label className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 cursor-pointer transition-colors" title="Change photo">
-                  <Camera size={14} className="text-white" />
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleAvatarFileSelect(file)
-                    e.target.value = ''
-                  }} />
-                </label>
-                {avatarUrl && (
-                  <button type="button" onClick={() => { setAvatarUrl(''); notify.success('Avatar removed. Save to apply.') }}
-                    className="p-1.5 rounded-full bg-white/20 hover:bg-red-500/60 transition-colors" title="Remove photo">
-                    <Trash2 size={14} className="text-white" />
-                  </button>
-                )}
-              </div>
-              {uploadingAvatar && (
-                <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center">
-                  <Loader2 size={20} className="animate-spin text-white" />
-                </div>
-              )}
-            </div>
-            {/* Upload instructions */}
-            <div className="space-y-2">
-              <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                {avatarUrl ? 'Hover to change or remove' : 'Upload a profile photo'}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG or GIF. Max 5 MB.</p>
-              {!avatarUrl && (
-                <label className="btn-secondary text-xs cursor-pointer inline-flex items-center gap-1">
-                  <Upload size={13} /> Choose file
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleAvatarFileSelect(file)
-                    e.target.value = ''
-                  }} />
-                </label>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Personal Info</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="label">First Name</label>
-              <input className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            </div>
-            <div>
-              <label className="label">Last Name</label>
-              <input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            </div>
-            <div>
-              <label className="label">Email</label>
-              <input
-                className="input disabled:opacity-60 disabled:cursor-not-allowed"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isFederated(user?.provider)}
-                required
-              />
-              {isFederated(user?.provider) && (
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-                  <Lock size={11} /> Managed by {providerLabel(user?.provider)} — change it in your {providerLabel(user?.provider)} account.
-                </p>
-              )}
-              {!isFederated(user?.provider) && user?.emailVerified === true && (
-                <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                  <ShieldCheck size={11} /> Verified
-                </p>
-              )}
-              {!isFederated(user?.provider) && user?.emailVerified === false && (
-                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertCircle size={11} /> Not verified — check your inbox for a verification link.
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="label">Phone (optional)</label>
-              <input className="input" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-2 justify-end pt-2">
-          <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-            {submitting ? <><Loader2 size={14} className="animate-spin" />Saving…</> : 'Save Profile'}
-          </button>
-        </div>
-      </form>
-    )
-
-    if (activeTab === 'account') {
-      const federated = isFederated(user?.provider)
-
-      const hasExistingPw = user?.hasPassword === true
-
-      // ── Disconnect from provider flow (federated users only) ──────────
-      const submitDisconnect = async (e: React.FormEvent) => {
-        e.preventDefault()
-        // If user already has a local password, just flip the provider — no new pw needed
-        if (!hasExistingPw) {
-          if (!newPassword || newPassword.length < 8) { notify.error('Password must be at least 8 characters.'); return }
-          if (!/[A-Za-z]/.test(newPassword) || !/\d/.test(newPassword)) { notify.error('Must contain a letter and a number.'); return }
-          if (newPassword !== confirmPassword) { notify.error('Passwords do not match.'); return }
-        }
-        setSubmitting(true)
-        try {
-          await disconnectProvider(hasExistingPw ? '' : newPassword)
-          setNewPassword(''); setConfirmPassword('')
-          await refreshMe()
-          notify.success('Account disconnected. You are now a local user.')
-        } catch (err) {
-          const e = err as { data?: { message?: string }; message?: string }
-          notify.error(e?.data?.message || e?.message || 'Disconnect failed.')
-        } finally {
-          setSubmitting(false)
-        }
-      }
-
-      // ── Federated user: show provider info + disconnect option ────────
-      if (federated) {
-        const label = providerLabel(user?.provider)
-        return (
-          <div className="space-y-5">
-            <div className="card p-5">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-                  <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Connected to {label}</h3>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    Your account is managed by {label}. Password changes and email updates
-                    are handled through your {label} account.
-                  </p>
-                  <ul className="mt-3 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
-                    <li className="flex items-center gap-2"><Lock size={13} className="text-gray-400" /> Password managed by {label}</li>
-                    <li className="flex items-center gap-2"><Lock size={13} className="text-gray-400" /> Email managed by {label}</li>
-                  </ul>
-                  {user?.provider === 'GOOGLE' && (
-                    <a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                      Open Google Account security &rarr;
-                    </a>
-                  )}
-                  {user?.provider === 'APPLE' && (
-                    <a href="https://appleid.apple.com/account/manage" target="_blank" rel="noreferrer"
-                      className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                      Open Apple ID settings &rarr;
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Disconnect from {label}</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                {hasExistingPw
-                  ? `Convert to a local account. You already have a local password, so you'll sign in with your username and password going forward. You won't be able to sign in with ${label} anymore.`
-                  : `Convert to a local account. You'll need to set a password and will sign in with your username and password going forward. You won't be able to sign in with ${label} anymore.`}
-              </p>
-              <form onSubmit={submitDisconnect} className="space-y-3">
-                {!hasExistingPw && (
-                  <>
-                    <div>
-                      <label className="label">New local password</label>
-                      <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">At least 8 characters with one letter and one number.</p>
-                    </div>
-                    <div>
-                      <label className="label">Confirm password</label>
-                      <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-                    </div>
-                  </>
-                )}
-                <div className="flex gap-2 justify-end pt-1">
-                  <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
-                  <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-                    {submitting ? <><Loader2 size={14} className="animate-spin" />Disconnecting…</> : hasExistingPw ? 'Disconnect from ' + label : 'Disconnect and set password'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )
-      }
-
-      // ── Local user without a password (edge case) ─────────────────────
-      if (!user?.hasPassword) return (
-        <div className="card p-4 text-sm text-gray-600 dark:text-gray-300">
-          No local password is set on this account.
-        </div>
-      )
-
-      // ── Local user with password: normal change-password form ─────────
-      const pendingDeletion = Boolean(user?.pendingDeletion)
-      return (
-        <div className="space-y-6">
-          <form onSubmit={submitPassword} className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Lock size={15} /> Change password</h3>
-            <div>
-              <label className="label">Current Password</label>
-              <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
-            </div>
-            <div>
-              <label className="label">New Password</label>
-              <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-            </div>
-            <div>
-              <label className="label">Confirm New Password</label>
-              <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-            </div>
-            <div className="flex gap-2 justify-end pt-2">
-              <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-                {submitting ? <><Loader2 size={14} className="animate-spin" />Updating…</> : 'Update Password'}
-              </button>
-            </div>
-          </form>
-
-          {/* Verified email change — never a silent swap via the profile form */}
-          <form onSubmit={submitEmailChange} className="card p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Mail size={15} /> Change email</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Current: <span className="font-medium">{user?.email}</span>. We&apos;ll email a confirmation link to the
-              new address and notify your current one. The change takes effect only after you confirm.
-            </p>
-            <div>
-              <label className="label">New email</label>
-              <input type="email" className="input" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="you@example.com" required />
-            </div>
-            <div>
-              <label className="label">Current password</label>
-              <input type="password" className="input" value={emailChangePassword} onChange={(e) => setEmailChangePassword(e.target.value)} required />
-            </div>
-            <div className="flex justify-end">
-              <button type="submit" className="btn-secondary text-sm" disabled={submitting}>Send confirmation</button>
-            </div>
-          </form>
-
-          {/* Danger zone — self-service account deletion with grace window */}
-          <div className="card p-4 space-y-3 border-rose-200 dark:border-rose-900/50">
-            <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2"><Trash2 size={15} /> Delete account</h3>
-            {pendingDeletion ? (
-              <>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  Your account is scheduled for deletion
-                  {user?.deletionScheduledAt ? ` on ${new Date(user.deletionScheduledAt).toLocaleDateString()}` : ''}.
-                  You can still cancel until then.
-                </p>
-                <div className="flex justify-end">
-                  <button type="button" className="btn-primary text-sm" disabled={submitting} onClick={handleCancelDeletion}>
-                    {submitting ? <><Loader2 size={14} className="animate-spin" />Cancelling…</> : 'Cancel deletion'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <form onSubmit={submitAccountDeletion} className="space-y-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Schedules permanent deletion after a grace period. You can cancel any time before then.
-                </p>
-                <div>
-                  <label className="label">Confirm with your password</label>
-                  <input type="password" className="input" value={deletePassword} onChange={(e) => setDeletePassword(e.target.value)} required />
-                </div>
-                <div className="flex justify-end">
-                  <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-                    {submitting ? <><Loader2 size={14} className="animate-spin" />Scheduling…</> : 'Delete my account'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    if (activeTab === 'security') {
-      // Federated accounts don't have a local password — 2FA protects the
-      // local password-based signin flow, which federated users don't use.
-      if (isFederated(user?.provider)) {
-        const label = providerLabel(user?.provider)
-        return (
-          <div className="card p-5">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Security managed by {label}</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Your account uses {label} sign-in, so two-factor authentication and password
-                  security are handled by your {label} account. To enable 2FA, go to your {label} security settings.
-                </p>
-                {user?.provider === 'GOOGLE' && (
-                  <a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                    Open Google security settings &rarr;
-                  </a>
-                )}
-                {user?.provider === 'APPLE' && (
-                  <a href="https://appleid.apple.com/account/manage" target="_blank" rel="noreferrer"
-                    className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
-                    Open Apple ID settings &rarr;
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-        )
-      }
-
-      const twoFaOn = Boolean(user?.twoFactorEnabled)
-
-      const startSetup = async () => {
-        setSubmitting(true)
-        try {
-          const s = await twoFactorSetup()
-          setTwoFaSetup({ secret: s.secret, otpauthUri: s.otpauthUri })
-          setTwoFaCode('')
-          setRecoveryCodes(null)
-        } catch (err) {
-          const e = err as { message?: string }
-          notify.error(e?.message || 'Failed to start 2FA setup.')
-        } finally { setSubmitting(false) }
-      }
-
-      const confirmEnable = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!twoFaCode || twoFaCode.length < 6) { notify.error('Enter the 6-digit code.'); return }
-        setSubmitting(true)
-        try {
-          const r = await twoFactorEnable(twoFaCode)
-          setRecoveryCodes(r.recoveryCodes || [])
-          setTwoFaSetup(null)
-          setTwoFaCode('')
-          await refreshMe()
-          notify.success('Two-factor authentication enabled.')
-        } catch (err) {
-          const e = err as { message?: string }
-          notify.error(e?.message || 'Invalid code. Try again.')
-        } finally { setSubmitting(false) }
-      }
-
-      const regenerateCodes = async () => {
-        setSubmitting(true)
-        try {
-          const r = await twoFactorRegenerateRecoveryCodes()
-          setRecoveryCodes(r.recoveryCodes || [])
-          notify.success('New recovery codes generated. Save them now.')
-        } catch (err) {
-          const e = err as { message?: string }
-          notify.error(e?.message || 'Could not regenerate recovery codes.')
-        } finally { setSubmitting(false) }
-      }
-
-      const doDisable = async (e: React.FormEvent) => {
-        e.preventDefault()
-        if (!disableConfirm) { notify.error('Enter your password or a TOTP code to confirm.'); return }
-        setSubmitting(true)
-        try {
-          await twoFactorDisable(disableConfirm)
-          setDisableConfirm('')
-          setRecoveryCodes(null)
-          await refreshMe()
-          notify.success('Two-factor authentication disabled.')
-        } catch (err) {
-          const e = err as { message?: string }
-          notify.error(e?.message || 'Could not disable 2FA.')
-        } finally { setSubmitting(false) }
-      }
-
-      // State A — 2FA OFF + no setup in progress → show "Enable" button
-      if (!twoFaOn && !twoFaSetup && !recoveryCodes) {
-        return (
-          <div className="card p-5">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center flex-shrink-0">
-                <Smartphone size={20} className="text-brand-600 dark:text-brand-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Two-factor authentication</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Add an extra layer of security by requiring a 6-digit code from your
-                  authenticator app (Google Authenticator, 1Password, Authy, etc.) on every sign-in.
-                </p>
-                <button type="button" className="btn-primary text-sm mt-4" onClick={startSetup} disabled={submitting}>
-                  {submitting ? <><Loader2 size={14} className="animate-spin" /> Setting up…</> : 'Enable 2FA'}
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      }
-
-      // State B — setup in progress → show QR code + verify input
-      if (twoFaSetup) {
-        const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(twoFaSetup.otpauthUri)}`
-        return (
-          <form onSubmit={confirmEnable} className="space-y-4">
-            <div className="card p-5 space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Scan this QR code</h3>
-              <div className="flex flex-col items-center gap-3">
-                <img src={qrSrc} alt="2FA QR code" className="w-44 h-44 bg-white p-2 rounded border border-gray-200 dark:border-gray-700" />
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">Or enter this secret manually:</p>
-                <code className="text-xs font-mono px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded select-all">
-                  {twoFaSetup.secret}
-                </code>
-              </div>
-            </div>
-            <div>
-              <label className="label">Enter the code from your app</label>
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                className="input tracking-widest text-center font-mono"
-                placeholder="123456"
-                value={twoFaCode}
-                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
-                autoComplete="one-time-code"
-                autoFocus
-                required
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button type="button" className="btn-secondary text-sm" onClick={() => { setTwoFaSetup(null); setTwoFaCode('') }} disabled={submitting}>
-                Cancel
-              </button>
-              <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-                {submitting ? <><Loader2 size={14} className="animate-spin" /> Verifying…</> : 'Verify and enable'}
-              </button>
-            </div>
-          </form>
-        )
-      }
-
-      // State C — just enabled → show recovery codes (once)
-      if (recoveryCodes) {
-        return (
-          <div className="card p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center flex-shrink-0">
-                <AlertCircle size={20} className="text-amber-600 dark:text-amber-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Save your recovery codes</h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  These one-time codes can be used if you lose access to your authenticator.
-                  Store them somewhere safe — they&apos;re shown only once.
-                </p>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm font-mono">
-              {recoveryCodes.map((c) => (
-                <div key={c} className="px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-center select-all">
-                  {c}
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                className="btn-secondary text-sm"
-                onClick={() => {
-                  navigator.clipboard?.writeText(recoveryCodes.join('\n'))
-                  setCopiedRecovery(true)
-                  setTimeout(() => setCopiedRecovery(false), 2000)
-                }}
-              >
-                {copiedRecovery ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy all</>}
-              </button>
-              <button type="button" className="btn-primary text-sm" onClick={() => setRecoveryCodes(null)}>
-                I&apos;ve saved these
-              </button>
-            </div>
-          </div>
-        )
-      }
-
-      // State D — 2FA already ON → show disable UI
-      return (
-        <form onSubmit={doDisable} className="space-y-4">
-          <div className="card p-5">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center flex-shrink-0">
-                <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                  Two-factor authentication is enabled
-                </h3>
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                  Signing in to this account requires a code from your authenticator app.
-                </p>
-                <button type="button" className="btn-secondary text-sm mt-3 inline-flex items-center gap-1.5"
-                  onClick={regenerateCodes} disabled={submitting}>
-                  <RefreshCw size={14} /> Generate new recovery codes
-                </button>
-              </div>
-            </div>
-          </div>
-          <div>
-            <label className="label">Enter your password or a 6-digit code to disable 2FA</label>
-            <input
-              type="password"
-              className="input"
-              value={disableConfirm}
-              onChange={(e) => setDisableConfirm(e.target.value)}
-              placeholder="Password or TOTP code"
-              required
-            />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <button type="button" className="btn-secondary text-sm" onClick={onClose} disabled={submitting}>Cancel</button>
-            <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-              {submitting ? <><Loader2 size={14} className="animate-spin" /> Disabling…</> : 'Disable 2FA'}
-            </button>
-          </div>
-        </form>
-      )
-    }
-
-    if (activeTab === 'sessions') {
-      const revokeOne = async (id: string) => {
-        setSubmitting(true)
-        try { await revokeSession(id); await loadSessions(); notify.success('Session signed out.') }
-        catch (err) { notify.error((err as { message?: string })?.message || 'Could not sign out session.') }
-        finally { setSubmitting(false) }
-      }
-      const revokeOthers = async () => {
-        setSubmitting(true)
-        try { await revokeOtherSessions(); await loadSessions(); notify.success('Signed out other sessions.') }
-        catch (err) { notify.error((err as { message?: string })?.message || 'Could not sign out other sessions.') }
-        finally { setSubmitting(false) }
-      }
-      return (
-        <div className="space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Laptop size={15} /> Active sessions</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Devices currently signed in to your account.</p>
-            </div>
-            <button type="button" className="btn-secondary text-sm inline-flex items-center gap-1.5"
-              onClick={revokeOthers} disabled={submitting || sessions.length <= 1}>
-              <LogOut size={14} /> Sign out others
-            </button>
-          </div>
-          {sessionsLoading ? (
-            <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-brand-500" /></div>
-          ) : sessions.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">No active sessions.</p>
-          ) : (
-            <ul className="space-y-2">
-              {sessions.map((s) => (
-                <li key={s.id} className="card p-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                      {s.deviceLabel || 'Unknown device'}
-                      {s.current && <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">This device</span>}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {s.ip || 'unknown IP'}{s.lastActiveAt ? ` · last active ${new Date(s.lastActiveAt).toLocaleString()}` : ''}
-                    </p>
-                  </div>
-                  {!s.current && (
-                    <button type="button" className="btn-secondary text-xs flex-shrink-0" disabled={submitting} onClick={() => revokeOne(s.id)}>
-                      Sign out
-                    </button>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )
-    }
-
-    // Preferences tab
-    const themeOptions: { value: string; label: string; icon: React.ElementType }[] = [
-      { value: 'system', label: 'System', icon: Monitor },
-      { value: 'light', label: 'Light', icon: Sun },
-      { value: 'dark', label: 'Dark', icon: Moon },
-    ]
-    return (
-      <form onSubmit={submitPreferences} className="space-y-5">
-        <div className="card p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <Sun size={15} /> Theme
-          </h3>
-          <div className="flex gap-2">
-            {themeOptions.map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setPrefs({ ...prefs, theme: value })}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                  prefs.theme === value
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-400'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                <Icon size={14} /> {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="card p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <Globe size={15} /> Language
-          </h3>
-          <select
-            className="input w-auto"
-            value={prefs.language}
-            onChange={(e) => setPrefs({ ...prefs, language: e.target.value })}
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-          </select>
-        </div>
-
-        <div className="card p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <Bell size={15} /> Email Notifications
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Receive account and activity updates</p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                className="sr-only peer"
-                checked={Boolean(prefs.emailNotifications)}
-                onChange={(e) => setPrefs({ ...prefs, emailNotifications: e.target.checked })}
-              />
-              <div className="w-10 h-5 bg-gray-300 dark:bg-gray-600 rounded-full peer peer-checked:bg-brand-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
-            </label>
-          </div>
-        </div>
-
-        {prefs.notificationPrefs && Object.keys(prefs.notificationPrefs).length > 0 && (
-          <div className="card p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-              <Bell size={15} /> Notification preferences
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Choose how you&apos;re notified, per category.</p>
-            <div className="space-y-2">
-              {Object.entries(prefs.notificationPrefs).map(([category, channels]) => (
-                <div key={category} className="flex items-center justify-between gap-3 py-1">
-                  <span className="text-sm capitalize text-gray-700 dark:text-gray-300">{category}</span>
-                  <div className="flex gap-4">
-                    {Object.entries(channels).map(([channel, on]) => (
-                      <label key={channel} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="accent-brand-600"
-                          checked={Boolean(on)}
-                          onChange={(e) => toggleNotif(category, channel, e.target.checked)}
-                        />
-                        <span className="capitalize">{channel}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="card p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <User size={15} /> Navbar display
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">What to show in the navigation bar user button</p>
-          <div className="flex gap-2">
-            {[
-              { value: 'avatar', label: 'Avatar' },
-              { value: 'initials', label: 'Initials' },
-              { value: 'name', label: 'Name' },
-            ].map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setPrefs({ ...prefs, navbarDisplay: value })}
-                className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                  prefs.navbarDisplay === value
-                    ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-400'
-                    : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-2 justify-end pt-2">
-          <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-            {submitting ? <><Loader2 size={14} className="animate-spin" />Saving…</> : 'Save Preferences'}
-          </button>
-        </div>
-      </form>
-    )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, firstName, lastName, email, phoneNumber, avatarUrl, uploadingAvatar, currentPassword, newPassword, confirmPassword, prefs, submitting, user, initials, twoFaSetup, twoFaCode, recoveryCodes, copiedRecovery, disableConfirm, newEmail, emailChangePassword, deletePassword, sessions, sessionsLoading, loadSessions])
 
   if (!isOpen) return null
 
@@ -1131,7 +229,30 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
 
           {/* Content */}
           <section className="flex-1 p-6 overflow-auto max-h-[70vh]">
-            {rightPanel}
+            {activeTab === 'profile' && (
+              <ProfileTab
+                avatarUrl={avatarUrl}
+                uploadingAvatar={uploadingAvatar}
+                initials={initials}
+                submitting={submitting}
+                setSubmitting={setSubmitting}
+                onFileSelected={handleAvatarFileSelect}
+                onRemoveAvatar={handleRemoveAvatar}
+                onClose={onClose}
+              />
+            )}
+            {activeTab === 'account' && (
+              <AccountTab submitting={submitting} setSubmitting={setSubmitting} onClose={onClose} />
+            )}
+            {activeTab === 'security' && (
+              <SecurityTab submitting={submitting} setSubmitting={setSubmitting} onClose={onClose} />
+            )}
+            {activeTab === 'sessions' && (
+              <SessionsTab submitting={submitting} setSubmitting={setSubmitting} />
+            )}
+            {activeTab === 'preferences' && (
+              <PreferencesTab prefs={prefs} setPrefs={setPrefs} submitting={submitting} setSubmitting={setSubmitting} onClose={onClose} />
+            )}
           </section>
         </div>
       </div>
