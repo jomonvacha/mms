@@ -449,11 +449,18 @@ Phase 1 onward should start against a non-hardened `sso`.
    sits at 55% overall rather than higher. Flagged as a scoped follow-up
    rather than faked. Committed as `e2f622c` in the `sso` repo (push pending
    — hit the same 1Password SSH-agent flakiness noted earlier in this doc).
-3. **Fix or remove the ZAP scan.** Either wire `zap-scan.yml` to actually
-   start the app before scanning (ephemeral deploy or docker-compose step),
-   or remove the job — a scan that scans nothing is worse than no scan.
-   Remove `continue-on-error: true` once it's real, or gate merges on
-   findings above an agreed severity.
+3. **Fix or remove the ZAP scan — done.** `zap-scan.yml` now builds the
+   backend jar, boots it (dev profile, ephemeral key — throwaway CI-only
+   instance) against a postgres service container, polls
+   `/actuator/health` until ready, then scans the real live target instead
+   of an empty `localhost:8080`. `continue-on-error: true` removed, so a
+   real finding now fails the run instead of being silently swallowed. The
+   `target_url` input still works for pointing at a real deployed
+   environment later (e.g. staging, once item 4 below exists) instead of
+   building a local instance for that run. Verified end-to-end locally
+   before wiring into CI — not just YAML syntax, but the actual
+   build→boot→health-check→real-HTTP-response sequence. Committed and
+   pushed as `sso@bbf40ba`.
 4. **Real deploy pipeline + staging environment.** A CD job that applies
    `k8s/base` manifests to an actual staging cluster, secrets sourced from
    the KMS/Vault set up in item 1 — not `REPLACE_ME`.
@@ -837,8 +844,7 @@ enforcing it actually completes.
 2. ~~Fix `mvn verify` on the CI/dev JDK (gap 7).~~ **Done** — see gap 7 above.
 3. ~~WebAuthn + adaptive-auth test coverage.~~ **Done** — see §8 Phase 0
    item 2 above.
-4. Fix or remove the ZAP scan — a security scan that scans nothing is worse
-   than no scan, because it looks like coverage that doesn't exist.
+4. ~~Fix or remove the ZAP scan.~~ **Done** — see §8 Phase 0 item 3 above.
 5. Stand up a real deploy pipeline + a staging environment; run it there
    for a meaningful burn-in period before any product points at it.
 6. Run the load tests against staging, record a baseline, feed it into the
