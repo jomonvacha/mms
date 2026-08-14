@@ -106,7 +106,7 @@ export default function ResetPassword() {
               />
             </div>
             <button type="submit" className="btn-primary w-full text-sm" disabled={loading}>
-              {loading ? <><Loader2 size={14} className="animate-spin" /> Resetting…</> : 'Reset password'}
+              {loading ? <><Loader2 size={16} className="animate-spin" /> Resetting…</> : 'Reset password'}
             </button>
           </form>
 

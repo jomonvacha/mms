@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  Loader2, Users, Search, ChevronLeft, ChevronRight, ShieldCheck,
+  Loader2, Users, Search, ShieldCheck,
   ToggleLeft, ToggleRight, X, KeyRound, ShieldAlert, Trash2, Pencil, Check, Lock, Globe, Smartphone,
   UserCog, Crown, User, Mail,
 } from 'lucide-react'
@@ -331,7 +331,7 @@ export default function AdminUsers() {
                               disabled={!isAdmin || savingId === u.id || isSelf}
                               className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title={isSelf ? "Can't deactivate yourself" : u.active ? 'Deactivate' : 'Activate'}>
-                              {savingId === u.id ? <Loader2 size={14} className="animate-spin" /> : u.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                              {savingId === u.id ? <Loader2 size={16} className="animate-spin" /> : u.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                             </button>
                           </div>
                         </td>
@@ -349,14 +349,21 @@ export default function AdminUsers() {
               {filtered.length} of {data.totalElements} user{data.totalElements === 1 ? '' : 's'}.
               Page {data.number + 1} of {Math.max(1, data.totalPages)}.
             </p>
-            <div className="flex items-center gap-1">
-              <button type="button" disabled={data.first} onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="p-1.5 rounded-lg border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--surface-3))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                <ChevronLeft size={15} />
+            <div className="flex items-center gap-2">
+              <button type="button" className="btn-secondary h-9 px-3 text-xs" disabled={data.first} onClick={() => setPage(0)}>
+                First
               </button>
-              <button type="button" disabled={data.last} onClick={() => setPage((p) => p + 1)}
-                className="p-1.5 rounded-lg border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--surface-3))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
-                <ChevronRight size={15} />
+              <button type="button" className="btn-secondary h-9 px-3 text-xs" disabled={data.first} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+                Prev
+              </button>
+              <span className="inline-flex h-9 items-center rounded-xl border border-[rgb(var(--border-subtle))] px-3 text-xs text-[rgb(var(--text-secondary))]">
+                {data.number + 1}
+              </span>
+              <button type="button" className="btn-secondary h-9 px-3 text-xs" disabled={data.last} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </button>
+              <button type="button" className="btn-secondary h-9 px-3 text-xs" disabled={data.last} onClick={() => setPage(Math.max(0, data.totalPages - 1))}>
+                Last
               </button>
             </div>
           </div>
@@ -423,7 +430,7 @@ function BulkDeleteModal({ count, users, saving, onCancel, onConfirm }: {
           </button>
           <button type="button" disabled={saving} onClick={onConfirm}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 shadow-sm disabled:opacity-50 transition-colors">
-            {saving ? <><Loader2 size={14} className="animate-spin" /> Deleting...</> : `Delete ${count} user${count > 1 ? 's' : ''}`}
+            {saving ? <><Loader2 size={16} className="animate-spin" /> Deleting...</> : `Delete ${count} user${count > 1 ? 's' : ''}`}
           </button>
         </div>
       </div>
@@ -854,7 +861,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
             <button type="button" disabled={saving}
               onClick={tab === 'profile' ? saveProfile : tab === 'roles' ? saveRolesAndTier : saveProvider}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 shadow-sm disabled:opacity-50 transition-colors">
-              {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : 'Save Changes'}
+              {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : 'Save changes'}
             </button>
           )}
         </div>

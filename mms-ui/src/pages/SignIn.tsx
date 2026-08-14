@@ -149,7 +149,7 @@ export default function SignIn() {
             <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mx-auto mb-3">
               <LogIn size={24} className="text-brand-600 dark:text-brand-400" />
             </div>
-            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Sign In</h1>
+            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Sign in</h1>
           </div>
 
           {timedOut && (
@@ -221,7 +221,7 @@ export default function SignIn() {
               )}
               <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>
                 {loading ? <Loader2 size={16} className="animate-spin" /> : <LogIn size={16} />}
-                {loading ? 'Signing in…' : needsTwoFactor ? 'Verify code' : 'Sign In'}
+                {loading ? 'Signing in…' : needsTwoFactor ? 'Verify code' : 'Sign in'}
               </button>
             </form>
           ) : (

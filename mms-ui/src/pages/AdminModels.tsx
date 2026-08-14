@@ -68,10 +68,10 @@ export default function AdminModels() {
         {isAdmin && tab === 'registry' && (
           <div className="flex items-center gap-2 flex-shrink-0">
             <button type="button" onClick={() => setProviderEditorOpen(true)} className="btn-secondary text-sm">
-              <Server size={14} /> {t('adminModels.actions.providers')}
+              <Server size={16} /> {t('adminModels.actions.providers')}
             </button>
             <button type="button" onClick={() => setEditorOpen({ mode: 'create' })} className="btn-primary text-sm">
-              <Plus size={14} /> {t('adminModels.actions.addModel')}
+              <Plus size={16} /> {t('adminModels.actions.addModel')}
             </button>
           </div>
         )}
@@ -95,7 +95,7 @@ export default function AdminModels() {
             <p className="text-xs text-[rgb(var(--text-muted))] mt-1">{t('adminModels.empty.noModelsHint')}</p>
             {isAdmin && (
               <button type="button" onClick={() => setEditorOpen({ mode: 'create' })} className="btn-primary text-sm mt-4 inline-flex">
-                <Plus size={14} /> {t('adminModels.actions.addModel')}
+                <Plus size={16} /> {t('adminModels.actions.addModel')}
               </button>
             )}
           </div>
@@ -577,7 +577,7 @@ function ModelEditorModal({
         <div className="flex items-center justify-end gap-2 pt-2 border-t border-[rgb(var(--border-subtle))]">
           <button type="button" className="btn-secondary text-sm" onClick={onClose} disabled={saving}>{t('adminModels.actions.cancel')}</button>
           <button type="submit" className="btn-primary text-sm" disabled={saving}>
-            {saving ? <><Loader2 size={14} className="animate-spin" /> {t('adminModels.editor.savingEllipsis')}</> : <><Save size={14} /> {t('adminModels.actions.save')}</>}
+            {saving ? <><Loader2 size={16} className="animate-spin" /> {t('adminModels.editor.savingEllipsis')}</> : <><Save size={16} /> {t('adminModels.actions.save')}</>}
           </button>
         </div>
       </form>
@@ -848,7 +848,7 @@ function ProvidersModal({
                 onChange={(e) => setRows(rows.map((r, i) => i === idx ? { ...r, enabled: e.target.checked } : r))}
               /> {t('adminModels.providers.enabled')}
             </label>
-            <button type="button" className="btn-secondary text-xs" onClick={() => save(p)} disabled={saving}>
+            <button type="button" className="btn-secondary h-9 px-3 text-xs" onClick={() => save(p)} disabled={saving}>
               <Save size={12} /> {t('adminModels.actions.save')}
             </button>
           </div>
@@ -859,7 +859,7 @@ function ProvidersModal({
             value={newCode} onChange={(e) => setNewCode(e.target.value)} />
           <input className="input flex-1 min-w-[200px]" placeholder={t('adminModels.providers.displayNamePlaceholder')}
             value={newName} onChange={(e) => setNewName(e.target.value)} />
-          <button type="button" className="btn-primary text-xs" onClick={addNew} disabled={saving || !newCode.trim()}>
+          <button type="button" className="btn-primary h-9 px-3 text-xs" onClick={addNew} disabled={saving || !newCode.trim()}>
             <Plus size={12} /> {t('adminModels.providers.add')}
           </button>
         </div>

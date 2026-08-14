@@ -48,7 +48,7 @@ export default function ForgotPassword() {
               </p>
             </div>
             <Link to="/signin" className="btn-secondary text-sm inline-flex items-center gap-1.5">
-              <ArrowLeft size={14} /> Back to sign in
+              <ArrowLeft size={16} /> Back to sign in
             </Link>
           </div>
         </div>
@@ -93,7 +93,7 @@ export default function ForgotPassword() {
               </div>
             </div>
             <button type="submit" className="btn-primary w-full text-sm" disabled={loading}>
-              {loading ? <><Loader2 size={14} className="animate-spin" /> Sending…</> : 'Send reset link'}
+              {loading ? <><Loader2 size={16} className="animate-spin" /> Sending…</> : 'Send reset link'}
             </button>
           </form>
 

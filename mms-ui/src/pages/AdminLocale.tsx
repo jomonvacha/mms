@@ -117,7 +117,7 @@ export default function AdminLocale() {
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()} />
         </div>
         <div className="flex-1">
-          <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display Label</label>
+          <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display label</label>
           <input type="text" value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
             placeholder="e.g. English" className="input text-sm" maxLength={100}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()} />

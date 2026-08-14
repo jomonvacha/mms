@@ -46,7 +46,7 @@ export default function SessionsTab({ submitting, setSubmitting }: SessionsTabPr
         </div>
         <button type="button" className="btn-secondary text-sm inline-flex items-center gap-1.5"
           onClick={revokeOthers} disabled={submitting || sessions.length <= 1}>
-          <LogOut size={14} /> Sign out others
+          <LogOut size={16} /> Sign out others
         </button>
       </div>
       {sessionsLoading ? (
@@ -67,7 +67,7 @@ export default function SessionsTab({ submitting, setSubmitting }: SessionsTabPr
                 </p>
               </div>
               {!s.current && (
-                <button type="button" className="btn-secondary text-xs flex-shrink-0" disabled={submitting} onClick={() => revokeOne(s.id)}>
+                <button type="button" className="btn-secondary h-9 px-3 text-xs flex-shrink-0" disabled={submitting} onClick={() => revokeOne(s.id)}>
                   Sign out
                 </button>
               )}

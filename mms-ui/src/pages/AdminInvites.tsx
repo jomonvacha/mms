@@ -83,7 +83,7 @@ export default function AdminInvites() {
         </div>
         <button type="button" onClick={() => setCreating(true)}
           className="btn-primary text-sm">
-          <Plus size={15} /> New invite
+          <Plus size={16} /> New invite
         </button>
       </div>
 
@@ -347,7 +347,7 @@ function DeleteConfirmModal({ invite, saving, onCancel, onConfirm }: {
           </button>
           <button type="button" disabled={saving} onClick={onConfirm}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 shadow-sm disabled:opacity-50 transition-colors">
-            {saving ? <><Loader2 size={14} className="animate-spin" /> Deleting...</> : 'Delete invite'}
+            {saving ? <><Loader2 size={16} className="animate-spin" /> Deleting...</> : 'Delete invite'}
           </button>
         </div>
       </div>
@@ -391,7 +391,7 @@ function ModalFooter({ onCancel, onConfirm, saving, confirmLabel }: {
       </button>
       <button type="button" disabled={saving} onClick={onConfirm}
         className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 shadow-sm disabled:opacity-50 transition-colors">
-        {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : confirmLabel}
+        {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : confirmLabel}
       </button>
     </div>
   )

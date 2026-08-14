@@ -164,7 +164,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
             <div className="flex gap-2 justify-end pt-1">
               <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
               <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-                {submitting ? <><Loader2 size={14} className="animate-spin" />Disconnecting…</> : hasExistingPw ? 'Disconnect from ' + label : 'Disconnect and set password'}
+                {submitting ? <><Loader2 size={16} className="animate-spin" />Disconnecting…</> : hasExistingPw ? 'Disconnect from ' + label : 'Disconnect and set password'}
               </button>
             </div>
           </form>
@@ -187,20 +187,20 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
       <form onSubmit={submitPassword} className="space-y-4">
         <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2"><Lock size={15} /> Change password</h3>
         <div>
-          <label className="label">Current Password</label>
+          <label className="label">Current password</label>
           <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
         </div>
         <div>
-          <label className="label">New Password</label>
+          <label className="label">New password</label>
           <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
         </div>
         <div>
-          <label className="label">Confirm New Password</label>
+          <label className="label">Confirm new password</label>
           <input type="password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         </div>
         <div className="flex gap-2 justify-end pt-2">
           <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-            {submitting ? <><Loader2 size={14} className="animate-spin" />Updating…</> : 'Update Password'}
+            {submitting ? <><Loader2 size={16} className="animate-spin" />Updating…</> : 'Update password'}
           </button>
         </div>
       </form>
@@ -237,7 +237,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
             </p>
             <div className="flex justify-end">
               <button type="button" className="btn-primary text-sm" disabled={submitting} onClick={handleCancelDeletion}>
-                {submitting ? <><Loader2 size={14} className="animate-spin" />Cancelling…</> : 'Cancel deletion'}
+                {submitting ? <><Loader2 size={16} className="animate-spin" />Cancelling…</> : 'Cancel deletion'}
               </button>
             </div>
           </>
@@ -252,7 +252,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
             </div>
             <div className="flex justify-end">
               <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-                {submitting ? <><Loader2 size={14} className="animate-spin" />Scheduling…</> : 'Delete my account'}
+                {submitting ? <><Loader2 size={16} className="animate-spin" />Scheduling…</> : 'Delete my account'}
               </button>
             </div>
           </form>

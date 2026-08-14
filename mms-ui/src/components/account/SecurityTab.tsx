@@ -129,7 +129,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
               authenticator app (Google Authenticator, 1Password, Authy, etc.) on every sign-in.
             </p>
             <button type="button" className="btn-primary text-sm mt-4" onClick={startSetup} disabled={submitting}>
-              {submitting ? <><Loader2 size={14} className="animate-spin" /> Setting up…</> : 'Enable 2FA'}
+              {submitting ? <><Loader2 size={16} className="animate-spin" /> Setting up…</> : 'Enable 2FA'}
             </button>
           </div>
         </div>
@@ -173,7 +173,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             Cancel
           </button>
           <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-            {submitting ? <><Loader2 size={14} className="animate-spin" /> Verifying…</> : 'Verify and enable'}
+            {submitting ? <><Loader2 size={16} className="animate-spin" /> Verifying…</> : 'Verify and enable'}
           </button>
         </div>
       </form>
@@ -213,7 +213,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
               setTimeout(() => setCopiedRecovery(false), 2000)
             }}
           >
-            {copiedRecovery ? <><Check size={14} /> Copied</> : <><Copy size={14} /> Copy all</>}
+            {copiedRecovery ? <><Check size={16} /> Copied</> : <><Copy size={16} /> Copy all</>}
           </button>
           <button type="button" className="btn-primary text-sm" onClick={() => setRecoveryCodes(null)}>
             I&apos;ve saved these
@@ -240,7 +240,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             </p>
             <button type="button" className="btn-secondary text-sm mt-3 inline-flex items-center gap-1.5"
               onClick={regenerateCodes} disabled={submitting}>
-              <RefreshCw size={14} /> Generate new recovery codes
+              <RefreshCw size={16} /> Generate new recovery codes
             </button>
           </div>
         </div>
@@ -259,7 +259,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
       <div className="flex gap-2 justify-end">
         <button type="button" className="btn-secondary text-sm" onClick={onClose} disabled={submitting}>Cancel</button>
         <button type="submit" className="btn-danger text-sm" disabled={submitting}>
-          {submitting ? <><Loader2 size={14} className="animate-spin" /> Disabling…</> : 'Disable 2FA'}
+          {submitting ? <><Loader2 size={16} className="animate-spin" /> Disabling…</> : 'Disable 2FA'}
         </button>
       </div>
     </form>

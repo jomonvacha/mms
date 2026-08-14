@@ -27,10 +27,10 @@ export default function SessionTimeoutModal() {
         </p>
         <div className="flex gap-2 justify-end">
           <button className="btn-secondary text-sm" onClick={confirmSignout}>
-            Sign Out Now
+            Sign out now
           </button>
           <button className="btn-primary text-sm" onClick={extendSession}>
-            Stay Signed In
+            Stay signed in
           </button>
         </div>
       </div>

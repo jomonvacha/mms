@@ -125,13 +125,13 @@ export default function AdminFeatures() {
           {tab === 'system' && (
             <button type="button" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors"
               onClick={() => { setCreating(true); setEditingFeature(null) }}>
-              <Plus size={16} /> New Feature
+              <Plus size={16} /> New feature
             </button>
           )}
           {tab === 'roles' && (
             <button type="button" className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors"
               onClick={() => { setCreatingRole(true); setEditingRole(null) }}>
-              <Plus size={16} /> New Role
+              <Plus size={16} /> New role
             </button>
           )}
         </div>
@@ -291,7 +291,7 @@ export default function AdminFeatures() {
               <thead>
                 <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
                   <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Role</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Display Name</th>
+                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Display name</th>
                   <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Description</th>
                   <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Type</th>
                   <th className="px-4 py-3.5 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider w-[100px]">Actions</th>
@@ -522,7 +522,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
                 onSave({ code: code.trim(), name: name.trim(), description, category, icon, enabled: true })
               }}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 shadow-sm disabled:opacity-50 transition-colors">
-              {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isEdit ? 'Save Changes' : 'Create Feature'}
+              {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : isEdit ? 'Save changes' : 'Create feature'}
             </button>
           </div>
         </div>
@@ -598,7 +598,7 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display Name</label>
+            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display name</label>
             <input className="input text-sm" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
               placeholder="e.g. Data Analyst" />
           </div>
@@ -635,7 +635,7 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
               })
             }}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 shadow-sm disabled:opacity-50 transition-colors">
-            {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isEdit ? 'Save Changes' : 'Create Role'}
+            {saving ? <><Loader2 size={16} className="animate-spin" /> Saving...</> : isEdit ? 'Save changes' : 'Create role'}
           </button>
         </div>
       </div>

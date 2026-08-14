@@ -242,7 +242,7 @@ export default function AdminGovernance() {
           <div className="flex gap-2 justify-end">
             <button className="btn-secondary" onClick={() => setShowNewCategory(false)}>Cancel</button>
             <button className="btn-primary flex items-center gap-1.5" disabled={savingKey === 'new-cat'} onClick={handleCreateCategory}>
-              {savingKey === 'new-cat' ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {savingKey === 'new-cat' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
               Create
             </button>
           </div>
@@ -275,15 +275,15 @@ export default function AdminGovernance() {
                 {canManage && (
                   <div className="flex items-center gap-2">
                     <button
-                      className="btn-secondary flex items-center gap-1 text-xs"
+                      className="btn-secondary h-9 px-3 flex items-center gap-1 text-xs"
                       disabled={savingKey === 'cat:' + cat.code}
                       onClick={() => toggleCategoryEnabled(cat)}
                     >
-                      {cat.enabled ? <><X size={14} /> Disable</> : <><Check size={14} /> Enable</>}
+                      {cat.enabled ? <><X size={16} /> Disable</> : <><Check size={16} /> Enable</>}
                     </button>
                     {!cat.system && (
-                      <button className="btn-danger flex items-center gap-1 text-xs" onClick={() => handleDeleteCategory(cat)}>
-                        <Trash2 size={14} /> Delete
+                      <button className="btn-danger h-9 px-3 flex items-center gap-1 text-xs" onClick={() => handleDeleteCategory(cat)}>
+                        <Trash2 size={16} /> Delete
                       </button>
                     )}
                   </div>
@@ -322,15 +322,15 @@ export default function AdminGovernance() {
                         {canManage && (
                           <div className="flex items-center gap-2">
                             <button
-                              className="btn-secondary flex items-center gap-1 text-xs"
+                              className="btn-secondary h-9 px-3 flex items-center gap-1 text-xs"
                               disabled={savingKey === `tier:${cat.code}/${tier.tierCode}`}
                               onClick={() => toggleTierEnabled(cat.code, tier)}
                             >
-                              {tier.enabled ? <><X size={14} /> Disable</> : <><Check size={14} /> Enable</>}
+                              {tier.enabled ? <><X size={16} /> Disable</> : <><Check size={16} /> Enable</>}
                             </button>
                             {!tier.system && (
-                              <button className="btn-danger flex items-center gap-1 text-xs" onClick={() => handleDeleteTier(cat.code, tier)}>
-                                <Trash2 size={14} />
+                              <button className="btn-danger h-9 px-3 flex items-center gap-1 text-xs" onClick={() => handleDeleteTier(cat.code, tier)}>
+                                <Trash2 size={16} />
                               </button>
                             )}
                           </div>
@@ -386,7 +386,7 @@ export default function AdminGovernance() {
                       disabled={savingKey === `new-tier:${cat.code}`}
                       onClick={() => handleCreateTier(cat.code)}
                     >
-                      <Plus size={14} /> Add tier
+                      <Plus size={16} /> Add tier
                     </button>
                   </div>
                 )}

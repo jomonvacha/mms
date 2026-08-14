@@ -47,8 +47,8 @@ export default function Home() {
           </div>
         ) : (
           <div className="flex gap-3 justify-center">
-            <Link to="/signin" className="btn-primary">Sign In</Link>
-            <Link to="/signup" className="btn-secondary">Sign Up</Link>
+            <Link to="/signin" className="btn-primary">Sign in</Link>
+            <Link to="/signup" className="btn-secondary">Sign up</Link>
           </div>
         )}
       </div>

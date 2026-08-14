@@ -49,7 +49,7 @@ export default function AvatarCropper({ imageSrc, onCancel, onSave }: Props) {
           </button>
           <h3 className="text-sm font-semibold text-white">Adjust Photo</h3>
           <button type="button" onClick={handleSave} disabled={saving}
-            className="btn-primary text-xs px-3 py-1.5 disabled:opacity-50">
+            className="btn-primary h-9 px-3 text-xs disabled:opacity-50">
             {saving ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />}
             {saving ? 'Saving…' : 'Apply'}
           </button>

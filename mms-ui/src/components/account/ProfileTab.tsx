@@ -61,7 +61,7 @@ export default function ProfileTab({
   return (
     <form onSubmit={submitProfile} className="space-y-5">
       <div>
-        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Profile Picture</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Profile picture</h3>
         <div className="flex items-center gap-5">
           {/* Avatar with hover overlay */}
           <div className="relative group flex-shrink-0">
@@ -102,7 +102,7 @@ export default function ProfileTab({
             </p>
             <p className="text-xs text-[rgb(var(--text-muted))]">PNG, JPG or GIF. Max 5 MB.</p>
             {!avatarUrl && (
-              <label className="btn-secondary text-xs cursor-pointer inline-flex items-center gap-1">
+              <label className="btn-secondary h-9 px-3 text-xs cursor-pointer inline-flex items-center gap-1">
                 <Upload size={13} /> Choose file
                 <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                   const file = e.target.files?.[0]
@@ -116,14 +116,14 @@ export default function ProfileTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Personal Info</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Personal info</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="label">First Name</label>
+            <label className="label">First name</label>
             <input className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           </div>
           <div>
-            <label className="label">Last Name</label>
+            <label className="label">Last name</label>
             <input className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </div>
           <div>
@@ -162,7 +162,7 @@ export default function ProfileTab({
       <div className="flex gap-2 justify-end pt-2">
         <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
         <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-          {submitting ? <><Loader2 size={14} className="animate-spin" />Saving…</> : 'Save Profile'}
+          {submitting ? <><Loader2 size={16} className="animate-spin" />Saving…</> : 'Save profile'}
         </button>
       </div>
     </form>

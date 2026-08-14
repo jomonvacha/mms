@@ -126,7 +126,7 @@ export default function AdminRules() {
         </div>
         <button type="button" onClick={() => setShowAdd(!showAdd)}
           className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-brand-600 text-white text-sm font-medium shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-colors">
-          <Plus size={16} /> New Rule
+          <Plus size={16} /> New rule
         </button>
       </div>
 
@@ -172,7 +172,7 @@ export default function AdminRules() {
           <div className="flex gap-2 justify-end pt-2 border-t border-[rgb(var(--border-subtle))]">
             <button type="button" onClick={() => setShowAdd(false)} className="btn-secondary text-sm">Cancel</button>
             <button type="button" onClick={handleAdd} disabled={adding || !newText.trim()} className="btn-primary text-sm">
-              {adding ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Add Rule
+              {adding ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />} Add Rule
             </button>
           </div>
         </div>

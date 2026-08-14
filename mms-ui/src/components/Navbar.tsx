@@ -143,7 +143,7 @@ export default function Navbar() {
                     end={item.end}
                     className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
                   >
-                    <Icon size={15} strokeWidth={2} className="nav-link__icon" />
+                    <Icon size={16} strokeWidth={2} className="nav-link__icon" />
                     {item.label}
                   </NavLink>
                 )
@@ -159,7 +159,7 @@ export default function Navbar() {
                 aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
                 title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
               >
-                {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
               </button>
 
               {/* User menu */}
@@ -253,7 +253,7 @@ export default function Navbar() {
                             className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                             role="menuitem"
                           >
-                            <LogOut size={15} /> Sign out
+                            <LogOut size={16} /> Sign out
                           </Link>
                         </div>
                       </div>
@@ -265,8 +265,8 @@ export default function Navbar() {
                   to="/signin"
                   className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
                 >
-                  <LogIn size={15} strokeWidth={2} className="nav-link__icon" />
-                  Sign In
+                  <LogIn size={16} strokeWidth={2} className="nav-link__icon" />
+                  Sign in
                 </NavLink>
               )}
 
@@ -278,7 +278,7 @@ export default function Navbar() {
                 aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
                 aria-expanded={mobileOpen}
               >
-                {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+                {mobileOpen ? <X size={16} /> : <Menu size={16} />}
               </button>
             </div>
           </div>
@@ -296,7 +296,7 @@ export default function Navbar() {
                     className={({ isActive }) => `nav-link w-full justify-start${isActive ? ' is-active' : ''}`}
                     onClick={() => setMobileOpen(false)}
                   >
-                    <Icon size={15} strokeWidth={2} className="nav-link__icon" />
+                    <Icon size={16} strokeWidth={2} className="nav-link__icon" />
                     {item.label}
                   </NavLink>
                 )
@@ -307,8 +307,8 @@ export default function Navbar() {
                   className={({ isActive }) => `nav-link w-full justify-start${isActive ? ' is-active' : ''}`}
                   onClick={() => setMobileOpen(false)}
                 >
-                  <LogIn size={15} strokeWidth={2} className="nav-link__icon" />
-                  Sign In
+                  <LogIn size={16} strokeWidth={2} className="nav-link__icon" />
+                  Sign in
                 </NavLink>
               )}
             </div>
@@ -339,7 +339,7 @@ function MenuItem({
       role="menuitem"
       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--nav-hover-bg)/0.7)] transition-colors"
     >
-      <Icon size={15} className="text-[rgb(var(--text-muted))]" />
+      <Icon size={16} className="text-[rgb(var(--text-muted))]" />
       <span className="flex-1 text-left">{label}</span>
       {trailing ? <span className="ml-auto">{trailing}</span> : null}
     </button>

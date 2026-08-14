@@ -177,7 +177,7 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
       <div className="flex gap-2 justify-end pt-2">
         <button type="button" className="btn-secondary text-sm" disabled={submitting} onClick={onClose}>Cancel</button>
         <button type="submit" className="btn-primary text-sm" disabled={submitting}>
-          {submitting ? <><Loader2 size={14} className="animate-spin" />Saving…</> : 'Save Preferences'}
+          {submitting ? <><Loader2 size={16} className="animate-spin" />Saving…</> : 'Save preferences'}
         </button>
       </div>
     </form>
