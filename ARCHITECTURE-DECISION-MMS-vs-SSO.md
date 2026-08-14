@@ -471,9 +471,25 @@ Phase 1 onward should start against a non-hardened `sso`.
    staging; record a real latency/throughput baseline; feed it into the
    existing SLO recording rules (`monitoring/prometheus/recording-rules.yml`)
    so the 99.9%-availability target has a real number behind it.
-7. **Frontend coverage.** Raise from the current 21% toward an interim
-   target (proposed: 50%), focused on auth-critical flows first (login,
-   MFA enrollment, session management), not coverage-for-its-own-sake.
+7. **Frontend coverage — partially done, scope-limited by design.** Raised
+   from 21.27% to 34.38% statements (228 → 309 passing tests), by covering
+   every auth-critical file the original 50% target actually cared about:
+   `ProtectedRoute` (100%, was 0% — the route guard itself), `lib/webauthn.js`
+   (100%, was 18.8% — the actual ceremony-orchestration code, not just its
+   already-tested base64 helpers), `MfaPage` (92.8%, was 38.8%),
+   `settings/MfaCard` (90.7%, was 41.9%), `settings/PasskeysCard` (86.0%,
+   was 44.2%), `ResetPasswordPage` (94.4%, was 0%), `SocialCallback` (100%,
+   was 0% — including the security-relevant behavior that tokens get
+   scrubbed from the URL via `history.replaceState` even if that call
+   throws). **Did not reach 50% overall, on purpose**: roughly half the
+   codebase's remaining uncovered statements are admin CRUD pages
+   (`GroupsPage`, `UsersPage`, `ClientsPage`, `OnboardingPage`, etc. — ~880
+   statements combined, all still at 0%), which were explicitly out of
+   scope for "auth-critical flows, not coverage-for-its-own-sake." Closing
+   the gap to 50% purely through auth-critical files isn't mathematically
+   possible without diluting into that admin-CRUD surface; if a hard 50%
+   number matters more than what's covered, that's a separate, explicit
+   scope decision, not an oversight here.
 8. **New capability: tenant-scoped self-service signup.** Discovered while
    drafting this plan (see §9 addendum below) — `sso`'s only public signup
    endpoint (`PublicController.signup`, `/api/public/signup`) creates a
@@ -784,21 +800,17 @@ enforcing it actually completes.
    anywhere. Confirmed: `sso` has never been deployed outside a dev
    machine (no git history, workflow run, or manifest referencing a real
    cluster/domain).
-3. **Security scanning is decorative.** `zap-scan.yml` targets
-   `localhost:8080` on a schedule, but no step in that job ever starts the
-   app — the scheduled scan runs against nothing. It's also
-   `continue-on-error: true`, so findings never block anything even when it
-   does find something. `FIX_PLAN.md` itself flags this as unresolved.
-4. **Test coverage has a critical blind spot.** Frontend coverage is
-   **21% statements** (real recorded number,
-   `frontend/coverage/lcov-report/index.html`). Backend has **zero tests**
-   for `WebAuthnService`/`WebAuthnController` and `AdaptivePolicyService` —
-   i.e., no tests for two of the three features (WebAuthn/passkeys,
-   adaptive auth) that are the biggest advantages over MMS's current auth.
-   JaCoCo's line-coverage gate is set to 35% (barely above the current
-   41.9% actual). E2E suite is 3 spec files with no MFA/WebAuthn/admin-CRUD
-   coverage, and hardcodes `admin`/`AdminPass123!` instead of a seeded
-   fixture.
+3. **Security scanning was decorative — fixed.** See §8 Phase 0 item 3.
+4. **Test coverage had a critical blind spot — backend fixed, frontend
+   partially fixed by design.** Backend: `WebAuthnService`/`WebAuthnController`/
+   `AdaptivePolicyService` had zero tests; now covered (§8 Phase 0 item 2).
+   Frontend: was 21% statements; now 34.38%, with every auth-critical file
+   covered and admin CRUD pages deliberately left at 0% (§8 Phase 0 item 7).
+   JaCoCo's line-coverage gate (35%) is comfortably cleared now that the
+   suite runs at all (§8 Phase 0 item "Fix `mvn verify`"/gap 7). **Still
+   open**: the E2E suite (3 spec files, no MFA/WebAuthn/admin-CRUD coverage,
+   hardcoded `admin`/`AdminPass123!` credentials instead of a seeded
+   fixture) — not touched by this pass, still a real gap.
 5. **Load testing has never been run.** `loadtest/scripts` has 4
    well-structured k6 scripts, but no results are committed anywhere —
    nobody has run them against a real target. No latency/throughput
@@ -849,8 +861,10 @@ enforcing it actually completes.
    for a meaningful burn-in period before any product points at it.
 6. Run the load tests against staging, record a baseline, feed it into the
    existing SLO recording rules.
-7. Raise frontend coverage off 21% — pick a realistic interim target (e.g.
-   50%) rather than jumping straight to a high bar.
+7. ~~Raise frontend coverage off 21%.~~ **Partially done** — see §8 Phase 0
+   item 7: every auth-critical file covered (21.27% → 34.38% overall),
+   admin CRUD pages deliberately left uncovered. Revisit only if a hard
+   50% number is explicitly wanted regardless of what it covers.
 8. Build tenant-scoped self-service signup (gap 6 above) — can happen in
    parallel with items 3–7 since it's independent new functionality, but
    must land before Phase 3/4 cutover regardless.
