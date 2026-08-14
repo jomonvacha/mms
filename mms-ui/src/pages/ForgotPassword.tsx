@@ -38,12 +38,12 @@ export default function ForgotPassword() {
               <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Check your email</h1>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+              <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Check your email</h1>
+              <p className="mt-2 text-sm text-[rgb(var(--text-secondary))]">
                 If an account exists for <strong>{email}</strong>, we&apos;ve sent a password
                 reset link. The link is valid for 30 minutes.
               </p>
-              <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-3 text-xs text-[rgb(var(--text-muted))]">
                 Didn&apos;t get anything? Check your spam folder or try again.
               </p>
             </div>
@@ -64,8 +64,8 @@ export default function ForgotPassword() {
             <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mx-auto mb-3">
               <KeyRound size={24} className="text-brand-600 dark:text-brand-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Forgot password?</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Forgot password?</h1>
+            <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">
               Enter your email and we&apos;ll send you a reset link.
             </p>
           </div>
@@ -97,7 +97,7 @@ export default function ForgotPassword() {
             </button>
           </form>
 
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center text-sm text-[rgb(var(--text-muted))]">
             Remembered it?{' '}
             <Link to="/signin" className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
               Sign in

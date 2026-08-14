@@ -58,7 +58,7 @@ function ThemedToast({ t, variant, title, description, action, dismissible = tru
 
   return (
     <div
-      className={`relative flex w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg shadow-gray-900/5 dark:shadow-black/30
+      className={`relative flex w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-1))] shadow-lg shadow-gray-900/5 dark:shadow-black/30
                   transition-all ${t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'}`}
       role={variant === 'error' ? 'alert' : 'status'}
       aria-live={variant === 'error' ? 'assertive' : 'polite'}>
@@ -68,9 +68,9 @@ function ThemedToast({ t, variant, title, description, action, dismissible = tru
           <Icon size={16} className={`${tok.iconColor} ${variant === 'loading' ? 'animate-spin' : ''}`} />
         </div>
         <div className="flex-1 min-w-0 pt-0.5">
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 leading-snug">{title}</p>
+          <p className="text-sm font-medium text-[rgb(var(--text-primary))] leading-snug">{title}</p>
           {description && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">{description}</p>
+            <p className="text-xs text-[rgb(var(--text-muted))] mt-1 leading-relaxed">{description}</p>
           )}
           {action && (
             <button
@@ -85,7 +85,7 @@ function ThemedToast({ t, variant, title, description, action, dismissible = tru
           <button
             type="button"
             onClick={() => toast.dismiss(t.id)}
-            className="flex-shrink-0 p-1 -m-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+            className="flex-shrink-0 p-1 -m-1 rounded text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/40"
             aria-label="Dismiss notification">
             <X size={14} />
           </button>

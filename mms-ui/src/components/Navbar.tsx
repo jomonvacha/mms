@@ -210,11 +210,11 @@ export default function Navbar() {
                         role="menu"
                         className="absolute right-0 mt-2 w-64 card shadow-xl z-20 py-1 origin-top-right"
                       >
-                        <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                        <div className="px-4 py-3 border-b border-[rgb(var(--border-subtle))]">
+                          <p className="text-sm font-semibold truncate text-[rgb(var(--text-primary))]">
                             {user.firstName} {user.lastName}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">{user.email}</p>
+                          <p className="text-xs truncate mt-0.5 text-[rgb(var(--text-muted))]">{user.email}</p>
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             {isFederated(user.provider) && (
                               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
@@ -246,7 +246,7 @@ export default function Navbar() {
                           />
                           <MenuItem icon={Settings} label="Preferences" onClick={() => openModal('preferences')} />
                         </div>
-                        <div className="border-t border-gray-100 dark:border-gray-700 py-1">
+                        <div className="border-t border-[rgb(var(--border-subtle))] py-1">
                           <Link
                             to="/signout"
                             onClick={() => setMenuOpen(false)}
@@ -337,9 +337,9 @@ function MenuItem({
       type="button"
       onClick={onClick}
       role="menuitem"
-      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--nav-hover-bg)/0.7)] transition-colors"
     >
-      <Icon size={15} className="text-gray-500 dark:text-gray-400" />
+      <Icon size={15} className="text-[rgb(var(--text-muted))]" />
       <span className="flex-1 text-left">{label}</span>
       {trailing ? <span className="ml-auto">{trailing}</span> : null}
     </button>

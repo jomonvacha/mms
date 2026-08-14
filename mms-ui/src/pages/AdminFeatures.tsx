@@ -111,13 +111,13 @@ export default function AdminFeatures() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <Settings size={20} className="text-brand-600 dark:text-brand-400" />
             </div>
             Administration
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-[rgb(var(--text-muted))]">
             Manage roles, features, and access control. Tier limits live under Governance.
           </p>
         </div>
@@ -138,7 +138,7 @@ export default function AdminFeatures() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-[rgb(var(--border-subtle))]">
         <nav className="flex gap-0 -mb-px">
           {([
             { key: 'system' as const, label: 'Access', count: systemCount, icon: ShieldCheck },
@@ -148,14 +148,14 @@ export default function AdminFeatures() {
               className={`group relative flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
                 tab === key
                   ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--border-strong))]'
               }`}>
               <Icon size={15} className={tab === key ? 'text-brand-500 dark:text-brand-400' : 'text-gray-400 group-hover:text-gray-500'} />
               {label}
               <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold ${
                 tab === key
                   ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                  : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'
               }`}>
                 {count}
               </span>
@@ -174,13 +174,13 @@ export default function AdminFeatures() {
             </div>
           ) : assignedFeatures.length === 0 ? (
             <div className="card p-16 text-center">
-              <div className="inline-flex p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-4">
+              <div className="inline-flex p-4 rounded-full bg-[rgb(var(--surface-3))] mb-4">
                 <Shield size={32} className="text-gray-400" />
               </div>
-              <p className="text-gray-600 dark:text-gray-400 font-medium">
+              <p className="text-[rgb(var(--text-muted))] font-medium">
                 No features assigned to any role
               </p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              <p className="text-sm text-[rgb(var(--text-muted))] mt-1">
                 Create a feature and assign it to a role to see it here.
               </p>
             </div>
@@ -196,39 +196,39 @@ export default function AdminFeatures() {
                 </div>
               )}
 
-              <div className="card overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="card overflow-hidden border border-[rgb(var(--border-subtle))] shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[220px]">Feature</th>
-                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                      <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
+                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider min-w-[220px]">Feature</th>
+                        <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Category</th>
                         {matrixRoles.map((r) => (
-                          <th key={r} className="px-3 py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[90px]">
+                          <th key={r} className="px-3 py-3.5 text-center text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider min-w-[90px]">
                             {roleLabel(r)}
                           </th>
                         ))}
-                        <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[100px]">Actions</th>
+                        <th className="px-4 py-3.5 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider w-[100px]">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+                    <tbody className="divide-y divide-[rgb(var(--border-subtle))]/60">
                       {filteredFeatures.map((f) => {
                         const grantedCount = matrixRoles.filter(r => (matrix[r] || []).includes(f.code)).length
                         return (
-                          <tr key={f.id} className="group hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors">
+                          <tr key={f.id} className="group hover:bg-[rgb(var(--surface-2)/0.8)] transition-colors">
                             <td className="px-4 py-3.5">
-                              <div className="font-medium text-gray-900 dark:text-gray-100 text-[13px]">{f.name}</div>
+                              <div className="font-medium text-[rgb(var(--text-primary))] text-[13px]">{f.name}</div>
                               {f.description && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">{f.description}</div>
+                                <div className="text-xs text-[rgb(var(--text-muted))] mt-0.5 line-clamp-1">{f.description}</div>
                               )}
                             </td>
                             <td className="px-4 py-3.5">
                               {f.category ? (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                <span className="chip chip--neutral">
                                   {f.category}
                                 </span>
                               ) : (
-                                <span className="text-gray-300 dark:text-gray-600">--</span>
+                                <span className="text-[rgb(var(--text-muted))]">--</span>
                               )}
                             </td>
                             {matrixRoles.map((role) => {
@@ -239,7 +239,7 @@ export default function AdminFeatures() {
                                     className={`w-7 h-7 rounded-md border-2 inline-flex items-center justify-center transition-all duration-150 ${
                                       granted
                                         ? 'bg-brand-600 border-brand-600 text-white shadow-sm shadow-brand-200 dark:shadow-none'
-                                        : 'border-gray-300 dark:border-gray-600 text-transparent hover:border-brand-400 dark:hover:border-brand-500'
+                                        : 'border-[rgb(var(--border-strong))] text-transparent hover:border-brand-400 dark:hover:border-brand-500'
                                     }`}
                                     aria-label={`${granted ? 'Revoke' : 'Grant'} ${f.name} for ${roleLabel(role)}`}>
                                     <Check size={14} strokeWidth={2.5} />
@@ -250,12 +250,12 @@ export default function AdminFeatures() {
                             <td className="px-4 py-3.5 text-right">
                               <div className="inline-flex gap-0.5">
                                 <button type="button" onClick={() => { setEditingFeature(f); setCreating(false) }}
-                                  className="p-1.5 rounded-md text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:text-gray-500 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors"
+                                  className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-brand-600 hover:bg-brand-50 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors"
                                   title="Edit feature">
                                   <Pencil size={14} />
                                 </button>
                                 <button type="button" onClick={() => handleUnassignFromRoles(f, matrixRoles)}
-                                  className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:text-gray-500 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
+                                  className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 transition-colors"
                                   title={`Remove from ${grantedCount} ${tab} role${grantedCount !== 1 ? 's' : ''}`}>
                                   <X size={14} />
                                 </button>
@@ -274,7 +274,7 @@ export default function AdminFeatures() {
                 )}
               </div>
 
-              <p className="text-xs text-gray-400 dark:text-gray-500">
+              <p className="text-xs text-[rgb(var(--text-muted))]">
                 {assignedFeatures.length} feature{assignedFeatures.length !== 1 ? 's' : ''} assigned to {tab} roles.
                 Use the pencil to edit, or X to remove from all {tab} roles.
               </p>
@@ -285,19 +285,19 @@ export default function AdminFeatures() {
 
       {/* Roles Tab */}
       {tab === 'roles' && (
-        <div className="card overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="card overflow-hidden border border-[rgb(var(--border-subtle))] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Display Name</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Type</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[100px]">Actions</th>
+                <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
+                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Role</th>
+                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Display Name</th>
+                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Description</th>
+                  <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-3.5 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider w-[100px]">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+              <tbody className="divide-y divide-[rgb(var(--border-subtle))]/60">
                 {roles.map((r) => {
                   const featureCount = (matrix[r.name] || []).length
                   const canDelete = !r.system && featureCount === 0
@@ -307,17 +307,17 @@ export default function AdminFeatures() {
                       ? `${featureCount} feature(s) assigned -- remove them first`
                       : 'Delete role'
                   return (
-                    <tr key={r.id} className="group hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors">
+                    <tr key={r.id} className="group hover:bg-[rgb(var(--surface-2)/0.8)] transition-colors">
                       <td className="px-4 py-3.5">
-                        <code className="text-xs font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                        <code className="text-xs font-mono px-1.5 py-0.5 rounded bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]">
                           {r.name}
                         </code>
                       </td>
-                      <td className="px-4 py-3.5 text-[13px] font-medium text-gray-800 dark:text-gray-200">
+                      <td className="px-4 py-3.5 text-[13px] font-medium text-[rgb(var(--text-primary))]">
                         {r.displayName || roleLabel(r.name)}
                       </td>
-                      <td className="px-4 py-3.5 text-gray-500 dark:text-gray-400 text-xs max-w-[240px] truncate">
-                        {r.description || <span className="text-gray-300 dark:text-gray-600">--</span>}
+                      <td className="px-4 py-3.5 text-[rgb(var(--text-muted))] text-xs max-w-[240px] truncate">
+                        {r.description || <span className="text-[rgb(var(--text-muted))]">--</span>}
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-2.5">
@@ -325,7 +325,7 @@ export default function AdminFeatures() {
                             <ShieldCheck size={10} /> System
                           </span>
                           {featureCount > 0 && (
-                            <span className="text-[11px] text-gray-400 dark:text-gray-500 tabular-nums">
+                            <span className="text-[11px] text-[rgb(var(--text-muted))] tabular-nums">
                               {featureCount} feature{featureCount > 1 ? 's' : ''}
                             </span>
                           )}
@@ -334,7 +334,7 @@ export default function AdminFeatures() {
                       <td className="px-4 py-3.5 text-right">
                         <div className="inline-flex gap-0.5">
                           <button type="button" onClick={() => { setEditingRole(r); setCreatingRole(false) }}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:text-gray-500 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors"
+                            className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-brand-600 hover:bg-brand-50 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors"
                             title="Edit role">
                             <Pencil size={14} />
                           </button>
@@ -345,7 +345,7 @@ export default function AdminFeatures() {
                               try { await deleteRole(r.id); notify.success('Role deleted.'); reload() }
                               catch (err) { notify.error((err as { message?: string })?.message || 'Delete failed.') }
                             }}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/30 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 transition-colors"
+                            className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30 disabled:opacity-20 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[rgb(var(--text-muted))] transition-colors"
                             title={deleteTitle}>
                             <Trash2 size={14} />
                           </button>
@@ -438,24 +438,24 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${isEdit ? 'bg-brand-50 dark:bg-brand-900/30' : 'bg-emerald-50 dark:bg-emerald-900/30'}`}>
               {isEdit ? <Pencil size={16} className="text-brand-600 dark:text-brand-400" /> : <Plus size={16} className="text-emerald-600 dark:text-emerald-400" />}
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-base font-semibold text-[rgb(var(--text-primary))]">
                 {isEdit ? 'Edit Feature' : 'New Feature'}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-[rgb(var(--text-muted))]">
                 {isEdit ? 'Update feature details' : 'Define a new access feature'}
               </p>
             </div>
           </div>
           <button type="button" onClick={onClose} disabled={saving}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors">
+            className="p-2 rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -464,7 +464,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
         <form onSubmit={submit} className="px-6 py-5 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">
                 Code <span className="text-red-500">*</span>
               </label>
               <input className="input font-mono text-sm" value={code} onChange={(e) => setCode(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))}
@@ -472,7 +472,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
               {isEdit && <p className="text-[11px] text-gray-400 mt-1">Immutable after creation</p>}
             </div>
             <div className="col-span-2 sm:col-span-1">
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">
                 Name <span className="text-red-500">*</span>
               </label>
               <input className="input text-sm" value={name} onChange={(e) => setName(e.target.value)}
@@ -481,19 +481,19 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Description</label>
             <input className="input text-sm" value={description} onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief description of what this feature controls" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
+              <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Category</label>
               <input className="input text-sm" value={category} onChange={(e) => setCategory(e.target.value)}
                 placeholder="e.g. Reports" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Icon</label>
+              <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Icon</label>
               <input className="input text-sm" value={icon} onChange={(e) => setIcon(e.target.value)}
                 placeholder="e.g. BarChart3" />
             </div>
@@ -501,7 +501,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
           <div>
             {isEdit && onDelete && (
               <button type="button" disabled={saving} onClick={onDelete}
@@ -512,7 +512,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
           </div>
           <div className="flex gap-2">
             <button type="button" disabled={saving} onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+              className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}
@@ -558,24 +558,24 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
             <div className={`p-2 rounded-lg ${isEdit ? 'bg-brand-50 dark:bg-brand-900/30' : 'bg-emerald-50 dark:bg-emerald-900/30'}`}>
               {isEdit ? <Pencil size={16} className="text-brand-600 dark:text-brand-400" /> : <Shield size={16} className="text-emerald-600 dark:text-emerald-400" />}
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+              <h2 className="text-base font-semibold text-[rgb(var(--text-primary))]">
                 {isEdit ? 'Edit Role' : 'New Role'}
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-[rgb(var(--text-muted))]">
                 {isEdit ? 'Update role configuration' : 'Define a new access role'}
               </p>
             </div>
           </div>
           <button type="button" onClick={onClose} disabled={saving}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors">
+            className="p-2 rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             <X size={18} />
           </button>
         </div>
@@ -583,11 +583,11 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
         {/* Form */}
         <form onSubmit={submit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">
               Role Code {!isEdit && <span className="text-red-500">*</span>}
             </label>
             <div className="flex items-center">
-              <span className="inline-flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm text-gray-500 dark:text-gray-400 font-mono">
+              <span className="inline-flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-[rgb(var(--border-strong))] bg-[rgb(var(--surface-2))] text-sm text-[rgb(var(--text-muted))] font-mono">
                 ROLE_
               </span>
               <input className="input rounded-l-none font-mono uppercase text-sm flex-1" value={name}
@@ -598,13 +598,13 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Display Name</label>
+            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display Name</label>
             <input className="input text-sm" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
               placeholder="e.g. Data Analyst" />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
+            <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Description</label>
             <input className="input text-sm" value={description} onChange={(e) => setDescription(e.target.value)}
               placeholder="What this role grants access to" />
           </div>
@@ -618,9 +618,9 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
           <button type="button" disabled={saving} onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             Cancel
           </button>
           <button type="submit" disabled={saving}

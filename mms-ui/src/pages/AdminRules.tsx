@@ -34,7 +34,7 @@ function RuleRow({ rule, onToggleActive, onChangeTier, onDelete }: {
         {isSystem ? <Lock size={14} className="text-red-500" /> : <ToggleLeft size={14} className="text-brand-500" />}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">{rule.text}</p>
+        <p className="text-sm text-[rgb(var(--text-primary))] leading-relaxed">{rule.text}</p>
         <div className="flex items-center gap-2 mt-1.5">
           <CategoryBadge category={rule.category} />
           {!isSystem && (
@@ -50,7 +50,7 @@ function RuleRow({ rule, onToggleActive, onChangeTier, onDelete }: {
         </button>
         <button type="button" onClick={onToggleActive}
           title={rule.active ? 'Deactivate' : 'Activate'}
-          className={`p-1.5 rounded-lg transition-colors ${rule.active ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+          className={`p-1.5 rounded-lg transition-colors ${rule.active ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20' : 'text-gray-400 hover:bg-[rgb(var(--surface-3))]'}`}>
           {rule.active ? <Check size={14} /> : <X size={14} />}
         </button>
         <button type="button" onClick={onDelete} title="Delete"
@@ -114,13 +114,13 @@ export default function AdminRules() {
     <div className="space-y-8">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <ShieldCheck size={20} className="text-brand-600 dark:text-brand-400" />
             </div>
             Enforcement Rules
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-[rgb(var(--text-muted))]">
             AI behavior rules applied to all personas across the platform.
           </p>
         </div>
@@ -133,13 +133,13 @@ export default function AdminRules() {
       {/* Add new rule (collapsible) */}
       {showAdd && (
         <div className="card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Add Enforcement Rule</h3>
+          <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Add Enforcement Rule</h3>
           <textarea value={newText} onChange={(e) => setNewText(e.target.value)}
             placeholder="Enter the rule text that will be injected into every persona's system prompt..."
             className="input text-sm min-h-[80px]" maxLength={500} autoFocus />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">Visibility</label>
+              <label className="text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5 block">Visibility</label>
               <div className="flex gap-2">
                 {[
                   { v: 'SYSTEM', l: 'System', d: 'Hidden from owners' },
@@ -148,28 +148,28 @@ export default function AdminRules() {
                   <button key={v} type="button" onClick={() => setNewTier(v)}
                     className={`flex-1 p-2.5 rounded-lg text-left border transition-colors ${
                       newTier === v ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20 ring-1 ring-brand-500' :
-                      'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                      'border-[rgb(var(--border-subtle))] hover:border-gray-300 dark:hover:border-gray-600'
                     }`}>
-                    <span className="text-xs font-medium text-gray-900 dark:text-gray-100 block">{l}</span>
-                    <span className="text-[10px] text-gray-500 dark:text-gray-400">{d}</span>
+                    <span className="text-xs font-medium text-[rgb(var(--text-primary))] block">{l}</span>
+                    <span className="text-[10px] text-[rgb(var(--text-muted))]">{d}</span>
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5 block">Category</label>
+              <label className="text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5 block">Category</label>
               <div className="flex gap-1.5 flex-wrap">
                 {CATEGORIES.map(({ value, label, color }) => (
                   <button key={value} type="button" onClick={() => setNewCategory(value)}
                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                       newCategory === value ? 'border-brand-500 ring-1 ring-brand-500 ' + color :
-                      'border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                      'border-[rgb(var(--border-subtle))] text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
                     }`}>{label}</button>
                 ))}
               </div>
             </div>
           </div>
-          <div className="flex gap-2 justify-end pt-2 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex gap-2 justify-end pt-2 border-t border-[rgb(var(--border-subtle))]">
             <button type="button" onClick={() => setShowAdd(false)} className="btn-secondary text-sm">Cancel</button>
             <button type="button" onClick={handleAdd} disabled={adding || !newText.trim()} className="btn-primary text-sm">
               {adding ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Add Rule
@@ -187,13 +187,13 @@ export default function AdminRules() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <Lock size={14} className="text-red-500" />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">System Rules</h2>
+                <h2 className="text-sm font-semibold text-[rgb(var(--text-primary))]">System Rules</h2>
               </div>
               <span className="text-xs text-gray-400">{systemRules.length}</span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <div className="flex-1 h-px bg-[rgb(var(--border-subtle))]" />
             </div>
             <p className="text-xs text-gray-500">Always enforced. Invisible to persona owners.</p>
-            <div className="card overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/60 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="card overflow-hidden divide-y divide-[rgb(var(--border-subtle))]/60 border border-[rgb(var(--border-subtle))] shadow-sm">
               {systemRules.map((rule) => (
                 <RuleRow key={rule.id} rule={rule}
                   onToggleActive={() => handleToggleActive(rule)}
@@ -209,13 +209,13 @@ export default function AdminRules() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <ToggleLeft size={14} className="text-brand-500" />
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Optional Rules</h2>
+                <h2 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Optional Rules</h2>
               </div>
               <span className="text-xs text-gray-400">{optionalRules.length}</span>
-              <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+              <div className="flex-1 h-px bg-[rgb(var(--border-subtle))]" />
             </div>
             <p className="text-xs text-gray-500">Visible to persona owners. Enabled by default unless disabled per persona.</p>
-            <div className="card overflow-hidden divide-y divide-gray-100 dark:divide-gray-700/60 border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div className="card overflow-hidden divide-y divide-[rgb(var(--border-subtle))]/60 border border-[rgb(var(--border-subtle))] shadow-sm">
               {optionalRules.map((rule) => (
                 <RuleRow key={rule.id} rule={rule}
                   onToggleActive={() => handleToggleActive(rule)}

@@ -38,7 +38,7 @@ export default function VerifyEmail() {
         {status === 'loading' && (
           <>
             <Loader2 size={32} className="animate-spin text-brand-600 dark:text-brand-400 mx-auto" />
-            <p className="text-sm text-gray-600 dark:text-gray-300">Verifying your email…</p>
+            <p className="text-sm text-[rgb(var(--text-secondary))]">Verifying your email…</p>
           </>
         )}
         {status === 'ok' && (
@@ -46,8 +46,8 @@ export default function VerifyEmail() {
             <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
               <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Email verified</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{message}</p>
+            <h1 className="text-xl font-semibold text-[rgb(var(--text-primary))]">Email verified</h1>
+            <p className="text-sm text-[rgb(var(--text-secondary))]">{message}</p>
             <Link to="/" className="btn-primary text-sm inline-block">Go home</Link>
           </>
         )}
@@ -56,8 +56,8 @@ export default function VerifyEmail() {
             <div className="w-14 h-14 mx-auto rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center">
               <XCircle size={28} className="text-rose-600 dark:text-rose-400" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Verification failed</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{message}</p>
+            <h1 className="text-xl font-semibold text-[rgb(var(--text-primary))]">Verification failed</h1>
+            <p className="text-sm text-[rgb(var(--text-secondary))]">{message}</p>
             <Link to="/signin" className="btn-secondary text-sm inline-block">Back to sign in</Link>
           </>
         )}

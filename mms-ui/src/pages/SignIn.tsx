@@ -111,11 +111,11 @@ export default function SignIn() {
               <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mx-auto mb-3">
                 <UserCircle2 size={24} className="text-brand-600 dark:text-brand-400" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">You're signed in</h1>
-              <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                as <span className="font-medium text-gray-800 dark:text-gray-200">{displayName}</span>
+              <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">You're signed in</h1>
+              <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">
+                as <span className="font-medium text-[rgb(var(--text-primary))]">{displayName}</span>
                 {user.email && displayName !== user.email && (
-                  <span className="text-gray-500 dark:text-gray-400"> · {user.email}</span>
+                  <span className="text-[rgb(var(--text-muted))]"> · {user.email}</span>
                 )}
               </p>
             </div>
@@ -149,7 +149,7 @@ export default function SignIn() {
             <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mx-auto mb-3">
               <LogIn size={24} className="text-brand-600 dark:text-brand-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Sign In</h1>
+            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Sign In</h1>
           </div>
 
           {timedOut && (
@@ -214,7 +214,7 @@ export default function SignIn() {
                     autoComplete="one-time-code"
                     required
                   />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">
                     Enter the 6-digit code from your authenticator app, or a recovery code.
                   </p>
                 </div>
@@ -225,16 +225,16 @@ export default function SignIn() {
               </button>
             </form>
           ) : (
-            <div className="text-sm text-center text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-center text-[rgb(var(--text-muted))]">
               Local sign-in is not available. Use a social provider below.
             </div>
           )}
 
           {localAuthEnabled && (
             <div className="relative flex items-center gap-3">
-              <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+              <div className="flex-1 border-t border-[rgb(var(--border-subtle))]" />
               <span className="text-xs text-gray-400">or</span>
-              <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+              <div className="flex-1 border-t border-[rgb(var(--border-subtle))]" />
             </div>
           )}
 
@@ -255,7 +255,7 @@ export default function SignIn() {
             </button>
           </div>
 
-          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-center text-xs text-[rgb(var(--text-muted))]">
             Admin access only. End users sign up in the IDFY app.
           </p>
         </div>

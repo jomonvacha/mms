@@ -44,13 +44,13 @@ export default function AdminSettings() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+        <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
             <Settings size={20} className="text-brand-600 dark:text-brand-400" />
           </div>
           Platform Settings
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-[rgb(var(--text-muted))]">
           Admin-controlled toggles that take effect immediately, without a redeploy.
         </p>
       </div>
@@ -75,10 +75,10 @@ export default function AdminSettings() {
       )}
 
       {!isLoading && !isError && (
-        <div className="card divide-y divide-gray-100 dark:divide-gray-700/60">
+        <div className="card divide-y divide-[rgb(var(--border-subtle))]/60">
           {grouped.bools.length === 0 && (
             <div className="p-8 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">No toggleable settings configured yet.</p>
+              <p className="text-sm text-[rgb(var(--text-muted))]">No toggleable settings configured yet.</p>
             </div>
           )}
           {grouped.bools.map((s) => {
@@ -92,14 +92,14 @@ export default function AdminSettings() {
                   <Icon size={16} className="text-brand-600 dark:text-brand-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">{meta.label}</h3>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{meta.help}</p>
-                  <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500 font-mono">{s.key}</p>
+                  <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">{meta.label}</h3>
+                  <p className="mt-1 text-xs text-[rgb(var(--text-muted))] leading-relaxed">{meta.help}</p>
+                  <p className="mt-2 text-[11px] text-[rgb(var(--text-muted))] font-mono">{s.key}</p>
                 </div>
                 <button type="button" disabled={busy}
                   onClick={() => toggle.mutate({ setting: s, next: !value })}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${
-                    value ? 'bg-brand-600' : 'bg-gray-300 dark:bg-gray-600'
+                    value ? 'bg-brand-600' : 'bg-[rgb(var(--surface-3))]'
                   } ${busy ? 'opacity-60 cursor-not-allowed' : ''}`}
                   aria-pressed={value} aria-label={meta.label}>
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${

@@ -134,7 +134,7 @@ export default function AdminGovernance() {
 
   const handleDeleteTier = async (categoryCode: string, tier: TierRecord) => {
     if (tier.system) { notify.error('System tiers cannot be deleted — disable instead'); return }
-    if (!confirm(`Delete tier "${tier.displayName || tier.tierCode}" from ${categoryCode}?`)) return
+    if (!confirm(`Delete tier "${tier.displayName || tier.tierCode}" (category: ${categoryCode})?`)) return
     try {
       await deleteTier(categoryCode, tier.tierCode)
       notify.success('Tier deleted')
@@ -201,11 +201,11 @@ export default function AdminGovernance() {
     <div className="container mx-auto px-4 max-w-6xl py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-[rgb(var(--text-primary))] flex items-center gap-2">
             <Shield size={22} className="text-brand-600 dark:text-brand-400" />
             Membership Governance
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-sm text-[rgb(var(--text-muted))] mt-1">
             Manage membership categories, category-specific tiers, and entitlement values that drive feature enforcement.
           </p>
         </div>
@@ -218,7 +218,7 @@ export default function AdminGovernance() {
 
       {showNewCategory && (
         <div className="card p-4 space-y-3">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">New category</h3>
+          <h3 className="font-semibold text-[rgb(var(--text-primary))]">New category</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <input
               className="input"
@@ -250,27 +250,27 @@ export default function AdminGovernance() {
       )}
 
       {categories.length === 0 ? (
-        <div className="card p-10 text-center text-gray-500 dark:text-gray-400">
+        <div className="card p-10 text-center text-[rgb(var(--text-muted))]">
           No membership categories yet.
         </div>
       ) : (
         <div className="space-y-4">
           {categories.map((cat) => (
             <div key={cat.code} className="card">
-              <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
+              <div className="p-4 border-b border-[rgb(var(--border-subtle))] flex items-center gap-3">
                 <Layers size={18} className="text-brand-600 dark:text-brand-400" />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900 dark:text-gray-100">{cat.displayName || cat.code}</span>
-                    <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{cat.code}</span>
+                    <span className="font-semibold text-[rgb(var(--text-primary))]">{cat.displayName || cat.code}</span>
+                    <span className="text-xs font-mono text-[rgb(var(--text-muted))]">{cat.code}</span>
                     {cat.system && (
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>
                     )}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${cat.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${cat.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
                       {cat.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
-                  {cat.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{cat.description}</p>}
+                  {cat.description && <p className="text-xs text-[rgb(var(--text-muted))] mt-0.5">{cat.description}</p>}
                 </div>
                 {canManage && (
                   <div className="flex items-center gap-2">
@@ -292,32 +292,32 @@ export default function AdminGovernance() {
 
               <div className="p-4 space-y-2">
                 {(cat.tiers || []).length === 0 && (
-                  <p className="text-sm text-gray-500 dark:text-gray-400 italic">No tiers in this category yet.</p>
+                  <p className="text-sm text-[rgb(var(--text-muted))] italic">No tiers in this category yet.</p>
                 )}
                 {(cat.tiers || []).map((tier) => {
                   const key = `${cat.code}/${tier.tierCode}`
-                  const isExpanded = !!expanded[key]
+                  const isExpanded = expanded[key]
                   const values = tierEntitlements[key]?.entitlements || {}
                   return (
-                    <div key={tier.tierCode} className="border border-gray-100 dark:border-gray-700 rounded-lg">
+                    <div key={tier.tierCode} className="border border-[rgb(var(--border-subtle))] rounded-lg">
                       <div className="flex items-center gap-2 p-3">
                         <button
                           onClick={() => toggleExpand(cat.code, tier.tierCode)}
-                          className="p-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                          className="p-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))]"
                           aria-label="Toggle tier entitlements"
                         >
                           {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         </button>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium text-gray-900 dark:text-gray-100">{tier.displayName || tier.tierCode}</span>
-                            <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{tier.tierCode}</span>
+                            <span className="font-medium text-[rgb(var(--text-primary))]">{tier.displayName || tier.tierCode}</span>
+                            <span className="text-xs font-mono text-[rgb(var(--text-muted))]">{tier.tierCode}</span>
                             {tier.system && <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>}
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${tier.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'}`}>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${tier.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
                               {tier.enabled ? 'Enabled' : 'Disabled'}
                             </span>
                           </div>
-                          {tier.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{tier.description}</p>}
+                          {tier.description && <p className="text-xs text-[rgb(var(--text-muted))] mt-0.5">{tier.description}</p>}
                         </div>
                         {canManage && (
                           <div className="flex items-center gap-2">
@@ -338,10 +338,10 @@ export default function AdminGovernance() {
                       </div>
 
                       {isExpanded && (
-                        <div className="border-t border-gray-100 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800/40 space-y-2">
-                          <h4 className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Entitlements</h4>
+                        <div className="border-t border-[rgb(var(--border-subtle))] p-3 bg-[rgb(var(--surface-2))] space-y-2">
+                          <h4 className="text-xs font-semibold text-[rgb(var(--text-secondary))] uppercase tracking-wider">Entitlements</h4>
                           {entitlementDefs.length === 0 && (
-                            <p className="text-sm text-gray-500 italic">No entitlement definitions configured.</p>
+                            <p className="text-sm text-[rgb(var(--text-muted))] italic">No entitlement definitions configured.</p>
                           )}
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                             {entitlementDefs.map((def) => {
@@ -423,24 +423,24 @@ function EntitlementRow({ def, value, hasOverride, disabled, saving, onSave, onR
   }
 
   return (
-    <div className="rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3">
+    <div className="rounded border border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-1))] p-3">
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{def.displayName || def.key}</span>
+            <span className="text-sm font-medium text-[rgb(var(--text-primary))] truncate">{def.displayName || def.key}</span>
             {hasOverride ? (
               <span className="text-[10px] px-1 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">Override</span>
             ) : (
-              <span className="text-[10px] px-1 py-0.5 rounded bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">Default</span>
+              <span className="chip chip--neutral">Default</span>
             )}
           </div>
-          <p className="text-[11px] font-mono text-gray-500 dark:text-gray-400 truncate">{def.key}</p>
-          {def.description && <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{def.description}</p>}
+          <p className="text-[11px] font-mono text-[rgb(var(--text-muted))] truncate">{def.key}</p>
+          {def.description && <p className="text-[11px] text-[rgb(var(--text-muted))] mt-0.5 line-clamp-2">{def.description}</p>}
         </div>
         {asBoolean ? (
           <button
             type="button"
-            className={`shrink-0 px-2 py-1 rounded text-xs font-medium ${value === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-95'}`}
+            className={`shrink-0 px-2 py-1 rounded text-xs font-medium ${value === 'true' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'} ${disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer hover:brightness-95'}`}
             disabled={disabled || saving}
             onClick={handleBooleanToggle}
           >
@@ -465,9 +465,9 @@ function EntitlementRow({ def, value, hasOverride, disabled, saving, onSave, onR
           </div>
         ) : (
           <div className="flex items-center gap-1">
-            <span className="font-mono text-sm text-gray-900 dark:text-gray-100">{display}</span>
+            <span className="font-mono text-sm text-[rgb(var(--text-primary))]">{display}</span>
             {!disabled && (
-              <button className="p-1 text-gray-500 hover:text-gray-700" onClick={() => setEditing(true)} aria-label="Edit">
+              <button className="p-1 text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]" onClick={() => setEditing(true)} aria-label="Edit">
                 <Pencil size={12} />
               </button>
             )}
@@ -476,7 +476,7 @@ function EntitlementRow({ def, value, hasOverride, disabled, saving, onSave, onR
       </div>
       {hasOverride && !disabled && (
         <div className="mt-2 text-right">
-          <button className="text-[10px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300" onClick={onReset}>
+          <button className="text-[10px] text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))]" onClick={onReset}>
             Reset to default
           </button>
         </div>

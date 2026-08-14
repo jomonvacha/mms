@@ -61,7 +61,7 @@ export default function ProfileTab({
   return (
     <form onSubmit={submitProfile} className="space-y-5">
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Profile Picture</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Profile Picture</h3>
         <div className="flex items-center gap-5">
           {/* Avatar with hover overlay */}
           <div className="relative group flex-shrink-0">
@@ -97,10 +97,10 @@ export default function ProfileTab({
           </div>
           {/* Upload instructions */}
           <div className="space-y-2">
-            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+            <p className="text-sm text-[rgb(var(--text-secondary))] font-medium">
               {avatarUrl ? 'Hover to change or remove' : 'Upload a profile photo'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG or GIF. Max 5 MB.</p>
+            <p className="text-xs text-[rgb(var(--text-muted))]">PNG, JPG or GIF. Max 5 MB.</p>
             {!avatarUrl && (
               <label className="btn-secondary text-xs cursor-pointer inline-flex items-center gap-1">
                 <Upload size={13} /> Choose file
@@ -116,7 +116,7 @@ export default function ProfileTab({
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Personal Info</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] mb-3">Personal Info</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="label">First Name</label>
@@ -137,7 +137,7 @@ export default function ProfileTab({
               required
             />
             {isFederated(user?.provider) && (
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+              <p className="mt-1 text-xs text-[rgb(var(--text-muted))] flex items-center gap-1">
                 <Lock size={11} /> Managed by {providerLabel(user?.provider)} — change it in your {providerLabel(user?.provider)} account.
               </p>
             )}

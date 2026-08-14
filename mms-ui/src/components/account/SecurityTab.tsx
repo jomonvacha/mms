@@ -31,8 +31,8 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Security managed by {label}</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Security managed by {label}</h3>
+            <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
               Your account uses {label} sign-in, so two-factor authentication and password
               security are handled by your {label} account. To enable 2FA, go to your {label} security settings.
             </p>
@@ -123,8 +123,8 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             <Smartphone size={20} className="text-brand-600 dark:text-brand-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Two-factor authentication</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Two-factor authentication</h3>
+            <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
               Add an extra layer of security by requiring a 6-digit code from your
               authenticator app (Google Authenticator, 1Password, Authy, etc.) on every sign-in.
             </p>
@@ -143,11 +143,11 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
     return (
       <form onSubmit={confirmEnable} className="space-y-4">
         <div className="card p-5 space-y-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Scan this QR code</h3>
+          <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Scan this QR code</h3>
           <div className="flex flex-col items-center gap-3">
-            <img src={qrSrc} alt="2FA QR code" className="w-44 h-44 bg-white p-2 rounded border border-gray-200 dark:border-gray-700" />
-            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">Or enter this secret manually:</p>
-            <code className="text-xs font-mono px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded select-all">
+            <img src={qrSrc} alt="2FA QR code" className="w-44 h-44 bg-white p-2 rounded border border-[rgb(var(--border-subtle))]" />
+            <p className="text-xs text-[rgb(var(--text-muted))] text-center">Or enter this secret manually:</p>
+            <code className="text-xs font-mono px-2 py-1 bg-[rgb(var(--surface-3))] rounded select-all">
               {twoFaSetup.secret}
             </code>
           </div>
@@ -189,8 +189,8 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             <AlertCircle size={20} className="text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Save your recovery codes</h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Save your recovery codes</h3>
+            <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
               These one-time codes can be used if you lose access to your authenticator.
               Store them somewhere safe — they&apos;re shown only once.
             </p>
@@ -198,7 +198,7 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
         </div>
         <div className="grid grid-cols-2 gap-2 text-sm font-mono">
           {recoveryCodes.map((c) => (
-            <div key={c} className="px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-center select-all">
+            <div key={c} className="px-2 py-1.5 bg-[rgb(var(--surface-3))] rounded text-center select-all">
               {c}
             </div>
           ))}
@@ -232,10 +232,10 @@ export default function SecurityTab({ submitting, setSubmitting, onClose }: Secu
             <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">
               Two-factor authentication is enabled
             </h3>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+            <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
               Signing in to this account requires a code from your authenticator app.
             </p>
             <button type="button" className="btn-secondary text-sm mt-3 inline-flex items-center gap-1.5"

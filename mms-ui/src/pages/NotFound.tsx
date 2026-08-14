@@ -9,9 +9,9 @@ export default function NotFound() {
           <MapPinOff size={32} className="text-brand-600 dark:text-brand-400" />
         </div>
         <div>
-          <p className="text-5xl font-bold text-gray-900 dark:text-gray-100 mb-1">404</p>
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Page not found</h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-5xl font-bold text-[rgb(var(--text-primary))] mb-1">404</p>
+          <h1 className="text-lg font-semibold text-[rgb(var(--text-primary))]">Page not found</h1>
+          <p className="mt-2 text-sm text-[rgb(var(--text-muted))]">
             We couldn&apos;t find what you&apos;re looking for. The link may be broken or the page may have moved.
           </p>
         </div>

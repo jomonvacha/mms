@@ -72,33 +72,33 @@ export default function AdminLocale() {
     <div className="space-y-6">
       {/* Header */}
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+        <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
             <Globe size={20} className="text-brand-600 dark:text-brand-400" />
           </div>
           Locale Management
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-[rgb(var(--text-muted))]">
           Manage available languages, countries, and timezones for user profiles.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 dark:border-gray-700">
+      <div className="border-b border-[rgb(var(--border-subtle))]">
         <nav className="flex gap-0 -mb-px">
           {TAB_CONFIG.map(({ key, label, icon: Icon }) => (
             <button key={key} type="button" onClick={() => { setActiveTab(key); setNewCode(''); setNewLabel('') }}
               className={`group relative flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${
                 activeTab === key
                   ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:border-[rgb(var(--border-strong))]'
               }`}>
-              <Icon size={15} className={activeTab === key ? 'text-brand-500 dark:text-brand-400' : 'text-gray-400 group-hover:text-gray-500'} />
+              <Icon size={15} className={activeTab === key ? 'text-brand-500 dark:text-brand-400' : 'text-[rgb(var(--text-muted))] group-hover:text-[rgb(var(--text-secondary))]'} />
               {label}
               <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-semibold ${
                 activeTab === key
                   ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                  : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'
               }`}>
                 {counts[key]}
               </span>
@@ -110,14 +110,14 @@ export default function AdminLocale() {
       {/* Add new inline form */}
       <div className="flex items-end gap-3">
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Code</label>
+          <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Code</label>
           <input type="text" value={newCode} onChange={(e) => setNewCode(e.target.value)}
             placeholder={currentTab.placeholder}
             className="input text-sm font-mono" maxLength={50}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()} />
         </div>
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Display Label</label>
+          <label className="block text-xs font-medium text-[rgb(var(--text-secondary))] mb-1.5">Display Label</label>
           <input type="text" value={newLabel} onChange={(e) => setNewLabel(e.target.value)}
             placeholder="e.g. English" className="input text-sm" maxLength={100}
             onKeyDown={(e) => e.key === 'Enter' && handleAdd()} />
@@ -132,30 +132,30 @@ export default function AdminLocale() {
       {isLoading ? (
         <div className="card p-16 flex flex-col items-center justify-center gap-3">
           <Loader2 size={28} className="animate-spin text-brand-600" />
-          <p className="text-sm text-gray-500">Loading {currentTab.label.toLowerCase()}...</p>
+          <p className="text-sm text-[rgb(var(--text-muted))]">Loading {currentTab.label.toLowerCase()}...</p>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="card overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="card overflow-hidden border border-[rgb(var(--border-subtle))] shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                    <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider min-w-[120px]">Code</th>
-                    <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Label</th>
-                    <th className="px-4 py-3.5 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[100px]">Status</th>
-                    <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[100px]">Actions</th>
+                  <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider min-w-[120px]">Code</th>
+                    <th className="px-4 py-3.5 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Label</th>
+                    <th className="px-4 py-3.5 text-center text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider w-[100px]">Status</th>
+                    <th className="px-4 py-3.5 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider w-[100px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+                <tbody className="divide-y divide-[rgb(var(--border-subtle))]/60">
                   {(options || []).map((opt) => (
-                    <tr key={opt.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors">
+                    <tr key={opt.id} className="hover:bg-[rgb(var(--surface-2)/0.8)] transition-colors">
                       <td className="px-4 py-3.5">
-                        <code className="text-xs font-mono px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                        <code className="text-xs font-mono px-1.5 py-0.5 rounded bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]">
                           {opt.code}
                         </code>
                       </td>
-                      <td className="px-4 py-3.5 text-[13px] font-medium text-gray-900 dark:text-gray-100">{opt.label}</td>
+                      <td className="px-4 py-3.5 text-[13px] font-medium text-[rgb(var(--text-primary))]">{opt.label}</td>
                       <td className="px-4 py-3.5 text-center">
                         <button type="button" onClick={() => handleToggle(opt)}
                           title={opt.enabled ? 'Click to disable' : 'Click to enable'}
@@ -165,7 +165,7 @@ export default function AdminLocale() {
                               <ToggleRight size={12} /> Enabled
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400 ring-1 ring-gray-200 dark:ring-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))] ring-1 ring-[rgb(var(--border-subtle))] cursor-pointer hover:bg-[rgb(var(--border-subtle))]">
                               <ToggleLeft size={12} /> Disabled
                             </span>
                           )}
@@ -173,7 +173,7 @@ export default function AdminLocale() {
                       </td>
                       <td className="px-4 py-3.5 text-right">
                         <button type="button" onClick={() => handleDelete(opt)}
-                          className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/30 transition-colors"
+                          className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30 transition-colors"
                           title="Delete">
                           <Trash2 size={14} />
                         </button>
@@ -183,13 +183,13 @@ export default function AdminLocale() {
                   {(!options || options.length === 0) && (
                     <tr>
                       <td colSpan={4} className="px-4 py-16 text-center">
-                        <div className="inline-flex p-4 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                        <div className="inline-flex p-4 rounded-full bg-[rgb(var(--surface-3))] mb-3">
                           <currentTab.icon size={24} className="text-gray-400" />
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-[rgb(var(--text-muted))]">
                           No {currentTab.label.toLowerCase()} configured yet.
                         </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        <p className="text-xs text-[rgb(var(--text-muted))] mt-1">
                           Add one above to get started.
                         </p>
                       </td>
@@ -201,7 +201,7 @@ export default function AdminLocale() {
           </div>
 
           {(options?.length ?? 0) > 0 && (
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-[rgb(var(--text-muted))]">
               {options!.length} {currentTab.label.toLowerCase()} configured, {enabledCount} enabled.
               Click the status badge to toggle availability.
             </p>

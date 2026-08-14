@@ -62,7 +62,7 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
   return (
     <form onSubmit={submitPreferences} className="space-y-5">
       <div className="card p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2">
           <Sun size={15} /> Theme
         </h3>
         <div className="flex gap-2">
@@ -74,7 +74,7 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                 prefs.theme === value
                   ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-400'
-                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-[rgb(var(--border-strong))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))]'
               }`}
             >
               <Icon size={14} /> {label}
@@ -84,7 +84,7 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
       </div>
 
       <div className="card p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2">
           <Globe size={15} /> Language
         </h3>
         <select
@@ -101,10 +101,10 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
       <div className="card p-4">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2">
               <Bell size={15} /> Email Notifications
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Receive account and activity updates</p>
+            <p className="text-xs text-[rgb(var(--text-muted))] mt-0.5">Receive account and activity updates</p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
@@ -113,24 +113,24 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
               checked={Boolean(prefs.emailNotifications)}
               onChange={(e) => setPrefs({ ...prefs, emailNotifications: e.target.checked })}
             />
-            <div className="w-10 h-5 bg-gray-300 dark:bg-gray-600 rounded-full peer peer-checked:bg-brand-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
+            <div className="w-10 h-5 bg-[rgb(var(--surface-3))] rounded-full peer peer-checked:bg-brand-600 transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5" />
           </label>
         </div>
       </div>
 
       {prefs.notificationPrefs && Object.keys(prefs.notificationPrefs).length > 0 && (
         <div className="card p-4 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2">
             <Bell size={15} /> Notification preferences
           </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">Choose how you&apos;re notified, per category.</p>
+          <p className="text-xs text-[rgb(var(--text-muted))]">Choose how you&apos;re notified, per category.</p>
           <div className="space-y-2">
             {Object.entries(prefs.notificationPrefs).map(([category, channels]) => (
               <div key={category} className="flex items-center justify-between gap-3 py-1">
-                <span className="text-sm capitalize text-gray-700 dark:text-gray-300">{category}</span>
+                <span className="text-sm capitalize text-[rgb(var(--text-secondary))]">{category}</span>
                 <div className="flex gap-4">
                   {Object.entries(channels).map(([channel, on]) => (
-                    <label key={channel} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 cursor-pointer">
+                    <label key={channel} className="flex items-center gap-1.5 text-xs text-[rgb(var(--text-muted))] cursor-pointer">
                       <input
                         type="checkbox"
                         className="accent-brand-600"
@@ -148,10 +148,10 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
       )}
 
       <div className="card p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2">
           <User size={15} /> Navbar display
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400">What to show in the navigation bar user button</p>
+        <p className="text-xs text-[rgb(var(--text-muted))]">What to show in the navigation bar user button</p>
         <div className="flex gap-2">
           {[
             { value: 'avatar', label: 'Avatar' },
@@ -165,7 +165,7 @@ export default function PreferencesTab({ prefs, setPrefs, submitting, setSubmitt
               className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
                 prefs.navbarDisplay === value
                   ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 dark:border-brand-400'
-                  : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                  : 'border-[rgb(var(--border-strong))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))]'
               }`}
             >
               {label}

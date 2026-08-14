@@ -160,8 +160,8 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       onClick={() => setActiveTab(tab)}
       className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-left ${
         activeTab === tab
-          ? 'bg-brand-600 text-white shadow-sm dark:bg-brand-600'
-          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200'
+          ? 'bg-brand-600 text-white shadow-sm'
+          : 'text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))] hover:text-[rgb(var(--text-primary))]'
       }`}
     >
       <Icon size={16} />
@@ -186,19 +186,19 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
         className="relative card w-full max-w-3xl rounded-none md:rounded-xl shadow-xl"
       >
         {/* Header — enterprise style with avatar + provider badge */}
-        <div className="flex items-center gap-4 p-5 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/40 md:rounded-t-xl">
+        <div className="flex items-center gap-4 p-5 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] md:rounded-t-xl">
           {user && (
             <div className="w-11 h-11 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center text-lg font-semibold text-brand-600 dark:text-brand-400 flex-shrink-0 overflow-hidden">
               {avatarUrl ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" /> : initials}
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 id="accountSettingsTitle" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            <h2 id="accountSettingsTitle" className="text-base font-semibold text-[rgb(var(--text-primary))]">
               User Settings
             </h2>
             {user && (
               <div className="flex items-center gap-2 mt-0.5">
-                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-sm text-[rgb(var(--text-muted))] truncate">
                   {user.email}
                 </p>
                 {isFederated(user.provider) && (
@@ -210,7 +210,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
             )}
           </div>
           <button type="button" onClick={() => { if (!submitting) onClose() }} disabled={submitting}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-200 dark:hover:text-gray-200 dark:hover:bg-gray-700 transition-colors flex-shrink-0"
+            className="p-2 rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-primary))] hover:bg-[rgb(var(--surface-3))] transition-colors flex-shrink-0"
             aria-label="Close">
             <X size={18} />
           </button>
@@ -219,7 +219,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
         {/* Body */}
         <div className="flex flex-col md:flex-row">
           {/* Sidebar — enterprise nav with subtle hover */}
-          <aside className="md:w-48 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700 p-3 space-y-1 bg-gray-50/50 dark:bg-gray-800/20">
+          <aside className="md:w-48 border-b md:border-b-0 md:border-r border-[rgb(var(--border-subtle))] p-3 space-y-1 bg-[rgb(var(--surface-2)/0.5)]">
             <SidebarItem tab="profile" label="Profile" icon={User} />
             <SidebarItem tab="account" label="Account" icon={KeyRound} />
             <SidebarItem tab="security" label="Security" icon={ShieldCheck} />

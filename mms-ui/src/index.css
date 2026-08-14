@@ -60,8 +60,12 @@
   }
 
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply bg-gray-50 text-gray-900 antialiased font-sans;
     @apply dark:bg-gray-950 dark:text-gray-100;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
   }
 }
 
@@ -99,20 +103,27 @@
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200;
-    @apply dark:bg-gray-800 dark:border-gray-700;
+    @apply rounded-xl;
+    background-color: rgb(var(--surface-1));
+    border: 1px solid rgb(var(--border-subtle));
+    box-shadow: 0 1px 2px rgb(var(--shadow-color) / 0.04), 0 1px 1px rgb(var(--shadow-color) / 0.03);
   }
 
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white
+    @apply w-full px-3 py-2 rounded-lg text-sm transition-colors
            focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500
-           placeholder:text-gray-400
            disabled:opacity-60 disabled:cursor-not-allowed;
-    @apply dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-500;
+    background-color: rgb(var(--surface-1));
+    border: 1px solid rgb(var(--border-strong));
+    color: rgb(var(--text-primary));
+  }
+  .input::placeholder {
+    color: rgb(var(--text-muted));
   }
 
   .label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    @apply block text-sm font-medium mb-1;
+    color: rgb(var(--text-secondary));
   }
 
   .badge-active {

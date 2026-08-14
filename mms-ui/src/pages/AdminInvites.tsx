@@ -13,7 +13,7 @@ import {
 function StatusBadge({ invite }: { invite: SignupInviteCode }) {
   const exhausted = invite.maxUses != null && invite.usedCount >= invite.maxUses
   const expired = Boolean(invite.expiresAt) && new Date(invite.expiresAt!).getTime() < Date.now()
-  if (!invite.active) return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400">Disabled</span>
+  if (!invite.active) return <span className="chip chip--neutral">Disabled</span>
   if (expired) return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400">Expired</span>
   if (exhausted) return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Exhausted</span>
   return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Active</span>
@@ -71,13 +71,13 @@ export default function AdminInvites() {
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <Ticket size={20} className="text-brand-600 dark:text-brand-400" />
             </div>
             Signup Invites
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-[rgb(var(--text-muted))]">
             Issue invite codes required for new IDFY signups. Codes carry a usage cap and optional expiry.
           </p>
         </div>
@@ -107,26 +107,26 @@ export default function AdminInvites() {
       )}
 
       {!isLoading && !isError && (
-        <div className="card overflow-hidden border border-gray-200 dark:border-gray-700">
+        <div className="card overflow-hidden border border-[rgb(var(--border-subtle))]">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Code</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Uses</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expires</th>
-                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                  <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Code</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Description</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Uses</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Expires</th>
+                  <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Status</th>
+                  <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+              <tbody className="divide-y divide-[rgb(var(--border-subtle))]/60">
                 {sorted.length === 0 && (
                   <tr><td colSpan={6} className="px-4 py-16 text-center">
-                    <div className="inline-flex p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                    <div className="inline-flex p-3 rounded-full bg-[rgb(var(--surface-3))] mb-3">
                       <Ticket size={22} className="text-gray-400" />
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">No invite codes yet. Create one to allow signups.</p>
+                    <p className="text-sm text-[rgb(var(--text-muted))]">No invite codes yet. Create one to allow signups.</p>
                   </td></tr>
                 )}
                 {sorted.map((inv) => {
@@ -134,34 +134,34 @@ export default function AdminInvites() {
                     ? <span className="inline-flex items-center gap-1"><InfinityIcon size={12} /> {inv.usedCount}</span>
                     : `${inv.usedCount} / ${inv.maxUses}`
                   return (
-                    <tr key={inv.id} className="hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors">
+                    <tr key={inv.id} className="hover:bg-[rgb(var(--surface-2)/0.8)] transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[13px] font-semibold text-gray-900 dark:text-gray-100">{inv.code}</span>
+                          <span className="font-mono text-[13px] font-semibold text-[rgb(var(--text-primary))]">{inv.code}</span>
                           <button type="button" onClick={() => onCopy(inv.code, inv.id)} title="Copy code"
                             className="p-1 rounded text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
                             {copiedId === inv.id ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
                           </button>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-[13px] text-gray-600 dark:text-gray-300">{inv.description || <span className="text-gray-400">—</span>}</td>
-                      <td className="px-4 py-3 text-[13px] text-gray-700 dark:text-gray-300">{usesLabel}</td>
-                      <td className="px-4 py-3 text-[13px] text-gray-600 dark:text-gray-300">{formatExpires(inv.expiresAt)}</td>
+                      <td className="px-4 py-3 text-[13px] text-[rgb(var(--text-secondary))]">{inv.description || <span className="text-gray-400">—</span>}</td>
+                      <td className="px-4 py-3 text-[13px] text-[rgb(var(--text-secondary))]">{usesLabel}</td>
+                      <td className="px-4 py-3 text-[13px] text-[rgb(var(--text-secondary))]">{formatExpires(inv.expiresAt)}</td>
                       <td className="px-4 py-3"><StatusBadge invite={inv} /></td>
                       <td className="px-4 py-3 text-right">
                         <div className="inline-flex items-center gap-0.5">
                           <button type="button" onClick={() => setEditing(inv)} title="Edit"
-                            className="p-1.5 rounded-md text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:text-gray-500 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors">
+                            className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-brand-600 hover:bg-brand-50 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 transition-colors">
                             <Pencil size={14} />
                           </button>
                           <button type="button" onClick={() => toggle.mutate(inv)}
                             disabled={toggle.isPending}
                             title={inv.active ? 'Disable' : 'Enable'}
-                            className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:text-gray-500 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 disabled:opacity-30 transition-colors">
+                            className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 disabled:opacity-30 transition-colors">
                             {inv.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                           </button>
                           <button type="button" onClick={() => setDeleting(inv)} title="Delete"
-                            className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 dark:text-gray-500 dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-colors">
+                            className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/20 transition-colors">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -224,19 +224,19 @@ function CreateInviteModal({ onClose, onSaved }: { onClose: () => void; onSaved:
     <ModalShell title="New invite code" onClose={onClose} saving={saving}>
       <div className="space-y-4">
         <div>
-          <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Code</label>
+          <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Code</label>
           <input type="text" value={code}
             onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9\-_]/g, ''))}
             placeholder="IDFY-2026-Q2" className="input text-sm font-mono" maxLength={64} />
-          <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">Uppercase letters, digits, dashes.</p>
+          <p className="mt-1 text-[11px] text-[rgb(var(--text-muted))]">Uppercase letters, digits, dashes.</p>
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Description (optional)</label>
+          <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Description (optional)</label>
           <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
             placeholder="Q2 partner launch" className="input text-sm" maxLength={200} />
         </div>
         <div>
-          <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+          <label className="flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
             <input type="checkbox" checked={limitUses} onChange={(e) => setLimitUses(e.target.checked)} className="h-3.5 w-3.5" />
             Limit number of signups
           </label>
@@ -246,7 +246,7 @@ function CreateInviteModal({ onClose, onSaved }: { onClose: () => void; onSaved:
           )}
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Expires (optional)</label>
+          <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Expires (optional)</label>
           <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)}
             className="input text-sm" />
         </div>
@@ -292,12 +292,12 @@ function EditInviteModal({ invite, onClose, onSaved }: {
     <ModalShell title={`Edit ${invite.code}`} onClose={onClose} saving={saving}>
       <div className="space-y-4">
         <div>
-          <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Description</label>
+          <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Description</label>
           <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
             className="input text-sm" maxLength={200} />
         </div>
         <div>
-          <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+          <label className="flex items-center gap-2 text-xs text-[rgb(var(--text-secondary))]">
             <input type="checkbox" checked={limitUses} onChange={(e) => setLimitUses(e.target.checked)} className="h-3.5 w-3.5" />
             Limit number of signups (currently used {invite.usedCount} times)
           </label>
@@ -308,7 +308,7 @@ function EditInviteModal({ invite, onClose, onSaved }: {
           )}
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Expires</label>
+          <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Expires</label>
           <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)}
             className="input text-sm" />
         </div>
@@ -325,24 +325,24 @@ function DeleteConfirmModal({ invite, saving, onCancel, onConfirm }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onCancel()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/30">
             <AlertTriangle size={16} className="text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Delete {invite.code}</h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">This action cannot be undone.</p>
+            <h2 className="text-base font-semibold text-[rgb(var(--text-primary))]">Delete {invite.code}</h2>
+            <p className="text-xs text-[rgb(var(--text-muted))]">This action cannot be undone.</p>
           </div>
         </div>
         <div className="px-6 py-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-[rgb(var(--text-secondary))]">
             The invite code will be permanently removed. Existing signups that used this code are unaffected.
           </p>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
           <button type="button" disabled={saving} onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             Cancel
           </button>
           <button type="button" disabled={saving} onClick={onConfirm}
@@ -361,16 +361,16 @@ function ModalShell({ title, onClose, saving, children }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <Ticket size={16} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
             </div>
-            <h2 id="modal-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+            <h2 id="modal-title" className="text-base font-semibold text-[rgb(var(--text-primary))]">{title}</h2>
           </div>
           <button type="button" disabled={saving} onClick={onClose} aria-label="Close dialog"
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors">
+            className="p-2 rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             <X size={18} aria-hidden="true" />
           </button>
         </div>
@@ -384,9 +384,9 @@ function ModalFooter({ onCancel, onConfirm, saving, confirmLabel }: {
   onCancel: () => void; onConfirm: () => void; saving: boolean; confirmLabel: string
 }) {
   return (
-    <div className="flex items-center justify-end gap-2 mt-6 -mx-6 -mb-5 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+    <div className="flex items-center justify-end gap-2 mt-6 -mx-6 -mb-5 px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
       <button type="button" disabled={saving} onClick={onCancel}
-        className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+        className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
         Cancel
       </button>
       <button type="button" disabled={saving} onClick={onConfirm}

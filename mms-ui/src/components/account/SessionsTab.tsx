@@ -41,8 +41,8 @@ export default function SessionsTab({ submitting, setSubmitting }: SessionsTabPr
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Laptop size={15} /> Active sessions</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Devices currently signed in to your account.</p>
+          <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2"><Laptop size={15} /> Active sessions</h3>
+          <p className="text-xs text-[rgb(var(--text-muted))] mt-0.5">Devices currently signed in to your account.</p>
         </div>
         <button type="button" className="btn-secondary text-sm inline-flex items-center gap-1.5"
           onClick={revokeOthers} disabled={submitting || sessions.length <= 1}>
@@ -52,17 +52,17 @@ export default function SessionsTab({ submitting, setSubmitting }: SessionsTabPr
       {sessionsLoading ? (
         <div className="flex justify-center py-8"><Loader2 size={20} className="animate-spin text-brand-500" /></div>
       ) : sessions.length === 0 ? (
-        <p className="text-sm text-gray-500 dark:text-gray-400 py-6 text-center">No active sessions.</p>
+        <p className="text-sm text-[rgb(var(--text-muted))] py-6 text-center">No active sessions.</p>
       ) : (
         <ul className="space-y-2">
           {sessions.map((s) => (
             <li key={s.id} className="card p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                <p className="text-sm font-medium text-[rgb(var(--text-primary))] flex items-center gap-2">
                   {s.deviceLabel || 'Unknown device'}
                   {s.current && <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">This device</span>}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-xs text-[rgb(var(--text-muted))] truncate">
                   {s.ip || 'unknown IP'}{s.lastActiveAt ? ` · last active ${new Date(s.lastActiveAt).toLocaleString()}` : ''}
                 </p>
               </div>

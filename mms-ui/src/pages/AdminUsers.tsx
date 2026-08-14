@@ -25,13 +25,13 @@ const LEGACY_TIER_ROLES = new Set(['ROLE_BASIC', 'ROLE_PREMIUM', 'ROLE_ENTERPRIS
 function ProviderBadge({ provider }: { provider?: string }) {
   if (!provider || provider === 'LOCAL') {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+      <span className="chip chip--neutral">
         <KeyRound size={10} /> Local
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+    <span className="chip chip--success">
       <Globe size={10} /> {provider.charAt(0) + provider.slice(1).toLowerCase()}
     </span>
   )
@@ -39,37 +39,37 @@ function ProviderBadge({ provider }: { provider?: string }) {
 
 function StatusBadge({ active }: { active?: boolean }) {
   return active
-    ? <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Active</span>
-    : <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400">Inactive</span>
+    ? <span className="chip chip--success">Active</span>
+    : <span className="chip chip--danger">Inactive</span>
 }
 
 function RoleChip({ role, className = '' }: { role: string; className?: string }) {
   const label = role.replace(/^ROLE_/, '')
   const tone = role === 'ROLE_ADMIN'
-    ? 'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400'
+    ? 'chip--danger'
     : role === 'ROLE_MODERATOR' || role === 'ROLE_MANAGER'
-      ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-      : 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
-  return <span className={`inline-flex items-center justify-center px-2 py-0.5 rounded-md text-[11px] font-medium ${tone} ${className}`}>{label}</span>
+      ? 'chip--warn'
+      : 'chip--brand'
+  return <span className={`chip ${tone} ${className}`}>{label}</span>
 }
 
 function tierTone(tierCode: string) {
   const t = tierCode.toUpperCase()
-  if (t === 'FREE') return 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+  if (t === 'FREE') return 'chip--neutral'
   if (t.includes('MAX') || t.includes('ENTERPRISE')) return 'bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-  return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+  return 'chip--warn'
 }
 
 function TierBadge({ member, categories }: { member?: MemberRecord; categories?: CategoryRecord[] }) {
   if (!member?.categoryCode || !member?.tierCode) {
-    return <span className="text-gray-300 dark:text-gray-600">--</span>
+    return <span className="text-[rgb(var(--text-muted))]">--</span>
   }
   const cat = categories?.find((c) => c.code === member.categoryCode)
   const tier = cat?.tiers?.find((t) => t.tierCode === member.tierCode)
   const catLabel = (cat?.displayName || member.categoryCode).toUpperCase()
   const tierLabel = (tier?.displayName || member.tierCode).toUpperCase()
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium ${tierTone(member.tierCode)}`}>
+    <span className={`chip ${tierTone(member.tierCode)}`}>
       <Crown size={10} />
       <span className="opacity-60">{catLabel}</span>
       <span className="opacity-30">/</span>
@@ -178,13 +178,13 @@ export default function AdminUsers() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))] flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <Users size={20} className="text-brand-600 dark:text-brand-400" />
             </div>
             User Administration
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-[rgb(var(--text-muted))]">
             Manage user accounts, system roles, and membership tier assignments.
           </p>
         </div>
@@ -193,13 +193,13 @@ export default function AdminUsers() {
       {/* Toolbar: search + bulk actions */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative w-64">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-muted))]" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter users..." className="input pl-9 py-2 text-sm" aria-label="Filter users" />
         </div>
         {selected.size > 0 && (
           <>
-            <div className="h-5 w-px bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-px bg-[rgb(var(--border-subtle))]" />
             <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
               {selected.size} selected
             </span>
@@ -208,7 +208,7 @@ export default function AdminUsers() {
               <Trash2 size={13} /> Delete
             </button>
             <button type="button" onClick={() => setSelected(new Set())}
-              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+              className="text-xs text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] transition-colors">
               Clear
             </button>
           </>
@@ -219,7 +219,7 @@ export default function AdminUsers() {
       {isLoading && (
         <div className="card p-16 flex flex-col items-center justify-center gap-3">
           <Loader2 size={28} className="animate-spin text-brand-600" />
-          <p className="text-sm text-gray-500">Loading users...</p>
+          <p className="text-sm text-[rgb(var(--text-muted))]">Loading users...</p>
         </div>
       )}
 
@@ -239,55 +239,55 @@ export default function AdminUsers() {
       {/* Table */}
       {!isLoading && !isError && data && (
         <div className="space-y-3">
-          <div className="card overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+          <div className="card overflow-hidden border border-[rgb(var(--border-subtle))] shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700">
+                  <tr className="bg-[rgb(var(--surface-2))] border-b border-[rgb(var(--border-subtle))]">
                     {isAdmin && (
                       <th className="pl-4 pr-2 py-3 w-10">
                         <button type="button" onClick={toggleAll}
                           className={`w-[18px] h-[18px] rounded border-[1.5px] inline-flex items-center justify-center transition-all ${
                             allChecked
                               ? 'bg-brand-600 border-brand-600 text-white'
-                              : 'border-gray-400 dark:border-gray-500 text-transparent hover:border-brand-500'
+                              : 'border-[rgb(var(--border-strong))] text-transparent hover:border-brand-500'
                           }`} aria-label="Select all">
                           <Check size={11} strokeWidth={3} />
                         </button>
                       </th>
                     )}
                     <th scope="col" aria-sort={sortBy === 'username' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider cursor-pointer select-none hover:text-[rgb(var(--text-primary))] transition-colors"
                       onClick={() => toggleSort('username')}>
                       User{sortArrow('username')}
                     </th>
                     <th scope="col" aria-sort={sortBy === 'email' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
-                      className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                      className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider cursor-pointer select-none hover:text-[rgb(var(--text-primary))] transition-colors"
                       onClick={() => toggleSort('email')}>
                       Email{sortArrow('email')}
                     </th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Roles</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tier</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Provider</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Roles</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Tier</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Provider</th>
+                    <th scope="col" className="px-4 py-3 text-left text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-4 py-3 text-right text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700/60">
+                <tbody className="divide-y divide-[rgb(var(--border-subtle))]">
                   {filtered.length === 0 && (
                     <tr>
                       <td colSpan={isAdmin ? 8 : 7} className="px-4 py-16 text-center">
-                        <div className="inline-flex p-3 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
-                          <Users size={22} className="text-gray-400" />
+                        <div className="inline-flex p-3 rounded-full bg-[rgb(var(--surface-3))] mb-3">
+                          <Users size={22} className="text-[rgb(var(--text-muted))]" />
                         </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">No users match your search.</p>
+                        <p className="text-sm text-[rgb(var(--text-muted))]">No users match your search.</p>
                       </td>
                     </tr>
                   )}
                   {filtered.map((u) => {
                     const isSelf = u.id === currentUser?.id
                     return (
-                      <tr key={u.id} className={`hover:bg-gray-50/80 dark:hover:bg-gray-800/40 transition-colors ${selected.has(u.id) ? 'bg-brand-50/40 dark:bg-brand-900/10' : ''}`}>
+                      <tr key={u.id} className={`hover:bg-[rgb(var(--surface-2)/0.8)] transition-colors ${selected.has(u.id) ? 'bg-brand-50/40 dark:bg-brand-900/10' : ''}`}>
                         {isAdmin && (
                           <td className="pl-4 pr-2 py-3">
                             {!isSelf ? (
@@ -295,7 +295,7 @@ export default function AdminUsers() {
                                 className={`w-[18px] h-[18px] rounded border-[1.5px] inline-flex items-center justify-center transition-all ${
                                   selected.has(u.id)
                                     ? 'bg-brand-600 border-brand-600 text-white'
-                                    : 'border-gray-400 dark:border-gray-500 text-transparent hover:border-brand-500'
+                                    : 'border-[rgb(var(--border-strong))] text-transparent hover:border-brand-500'
                                 }`} aria-label={`Select ${u.username}`}>
                                 <Check size={11} strokeWidth={3} />
                               </button>
@@ -303,13 +303,13 @@ export default function AdminUsers() {
                           </td>
                         )}
                         <td className="px-4 py-3">
-                          <div className="font-medium text-[13px] text-gray-900 dark:text-gray-100">
+                          <div className="font-medium text-[13px] text-[rgb(var(--text-primary))]">
                             {u.firstName || u.lastName ? `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() : u.username}
                             {isSelf && <span className="ml-1.5 text-[10px] text-brand-500 dark:text-brand-400">(you)</span>}
                           </div>
-                          <div className="text-xs text-gray-400 dark:text-gray-500">@{u.username}</div>
+                          <div className="text-xs text-[rgb(var(--text-muted))]">@{u.username}</div>
                         </td>
-                        <td className="px-4 py-3 text-[13px] text-gray-600 dark:text-gray-300">{u.email}</td>
+                        <td className="px-4 py-3 text-[13px] text-[rgb(var(--text-secondary))]">{u.email}</td>
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-1">
                             {(u.roles || []).filter((r) => !LEGACY_TIER_ROLES.has(r)).map((r) => (
@@ -323,13 +323,13 @@ export default function AdminUsers() {
                         <td className="px-4 py-3 text-right">
                           <div className="inline-flex items-center gap-0.5">
                             <button type="button" onClick={() => setEditingUser(u)} disabled={!isAdmin}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:text-gray-500 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-brand-600 hover:bg-brand-50 dark:hover:text-brand-400 dark:hover:bg-brand-900/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title="Edit user" aria-label={`Edit ${u.username}`}>
                               <Pencil size={14} />
                             </button>
                             <button type="button" onClick={() => onToggleStatus(u)}
                               disabled={!isAdmin || savingId === u.id || isSelf}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:text-gray-500 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                              className="p-1.5 rounded-md text-[rgb(var(--text-muted))] hover:text-amber-600 hover:bg-amber-50 dark:hover:text-amber-400 dark:hover:bg-amber-900/30 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                               title={isSelf ? "Can't deactivate yourself" : u.active ? 'Deactivate' : 'Activate'}>
                               {savingId === u.id ? <Loader2 size={14} className="animate-spin" /> : u.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
                             </button>
@@ -345,17 +345,17 @@ export default function AdminUsers() {
 
           {/* Footer */}
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
+            <p className="text-xs text-[rgb(var(--text-muted))]">
               {filtered.length} of {data.totalElements} user{data.totalElements === 1 ? '' : 's'}.
               Page {data.number + 1} of {Math.max(1, data.totalPages)}.
             </p>
             <div className="flex items-center gap-1">
               <button type="button" disabled={data.first} onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                className="p-1.5 rounded-lg border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--surface-3))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                 <ChevronLeft size={15} />
               </button>
               <button type="button" disabled={data.last} onClick={() => setPage((p) => p + 1)}
-                className="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+                className="p-1.5 rounded-lg border border-[rgb(var(--border-subtle))] text-[rgb(var(--text-muted))] hover:bg-[rgb(var(--surface-3))] disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
                 <ChevronRight size={15} />
               </button>
             </div>
@@ -386,39 +386,39 @@ function BulkDeleteModal({ count, users, saving, onCancel, onConfirm }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onCancel()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-md shadow-2xl border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/30">
             <Trash2 size={16} className="text-red-600 dark:text-red-400" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-base font-semibold text-[rgb(var(--text-primary))]">
               Delete {count} user{count > 1 ? 's' : ''}
             </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+            <p className="text-xs text-[rgb(var(--text-muted))]">This action cannot be undone</p>
           </div>
         </div>
 
         <div className="px-6 py-4 space-y-3">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-[rgb(var(--text-secondary))]">
             Permanently delete the selected user{count > 1 ? 's' : ''}?
             {withMembers > 0 && ` ${withMembers} membership record${withMembers > 1 ? 's' : ''} will also be removed.`}
           </p>
           {count <= 10 && (
             <div className="max-h-40 overflow-auto space-y-1">
               {users.map((u) => (
-                <div key={u.id} className="text-xs text-gray-700 dark:text-gray-300 flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800/80 rounded-lg border border-gray-100 dark:border-gray-700">
+                <div key={u.id} className="text-xs text-[rgb(var(--text-secondary))] flex items-center gap-2 px-3 py-2 bg-[rgb(var(--surface-2))] rounded-lg border border-[rgb(var(--border-subtle))]">
                   <span className="font-medium">@{u.username}</span>
-                  <span className="text-gray-400 truncate">{u.email}</span>
+                  <span className="text-[rgb(var(--text-muted))] truncate">{u.email}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
           <button type="button" disabled={saving} onClick={onCancel}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             Cancel
           </button>
           <button type="button" disabled={saving} onClick={onConfirm}
@@ -555,26 +555,26 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-user-title">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-700">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <UserCog size={16} className="text-brand-600 dark:text-brand-400" aria-hidden="true" />
             </div>
             <div>
-              <h2 id="edit-user-title" className="text-base font-semibold text-gray-900 dark:text-gray-100">Edit User</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">@{user.username} &middot; {user.email}</p>
+              <h2 id="edit-user-title" className="text-base font-semibold text-[rgb(var(--text-primary))]">Edit User</h2>
+              <p className="text-xs text-[rgb(var(--text-muted))]">@{user.username} &middot; {user.email}</p>
             </div>
           </div>
           <button type="button" onClick={() => !saving && onClose()} disabled={saving}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors" aria-label="Close">
+            className="p-2 rounded-lg text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))] transition-colors" aria-label="Close">
             <X size={18} />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-0 px-6 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex gap-0 px-6 border-b border-[rgb(var(--border-subtle))]">
           {([
             { key: 'profile' as const, label: 'Profile', icon: User },
             { key: 'roles' as const, label: 'Roles & Tier', icon: KeyRound },
@@ -585,7 +585,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
               className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
                 tab === key
                   ? 'border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  : 'border-transparent text-[rgb(var(--text-muted))] hover:text-[rgb(var(--text-secondary))]'
               }`}>
               <Icon size={14} /> {label}
             </button>
@@ -598,41 +598,41 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">First name</label>
+                  <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">First name</label>
                   <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)}
                     className="input text-sm" maxLength={50} />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Last name</label>
+                  <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Last name</label>
                   <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)}
                     className="input text-sm" maxLength={50} />
                 </div>
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Email</label>
+                <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Email</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                   disabled={isFederated}
                   className="input text-sm disabled:opacity-60 disabled:cursor-not-allowed" maxLength={50} />
                 {isFederated && (
-                  <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                  <p className="mt-1 text-[11px] text-[rgb(var(--text-muted))] flex items-center gap-1">
                     <Lock size={10} /> Managed by {user.provider === 'GOOGLE' ? 'Google' : 'Apple'} — change at the identity provider.
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Phone number</label>
+                <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Phone number</label>
                 <input type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)}
                   placeholder="+1 (555) 555-5555"
                   className="input text-sm" maxLength={15} />
               </div>
-              <div className="pt-2 grid grid-cols-2 gap-3 text-[11px] text-gray-400 dark:text-gray-500">
+              <div className="pt-2 grid grid-cols-2 gap-3 text-[11px] text-[rgb(var(--text-muted))]">
                 <div>
                   <span className="uppercase tracking-wider font-semibold">Username</span>
-                  <p className="mt-0.5 text-gray-600 dark:text-gray-300 font-mono">@{user.username}</p>
+                  <p className="mt-0.5 text-[rgb(var(--text-secondary))] font-mono">@{user.username}</p>
                 </div>
                 <div>
                   <span className="uppercase tracking-wider font-semibold">User ID</span>
-                  <p className="mt-0.5 text-gray-600 dark:text-gray-300 font-mono truncate" title={user.id}>{user.id}</p>
+                  <p className="mt-0.5 text-[rgb(var(--text-secondary))] font-mono truncate" title={user.id}>{user.id}</p>
                 </div>
               </div>
             </div>
@@ -643,7 +643,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
             return (
               <div className="space-y-6">
                 <div>
-                  <h4 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5">
+                  <h4 className="flex items-center gap-1.5 text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2.5">
                     <ShieldCheck size={12} /> System Roles
                   </h4>
                   <div className="space-y-1.5">
@@ -654,17 +654,17 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                           className={`w-full flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
                             checked
                               ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                              : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border-strong))]'
                           }`}>
                           <div className={`w-5 h-5 rounded border-[1.5px] inline-flex items-center justify-center flex-shrink-0 transition-all ${
-                            checked ? 'bg-brand-600 border-brand-600 text-white' : 'border-gray-400 dark:border-gray-500 text-transparent'
+                            checked ? 'bg-brand-600 border-brand-600 text-white' : 'border-[rgb(var(--border-strong))] text-transparent'
                           }`}>
                             <Check size={11} strokeWidth={3} />
                           </div>
                           <RoleChip role={r.name} className="min-w-[88px] flex-shrink-0" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{r.displayName || r.name}</p>
-                            {r.description && <p className="text-[11px] text-gray-400 mt-0.5 truncate">{r.description}</p>}
+                            <p className="text-xs font-medium text-[rgb(var(--text-secondary))]">{r.displayName || r.name}</p>
+                            {r.description && <p className="text-[11px] text-[rgb(var(--text-muted))] mt-0.5 truncate">{r.description}</p>}
                           </div>
                         </button>
                       )
@@ -673,15 +673,15 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                 </div>
 
                 <div>
-                  <h4 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2.5">
+                  <h4 className="flex items-center gap-1.5 text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-2.5">
                     <Crown size={12} /> Membership Tier
                   </h4>
                   {activeCategories.length === 0 ? (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 italic">No enabled categories configured in Membership Governance.</p>
+                    <p className="text-xs text-[rgb(var(--text-muted))] italic">No enabled categories configured in Membership Governance.</p>
                   ) : (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Category</label>
+                        <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Category</label>
                         <div className="flex flex-wrap gap-1.5">
                           {activeCategories.map((c) => {
                             const active = categoryCode === c.code
@@ -696,7 +696,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                                 className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                                   active
                                     ? 'bg-brand-600 border-brand-600 text-white'
-                                    : 'bg-white border-gray-200 text-gray-600 hover:border-brand-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:border-brand-500'
+                                    : 'bg-[rgb(var(--surface-1))] border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] hover:border-brand-400 dark:hover:border-brand-500'
                                 }`}>
                                 {c.displayName || c.code}
                               </button>
@@ -705,11 +705,11 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Tier</label>
+                        <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Tier</label>
                         {!categoryCode ? (
-                          <p className="text-[11px] text-gray-400">Select a category first.</p>
+                          <p className="text-[11px] text-[rgb(var(--text-muted))]">Select a category first.</p>
                         ) : activeTiers.length === 0 ? (
-                          <p className="text-[11px] text-gray-400">No enabled tiers in this category.</p>
+                          <p className="text-[11px] text-[rgb(var(--text-muted))]">No enabled tiers in this category.</p>
                         ) : (
                           <div className="flex flex-wrap gap-1.5">
                             {activeTiers.map((t) => {
@@ -720,7 +720,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                                   className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
                                     active
                                       ? 'bg-amber-500 border-amber-500 text-white'
-                                      : 'bg-white border-gray-200 text-gray-600 hover:border-amber-400 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:border-amber-500'
+                                      : 'bg-[rgb(var(--surface-1))] border-[rgb(var(--border-subtle))] text-[rgb(var(--text-secondary))] hover:border-amber-400 dark:hover:border-amber-500'
                                   }`}>
                                   {t.displayName || t.tierCode}
                                 </button>
@@ -729,7 +729,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                           </div>
                         )}
                       </div>
-                      <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                      <p className="text-[11px] text-[rgb(var(--text-muted))]">
                         One membership tier per user. Tiers are sourced from Membership Governance.
                       </p>
                     </div>
@@ -742,27 +742,27 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
           {tab === 'security' && (
             <div className="space-y-6">
               <div>
-                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-3">
                   <Lock size={12} /> Set new password
                 </h4>
                 {isFederated ? (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 italic p-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-[rgb(var(--text-muted))] italic p-3 rounded-lg border border-dashed border-[rgb(var(--border-subtle))]">
                     Password is managed by {user.provider === 'GOOGLE' ? 'Google' : 'Apple'}. This user signs in via their identity provider.
                   </p>
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">New password</label>
+                      <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">New password</label>
                       <input type="password" autoComplete="new-password" value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         minLength={8} maxLength={64}
                         className="input text-sm" />
-                      <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                      <p className="mt-1 text-[11px] text-[rgb(var(--text-muted))]">
                         At least 8 characters, with letters and numbers.
                       </p>
                     </div>
                     <div>
-                      <label className="block text-[11px] font-medium text-gray-500 dark:text-gray-400 mb-1.5">Confirm new password</label>
+                      <label className="block text-[11px] font-medium text-[rgb(var(--text-muted))] mb-1.5">Confirm new password</label>
                       <input type="password" autoComplete="new-password" value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         minLength={8} maxLength={64}
@@ -781,21 +781,21 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                 )}
               </div>
 
-              <div className="pt-5 border-t border-gray-100 dark:border-gray-700">
-                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+              <div className="pt-5 border-t border-[rgb(var(--border-subtle))]">
+                <h4 className="flex items-center gap-1.5 text-xs font-semibold text-[rgb(var(--text-muted))] uppercase tracking-wider mb-3">
                   <Mail size={12} /> Send reset link
                 </h4>
                 {isFederated ? (
-                  <p className="text-xs text-gray-400 dark:text-gray-500 italic p-3 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-[rgb(var(--text-muted))] italic p-3 rounded-lg border border-dashed border-[rgb(var(--border-subtle))]">
                     Not applicable — federated account.
                   </p>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Emails <span className="font-mono text-gray-700 dark:text-gray-300">{user.email}</span> a single-use password reset link. The user sets their own password via the link.
+                    <p className="text-xs text-[rgb(var(--text-muted))]">
+                      Emails <span className="font-mono text-[rgb(var(--text-secondary))]">{user.email}</span> a single-use password reset link. The user sets their own password via the link.
                     </p>
                     <button type="button" onClick={sendResetLink} disabled={sendingReset}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors">
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] disabled:opacity-50 transition-colors">
                       {sendingReset ? <Loader2 size={13} className="animate-spin" /> : <Mail size={13} />}
                       Send reset email
                     </button>
@@ -807,7 +807,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
 
           {tab === 'provider' && (
             <div className="space-y-2">
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              <p className="text-xs text-[rgb(var(--text-muted))] mb-2">
                 Select how this user authenticates.
               </p>
               {[
@@ -821,19 +821,19 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
                     className={`w-full flex items-center gap-3 p-3.5 rounded-lg border text-left transition-all ${
                       active
                         ? 'border-brand-500 bg-brand-50/50 dark:bg-brand-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                        : 'border-[rgb(var(--border-subtle))] hover:border-[rgb(var(--border-strong))]'
                     }`}>
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                      active ? 'bg-brand-100 dark:bg-brand-900/40' : 'bg-gray-100 dark:bg-gray-800'
+                      active ? 'bg-brand-100 dark:bg-brand-900/40' : 'bg-[rgb(var(--surface-3))]'
                     }`}>
-                      <Icon size={16} className={active ? 'text-brand-600 dark:text-brand-400' : 'text-gray-400'} />
+                      <Icon size={16} className={active ? 'text-brand-600 dark:text-brand-400' : 'text-[rgb(var(--text-muted))]'} />
                     </div>
                     <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-900 dark:text-gray-100 block">{l}</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">{d}</span>
+                      <span className="text-sm font-medium text-[rgb(var(--text-primary))] block">{l}</span>
+                      <span className="text-xs text-[rgb(var(--text-muted))]">{d}</span>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-[1.5px] inline-flex items-center justify-center flex-shrink-0 transition-all ${
-                      active ? 'bg-brand-600 border-brand-600 text-white' : 'border-gray-400 dark:border-gray-500 text-transparent'
+                      active ? 'bg-brand-600 border-brand-600 text-white' : 'border-[rgb(var(--border-strong))] text-transparent'
                     }`}>
                       <Check size={10} strokeWidth={3} />
                     </div>
@@ -845,9 +845,9 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-b-xl">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] rounded-b-xl">
           <button type="button" onClick={onClose} disabled={saving}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors">
+            className="px-4 py-2 rounded-lg text-sm font-medium text-[rgb(var(--text-secondary))] bg-[rgb(var(--surface-1))] border border-[rgb(var(--border-strong))] hover:bg-[rgb(var(--surface-3))] transition-colors">
             {tab === 'security' ? 'Close' : 'Cancel'}
           </button>
           {tab !== 'security' && (

@@ -55,8 +55,8 @@ export default function ResetPassword() {
           <div className="w-14 h-14 mx-auto rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
             <CheckCircle2 size={28} className="text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Password reset</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-300">Redirecting you to sign in…</p>
+          <h1 className="text-xl font-semibold text-[rgb(var(--text-primary))]">Password reset</h1>
+          <p className="text-sm text-[rgb(var(--text-secondary))]">Redirecting you to sign in…</p>
         </div>
       </div>
     )
@@ -70,8 +70,8 @@ export default function ResetPassword() {
             <div className="w-12 h-12 rounded-full bg-brand-100 dark:bg-brand-900/50 flex items-center justify-center mx-auto mb-3">
               <Lock size={24} className="text-brand-600 dark:text-brand-400" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Choose a new password</h1>
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Choose a new password</h1>
+            <p className="mt-1 text-sm text-[rgb(var(--text-muted))]">
               At least 8 characters with one letter and one number.
             </p>
           </div>
@@ -110,7 +110,7 @@ export default function ResetPassword() {
             </button>
           </form>
 
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-center text-sm text-[rgb(var(--text-muted))]">
             <Link to="/signin" className="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
               Back to sign in
             </Link>

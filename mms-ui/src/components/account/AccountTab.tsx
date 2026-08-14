@@ -115,14 +115,14 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
               <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Connected to {label}</h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+              <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))]">Connected to {label}</h3>
+              <p className="mt-1 text-sm text-[rgb(var(--text-secondary))]">
                 Your account is managed by {label}. Password changes and email updates
                 are handled through your {label} account.
               </p>
-              <ul className="mt-3 space-y-1.5 text-sm text-gray-600 dark:text-gray-300">
-                <li className="flex items-center gap-2"><Lock size={13} className="text-gray-400" /> Password managed by {label}</li>
-                <li className="flex items-center gap-2"><Lock size={13} className="text-gray-400" /> Email managed by {label}</li>
+              <ul className="mt-3 space-y-1.5 text-sm text-[rgb(var(--text-secondary))]">
+                <li className="flex items-center gap-2"><Lock size={13} className="text-[rgb(var(--text-muted))]" /> Password managed by {label}</li>
+                <li className="flex items-center gap-2"><Lock size={13} className="text-[rgb(var(--text-muted))]" /> Email managed by {label}</li>
               </ul>
               {user?.provider === 'GOOGLE' && (
                 <a href="https://myaccount.google.com/security" target="_blank" rel="noreferrer"
@@ -140,9 +140,9 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
           </div>
         </div>
 
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Disconnect from {label}</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
+        <div className="border-t border-[rgb(var(--border-subtle))] pt-5">
+          <h3 className="text-sm font-semibold text-[rgb(var(--text-primary))] mb-1">Disconnect from {label}</h3>
+          <p className="text-xs text-[rgb(var(--text-muted))] mb-4">
             {hasExistingPw
               ? `Convert to a local account. You already have a local password, so you'll sign in with your username and password going forward. You won't be able to sign in with ${label} anymore.`
               : `Convert to a local account. You'll need to set a password and will sign in with your username and password going forward. You won't be able to sign in with ${label} anymore.`}
@@ -153,7 +153,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
                 <div>
                   <label className="label">New local password</label>
                   <input type="password" className="input" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} required />
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">At least 8 characters with one letter and one number.</p>
+                  <p className="mt-1 text-xs text-[rgb(var(--text-muted))]">At least 8 characters with one letter and one number.</p>
                 </div>
                 <div>
                   <label className="label">Confirm password</label>
@@ -175,7 +175,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
 
   // ── Local user without a password (edge case) ─────────────────────
   if (!user?.hasPassword) return (
-    <div className="card p-4 text-sm text-gray-600 dark:text-gray-300">
+    <div className="card p-4 text-sm text-[rgb(var(--text-secondary))]">
       No local password is set on this account.
     </div>
   )
@@ -185,7 +185,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
   return (
     <div className="space-y-6">
       <form onSubmit={submitPassword} className="space-y-4">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Lock size={15} /> Change password</h3>
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2"><Lock size={15} /> Change password</h3>
         <div>
           <label className="label">Current Password</label>
           <input type="password" className="input" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
@@ -207,8 +207,8 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
 
       {/* Verified email change — never a silent swap via the profile form */}
       <form onSubmit={submitEmailChange} className="card p-4 space-y-3">
-        <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2"><Mail size={15} /> Change email</h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <h3 className="text-sm font-semibold text-[rgb(var(--text-secondary))] flex items-center gap-2"><Mail size={15} /> Change email</h3>
+        <p className="text-xs text-[rgb(var(--text-muted))]">
           Current: <span className="font-medium">{user?.email}</span>. We&apos;ll email a confirmation link to the
           new address and notify your current one. The change takes effect only after you confirm.
         </p>
@@ -230,7 +230,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
         <h3 className="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center gap-2"><Trash2 size={15} /> Delete account</h3>
         {pendingDeletion ? (
           <>
-            <p className="text-xs text-gray-600 dark:text-gray-300">
+            <p className="text-xs text-[rgb(var(--text-secondary))]">
               Your account is scheduled for deletion
               {user?.deletionScheduledAt ? ` on ${new Date(user.deletionScheduledAt).toLocaleDateString()}` : ''}.
               You can still cancel until then.
@@ -243,7 +243,7 @@ export default function AccountTab({ submitting, setSubmitting, onClose }: Accou
           </>
         ) : (
           <form onSubmit={submitAccountDeletion} className="space-y-3">
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-[rgb(var(--text-muted))]">
               Schedules permanent deletion after a grace period. You can cancel any time before then.
             </p>
             <div>
