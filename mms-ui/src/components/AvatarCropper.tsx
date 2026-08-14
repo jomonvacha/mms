@@ -40,7 +40,7 @@ export default function AvatarCropper({ imageSrc, onCancel, onSave }: Props) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/60" onClick={() => !saving && onCancel()} />
-      <div className="relative w-full max-w-sm bg-gray-900 rounded-xl shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-sm bg-gray-900 rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <button type="button" onClick={onCancel} disabled={saving}

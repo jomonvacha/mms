@@ -264,9 +264,9 @@ export default function AdminGovernance() {
                     <span className="font-semibold text-[rgb(var(--text-primary))]">{cat.displayName || cat.code}</span>
                     <span className="text-xs font-mono text-[rgb(var(--text-muted))]">{cat.code}</span>
                     {cat.system && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>
                     )}
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${cat.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${cat.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
                       {cat.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
@@ -312,8 +312,8 @@ export default function AdminGovernance() {
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-[rgb(var(--text-primary))]">{tier.displayName || tier.tierCode}</span>
                             <span className="text-xs font-mono text-[rgb(var(--text-muted))]">{tier.tierCode}</span>
-                            {tier.system && <span className="text-[10px] px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>}
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${tier.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
+                            {tier.system && <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">System</span>}
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${tier.enabled ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-[rgb(var(--surface-3))] text-[rgb(var(--text-secondary))]'}`}>
                               {tier.enabled ? 'Enabled' : 'Disabled'}
                             </span>
                           </div>
@@ -429,7 +429,7 @@ function EntitlementRow({ def, value, hasOverride, disabled, saving, onSave, onR
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-sm font-medium text-[rgb(var(--text-primary))] truncate">{def.displayName || def.key}</span>
             {hasOverride ? (
-              <span className="text-[10px] px-1 py-0.5 rounded bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">Override</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">Override</span>
             ) : (
               <span className="chip chip--neutral">Default</span>
             )}

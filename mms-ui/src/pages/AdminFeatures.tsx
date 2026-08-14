@@ -438,7 +438,7 @@ function FeatureFormModal({ feature, saving, onClose, onSave, onDelete }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
@@ -558,7 +558,7 @@ function RoleFormModal({ role, saving, onClose, onSave }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))] animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">

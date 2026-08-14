@@ -217,17 +217,17 @@ export default function Navbar() {
                           <p className="text-xs truncate mt-0.5 text-[rgb(var(--text-muted))]">{user.email}</p>
                           <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                             {isFederated(user.provider) && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                                 <ShieldCheck size={9} /> {providerLabel(user.provider)}
                               </span>
                             )}
                             {user.emailVerified === false && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                                 <AlertCircle size={9} /> Unverified
                               </span>
                             )}
                             {user.twoFactorEnabled && (
-                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
+                              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">
                                 <ShieldCheck size={9} /> 2FA
                               </span>
                             )}
@@ -241,7 +241,7 @@ export default function Navbar() {
                             label="Security"
                             onClick={() => openModal('security')}
                             trailing={user.twoFactorEnabled ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">2FA on</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">2FA on</span>
                             ) : undefined}
                           />
                           <MenuItem icon={Settings} label="Preferences" onClick={() => openModal('preferences')} />

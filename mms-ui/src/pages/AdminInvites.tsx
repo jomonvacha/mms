@@ -14,9 +14,9 @@ function StatusBadge({ invite }: { invite: SignupInviteCode }) {
   const exhausted = invite.maxUses != null && invite.usedCount >= invite.maxUses
   const expired = Boolean(invite.expiresAt) && new Date(invite.expiresAt!).getTime() < Date.now()
   if (!invite.active) return <span className="chip chip--neutral">Disabled</span>
-  if (expired) return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400">Expired</span>
-  if (exhausted) return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Exhausted</span>
-  return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Active</span>
+  if (expired) return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400">Expired</span>
+  if (exhausted) return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">Exhausted</span>
+  return <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Active</span>
 }
 
 function formatExpires(value?: string | null) {
@@ -325,7 +325,7 @@ function DeleteConfirmModal({ invite, saving, onCancel, onConfirm }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onCancel()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/30">
             <AlertTriangle size={16} className="text-red-600 dark:text-red-400" />
@@ -361,7 +361,7 @@ function ModalShell({ title, onClose, saving, children }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">

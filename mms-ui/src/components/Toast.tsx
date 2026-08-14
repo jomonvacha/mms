@@ -58,7 +58,7 @@ function ThemedToast({ t, variant, title, description, action, dismissible = tru
 
   return (
     <div
-      className={`relative flex w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-1))] shadow-lg shadow-gray-900/5 dark:shadow-black/30
+      className={`relative flex w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-1))] shadow-lg shadow-gray-900/5 dark:shadow-black/30
                   transition-all ${t.visible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'}`}
       role={variant === 'error' ? 'alert' : 'status'}
       aria-live={variant === 'error' ? 'assertive' : 'polite'}>

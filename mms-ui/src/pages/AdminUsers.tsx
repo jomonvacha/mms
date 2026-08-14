@@ -386,7 +386,7 @@ function BulkDeleteModal({ count, users, saving, onCancel, onConfirm }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onCancel()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-md shadow-2xl border border-[rgb(var(--border-subtle))]">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/30">
             <Trash2 size={16} className="text-red-600 dark:text-red-400" />
@@ -555,7 +555,7 @@ function EditUserModal({ user, allRoles, categories, onClose, onSaved }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="edit-user-title">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" onClick={() => !saving && onClose()} />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))]">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-lg shadow-2xl border border-[rgb(var(--border-subtle))]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-[rgb(var(--border-subtle))]">
           <div className="flex items-center gap-3">

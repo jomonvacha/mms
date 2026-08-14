@@ -183,7 +183,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="relative card w-full max-w-3xl rounded-none md:rounded-xl shadow-xl"
+        className="relative card w-full max-w-3xl rounded-none md:rounded-2xl shadow-xl"
       >
         {/* Header — enterprise style with avatar + provider badge */}
         <div className="flex items-center gap-4 p-5 border-b border-[rgb(var(--border-subtle))] bg-[rgb(var(--surface-2))] md:rounded-t-xl">
@@ -202,7 +202,7 @@ export default function AccountModal({ isOpen, initialTab = 'profile', onClose }
                   {user.email}
                 </p>
                 {isFederated(user.provider) && (
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 flex-shrink-0">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 flex-shrink-0">
                     <ShieldCheck size={10} /> {providerLabel(user.provider)}
                   </span>
                 )}

@@ -336,7 +336,7 @@ function StatusChip({ status }: { status: AiModelRecord['status'] }) {
     return (
       <span
         role="status" aria-label={`Status: ${t('adminModels.status.enabled')}`}
-        className="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+        className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-semibold uppercase bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
         <CheckCircle2 size={10} aria-hidden="true" /> {t('adminModels.status.enabled')}
       </span>
     )
@@ -345,7 +345,7 @@ function StatusChip({ status }: { status: AiModelRecord['status'] }) {
     return (
       <span
         role="status" aria-label={`Status: ${t('adminModels.status.deprecated')}`}
-        className="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400">
+        className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-semibold uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400">
         <AlertTriangle size={10} aria-hidden="true" /> {t('adminModels.status.deprecated')}
       </span>
     )
@@ -353,7 +353,7 @@ function StatusChip({ status }: { status: AiModelRecord['status'] }) {
   return (
     <span
       role="status" aria-label={`Status: ${t('adminModels.status.disabled')}`}
-      className="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase bg-gray-500/15 text-[rgb(var(--text-muted))]">
+      className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-semibold uppercase bg-gray-500/15 text-[rgb(var(--text-muted))]">
       <ShieldOff size={10} aria-hidden="true" /> {t('adminModels.status.disabled')}
     </span>
   )
@@ -760,7 +760,7 @@ function BindingsMatrixModal({
                         {included && isAdmin && !isDefault && (
                           <button type="button" disabled={rowSaving}
                             onClick={() => setDefault(cat.code, tier.tierCode)}
-                            className="h-8 px-2 rounded-md text-[11px] font-medium border border-[rgb(var(--border-strong))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))]"
+                            className="h-8 px-2 rounded-full text-[11px] font-medium border border-[rgb(var(--border-strong))] text-[rgb(var(--text-secondary))] hover:bg-[rgb(var(--surface-3))]"
                             title={t('adminModels.bindings.setDefault')}>
                             {t('adminModels.bindings.setDefault')}
                           </button>
@@ -936,7 +936,7 @@ function AuditLogTab() {
                     </td>
                     <td className="px-4 py-2.5 text-xs font-mono text-[rgb(var(--text-secondary))]">{r.actorId || '—'}</td>
                     <td className="px-4 py-2.5">
-                      <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase bg-gray-500/10 text-[rgb(var(--text-secondary))]">
+                      <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-semibold uppercase bg-gray-500/10 text-[rgb(var(--text-secondary))]">
                         {r.action}
                       </span>
                     </td>
@@ -956,7 +956,7 @@ function AuditLogTab() {
             {rows.map((r) => (
               <li key={r.id} className="card p-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase bg-gray-500/10 text-[rgb(var(--text-secondary))]">
+                  <span className="inline-flex items-center gap-1 h-5 px-1.5 rounded-full text-[10px] font-semibold uppercase bg-gray-500/10 text-[rgb(var(--text-secondary))]">
                     {r.action}
                   </span>
                   <span className="text-[11px] text-[rgb(var(--text-muted))] tabular-nums">
@@ -996,7 +996,7 @@ function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-950/70 backdrop-blur-sm" onClick={onClose} />
-      <div className={`relative bg-[rgb(var(--surface-1))] rounded-xl shadow-2xl border border-[rgb(var(--border-subtle))] w-full ${wide ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] flex flex-col`}>
+      <div className={`relative bg-[rgb(var(--surface-1))] rounded-2xl shadow-2xl border border-[rgb(var(--border-subtle))] w-full ${wide ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] flex flex-col`}>
         <div className="flex items-center justify-between p-4 border-b border-[rgb(var(--border-subtle))]">
           <h3 className="text-[15px] font-semibold text-[rgb(var(--text-primary))]">{title}</h3>
           <button type="button" onClick={onClose} className="icon-btn" aria-label="Close">

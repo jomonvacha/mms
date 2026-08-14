@@ -60,7 +60,7 @@ export default function SessionsTab({ submitting, setSubmitting }: SessionsTabPr
               <div className="min-w-0">
                 <p className="text-sm font-medium text-[rgb(var(--text-primary))] flex items-center gap-2">
                   {s.deviceLabel || 'Unknown device'}
-                  {s.current && <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">This device</span>}
+                  {s.current && <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">This device</span>}
                 </p>
                 <p className="text-xs text-[rgb(var(--text-muted))] truncate">
                   {s.ip || 'unknown IP'}{s.lastActiveAt ? ` · last active ${new Date(s.lastActiveAt).toLocaleString()}` : ''}

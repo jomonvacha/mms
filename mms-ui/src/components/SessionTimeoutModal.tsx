@@ -8,7 +8,7 @@ export default function SessionTimeoutModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-950/95 backdrop-blur-md" />
-      <div className="relative bg-[rgb(var(--surface-1))] rounded-xl w-full max-w-sm shadow-2xl border border-[rgb(var(--border-subtle))] p-6 space-y-4">
+      <div className="relative bg-[rgb(var(--surface-1))] rounded-2xl w-full max-w-sm shadow-2xl border border-[rgb(var(--border-subtle))] p-6 space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/30">
             <AlertCircle size={18} className="text-amber-600 dark:text-amber-400" />
