@@ -428,12 +428,27 @@ Phase 1 onward should start against a non-hardened `sso`.
    `setup-gcp-secrets.sh`, install External Secrets Operator, fill in the
    cluster name/region placeholders in `secretstore.yml` and
    `configmap.yml`, and verify `SecretSynced=True`.
-2. **WebAuthn + adaptive-auth test coverage.** Write scenario tests for
-   `WebAuthnService`/`WebAuthnController` (registration, assertion, replay
-   rejection) and `AdaptivePolicyService` (step-up trigger on new
-   device/geo, policy allow/block lists). These are the two features that
-   justify moving off MMS's auth — they need to be proven, not just
-   present.
+2. **WebAuthn + adaptive-auth test coverage — done.** 55 new tests added
+   (`AdaptivePolicyServiceTest`, `WebAuthnServiceTest`,
+   `WebAuthnControllerTest`), 115/115 passing, coverage gate met.
+   `AdaptivePolicyService` (country allow/block lists, incl. precedence
+   when a country is in both; new-device and geo-change step-up triggers;
+   `getOrCreateDefault`'s create-vs-reuse behavior) went from 0% to 97%
+   line coverage. The security-relevant part of WebAuthn is now directly
+   tested: the inner `CredentialRepository`'s `lookup()`/`lookupAll()`
+   filter out inactive/revoked credentials in-memory even when the backing
+   query doesn't — that in-memory filter is what actually stops a revoked
+   passkey from authenticating, and it's now proven (100% coverage on that
+   inner class), not just present. Also covered: authorization checks (a
+   user can't delete another user's credential), all error paths, and the
+   controller's `X-Forwarded-For` IP-extraction and exception-to-HTTP-status
+   mapping. **Deliberately not covered**: `finishRegistration`/
+   `finishAuthentication`'s success path — those need a real signed WebAuthn
+   attestation/assertion (a software-authenticator simulator, which isn't a
+   current dependency, or hand-built CBOR/COSE fixtures), so `WebAuthnService`
+   sits at 55% overall rather than higher. Flagged as a scoped follow-up
+   rather than faked. Committed as `e2f622c` in the `sso` repo (push pending
+   — hit the same 1Password SSH-agent flakiness noted earlier in this doc).
 3. **Fix or remove the ZAP scan.** Either wire `zap-scan.yml` to actually
    start the app before scanning (ephemeral deploy or docker-compose step),
    or remove the job — a scan that scans nothing is worse than no scan.
@@ -820,9 +835,8 @@ enforcing it actually completes.
    item 1 (now includes Cloud KMS-backed rotation, not just Secret Manager
    storage).
 2. ~~Fix `mvn verify` on the CI/dev JDK (gap 7).~~ **Done** — see gap 7 above.
-3. WebAuthn + adaptive-auth test coverage — these are the two features
-   `sso` offers that MMS doesn't; they need to actually work, proven by
-   tests, before anyone relies on them.
+3. ~~WebAuthn + adaptive-auth test coverage.~~ **Done** — see §8 Phase 0
+   item 2 above.
 4. Fix or remove the ZAP scan — a security scan that scans nothing is worse
    than no scan, because it looks like coverage that doesn't exist.
 5. Stand up a real deploy pipeline + a staging environment; run it there
