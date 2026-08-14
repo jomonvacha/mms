@@ -31,12 +31,13 @@ with resolved decisions + SSO readiness audit.*
 - **This is a planned migration, not an urgent fix** — confirmed, no live
   incident is forcing this (§7, item 4).
 - **Blocking gate before any product depends on `sso` for login: `sso`
-  itself is not production-ready today.** §9 has the full gap list — the
-  short version is thin test coverage (21% frontend, no WebAuthn/adaptive-
-  auth tests), no real secret management (prod k8s secrets ship as literal
-  `REPLACE_ME`), a ZAP security scan that scans nothing in CI, and zero
-  evidence it has ever run outside a dev machine. This has to close before
-  Phase 1 of §8 starts.
+  itself is not production-ready today.** §9 has the full gap list. Fixed
+  so far: secret management (Cloud KMS + Secret Manager, replacing the
+  literal `REPLACE_ME` k8s secrets) and `mvn verify` (was cascading to 55
+  test errors on this JDK, now passes clean). Still open: thin test
+  coverage (21% frontend, no WebAuthn/adaptive-auth tests), a ZAP security
+  scan that scans nothing in CI, and zero evidence `sso` has ever run
+  outside a dev machine. This has to close before Phase 1 of §8 starts.
 
 ---
 
@@ -720,9 +721,10 @@ test coverage, decorative security scanning, and zero evidence of ever
 running outside a developer's laptop. Not enterprise-grade yet — closer to
 "well-architected side project with real security work started."** Secret
 management (including encryption-key rotation) is now solved in code and
-config, pending only cluster application (§8 Phase 0 item 1) — the most
-severe *remaining* gap is item 7 below: the test suite that's supposed to
-gate everything else doesn't reliably complete.
+config, pending only cluster application (§8 Phase 0 item 1). `mvn verify`
+now runs clean (item 7, fixed) — the most severe *remaining* gap is thin
+WebAuthn/adaptive-auth test coverage (item 2 below), now that the suite
+enforcing it actually completes.
 
 ### What's genuinely solid already
 - **Observability**: `monitoring/prometheus/alerts.yml` has real alerts
@@ -791,46 +793,33 @@ gate everything else doesn't reliably complete.
    This is missing functionality, not a config gap — it needs real backend
    work in `sso` before Phase 3/4 can replace any product's existing signup
    flow.
-7. **`mvn verify` does not complete on this development machine's JDK —
-   discovered while adding secret-management tests, confirmed pre-existing.**
-   `mvn test` fails with `Tests run: 59, Errors: 55` even on an *untouched*
+7. **`mvn verify` did not complete on this development machine's JDK — fixed.**
+   `mvn test` failed with `Tests run: 59, Errors: 55` even on an *untouched*
    checkout (verified via `git stash` before/after the secret-management
-   work — same failure count either way, so this predates and is unrelated
-   to that work). Root cause, traced precisely: JaCoCo 0.8.13 (the pinned
-   coverage-agent version) cannot instrument this JDK's class file format
-   (`Unsupported class file major version 70`). The first class that trips
-   it is `com.sun.tools.attach.VirtualMachine` — loaded whenever Mockito's
-   inline mock maker self-attaches its own instrumentation agent at
-   runtime (Mockito 5+'s default behavior for every `mock()` call, not just
-   final-class mocking). Once JaCoCo's agent fails to instrument that one
-   class, the JVM's class-loading state is corrupted for the rest of that
+   work — same failure count either way, confirming this predated and was
+   unrelated to that work). Root cause, traced precisely: JaCoCo 0.8.13
+   (the pinned coverage-agent version) couldn't instrument this JDK's class
+   file format. The first class that tripped it was
+   `com.sun.tools.attach.VirtualMachine` — loaded whenever Mockito's inline
+   mock maker self-attaches its own instrumentation agent at runtime
+   (Mockito 5+'s default behavior for every `mock()` call, not just
+   final-class mocking). Once JaCoCo's agent failed to instrument that one
+   class, the JVM's class-loading state was corrupted for the rest of that
    test fork, cascading into `ApplicationContext failure threshold
    exceeded` errors across every other `@SpringBootTest` sharing that fork.
-   Practical implication: **any test class that calls `Mockito.mock()`
-   anywhere in the suite likely triggers this**, meaning the JaCoCo-gated
-   `mvn verify` — the thing CI actually runs, and the stated exit criterion
-   for load-testing and burn-in in this very phase — may not be reliably
-   green on whatever JDK build CI uses either, not just on this machine.
-   Needs a JaCoCo version bump (a release that supports this classfile
-   version) or switching Mockito's mock maker to avoid the self-attach path
-   (`mockito-extensions/org.mockito.plugins.MockMaker` →
-   `mock-maker-subclass`, though that needs checking against any existing
-   use of `mockStatic`/final-class mocking elsewhere in the 15+ test files
-   before flipping it project-wide). Worked around locally for the one new
-   KMS test added in this pass by not using Mockito at all (a hand-written
-   fake via a narrow interface seam, see `EncryptingStringConverter.KmsOps`)
-   — that's a reasonable pattern for *new* tests, but doesn't fix the
-   underlying incompatibility for the 15+ existing Mockito-based test
-   files, which still need this resolved directly.
+   **Fix**: bumped `jacoco-maven-plugin` from `0.8.13` to `0.8.15` in
+   `backend/pom.xml`. Verified via Maven Central's raw metadata (not the
+   search index, which was stale and still listed `0.8.13` as latest) —
+   `0.8.14` added official support for this JDK's classfile version,
+   `0.8.15` (current) goes one version further. One-line change, no test
+   code touched. Confirmed: `mvn verify` now passes clean — 60/60 tests,
+   coverage gate met. Committed as `9e0ccf0` in the `sso` repo.
 
 ### Suggested Phase 0 priority order
 1. Secret management — done except cluster application, see §8 Phase 0
    item 1 (now includes Cloud KMS-backed rotation, not just Secret Manager
    storage).
-2. **Fix `mvn verify` on the CI/dev JDK (gap 7).** Nothing else in this
-   list — coverage numbers, WebAuthn tests, the ZAP scan gate — means
-   anything if the test suite that's supposed to enforce it doesn't
-   reliably complete.
+2. ~~Fix `mvn verify` on the CI/dev JDK (gap 7).~~ **Done** — see gap 7 above.
 3. WebAuthn + adaptive-auth test coverage — these are the two features
    `sso` offers that MMS doesn't; they need to actually work, proven by
    tests, before anyone relies on them.
