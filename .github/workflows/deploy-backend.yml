@@ -2,7 +2,7 @@
 #
 # Triggered on pushes to develop (-> shared) / release (-> production).
 # Auth via GitHub OIDC -> Workload Identity Federation into the shared
-# idfy-platform-prod project. This is the STANDALONE mms deployment,
+# idfy-platform project. This is the STANDALONE mms deployment,
 # distinct from idfy-platform's own embedded mms-service (which deploys as
 # idfy-mms-service-* under the idfy-mms.exyon.com domain) — see the "MMS
 # duplication" note in /Users/jomonvacha/Projects/CLOUD-DEPLOYMENT-PLAN.md.

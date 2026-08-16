@@ -1,9 +1,9 @@
 {
   "projects": {
-    "default": "idfy-platform-prod"
+    "default": "idfy-platform"
   },
   "targets": {
-    "idfy-platform-prod": {
+    "idfy-platform": {
       "hosting": {
         "shared": ["mms-shared"],
         "production": ["mms"]

@@ -78,7 +78,7 @@ jobs:
 
       - name: Deploy to Firebase Hosting
         working-directory: mms-ui
-        run: npx --yes firebase-tools@13 deploy --only hosting:${{ steps.env.outputs.name }} --project idfy-platform-prod --non-interactive
+        run: npx --yes firebase-tools@13 deploy --only hosting:${{ steps.env.outputs.name }} --project idfy-platform --non-interactive
 
       - name: Step summary
         run: echo "**mms-ui** deployed to \`${{ steps.env.outputs.name }}\` via Firebase Hosting target \`${{ steps.env.outputs.name }}\`" >> "$GITHUB_STEP_SUMMARY"
