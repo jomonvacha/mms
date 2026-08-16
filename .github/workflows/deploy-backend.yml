@@ -1,0 +1,108 @@
+# Deploy the standalone mms-service to Google Cloud Run.
+#
+# Triggered on pushes to develop (-> shared) / release (-> production).
+# Auth via GitHub OIDC -> Workload Identity Federation into the shared
+# idfy-platform-prod project. This is the STANDALONE mms deployment,
+# distinct from idfy-platform's own embedded mms-service (which deploys as
+# idfy-mms-service-* under the idfy-mms.exyon.com domain) — see the "MMS
+# duplication" note in /Users/jomonvacha/Projects/CLOUD-DEPLOYMENT-PLAN.md.
+#
+# mms-service/Dockerfile needs the parent pom.xml, so the build context is
+# the repo root (same as it already requires locally — see the Dockerfile's
+# own header comment).
+
+name: Deploy backend
+
+on:
+  push:
+    branches: [develop, release]
+    paths:
+      - pom.xml
+      - mms-service/**
+      - .github/workflows/deploy-backend.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-mms-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build + deploy mms-api -> ${{ github.ref_name == 'release' && 'production' || 'shared' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'release' && 'production' || 'shared' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: env
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            develop) echo "name=shared"     >> "$GITHUB_OUTPUT" ;;
+            release) echo "name=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Unsupported branch ${GITHUB_REF_NAME} — this workflow only deploys develop/release"; exit 1 ;;
+          esac
+
+      - name: Authenticate to Google Cloud (OIDC / WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+      - run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build & push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: mms-service/Dockerfile
+          push: true
+          tags: |
+            ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/mms-api:${{ github.sha }}
+          cache-from: type=gha,scope=mms-api
+          cache-to: type=gha,mode=max,scope=mms-api
+
+      - name: Deploy to Cloud Run
+        run: |
+          set -euo pipefail
+
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPO }}/mms-api:${{ github.sha }}"
+          NAME="${{ vars.MMS_SERVICE_NAME || format('mms-api-{0}', steps.env.outputs.name) }}"
+
+          # SERVER_PORT baked to 8080 regardless of the local docker-compose
+          # default (8081) — Cloud Run routes to whatever --port we declare.
+          ENV_FLAG="^|^SERVER_PORT=8080|SPRING_PROFILES_ACTIVE=${{ steps.env.outputs.name }}"
+          EXTRA_ENV="${{ vars.MMS_EXTRA_ENV_VARS }}"
+          [[ -n "$EXTRA_ENV" ]] && ENV_FLAG="${ENV_FLAG}|${EXTRA_ENV}"
+
+          ARGS=(
+            "$NAME"
+            --image="$IMAGE"
+            --region="${{ vars.GCP_REGION }}"
+            --platform=managed
+            --port=8080
+            --memory=512Mi
+            --cpu=1
+            --min-instances=0
+            --max-instances=2
+            --allow-unauthenticated
+            --set-env-vars="$ENV_FLAG"
+          )
+
+          SECRETS_MAP="${{ vars.MMS_SECRETS_MAPPING }}"
+          [[ -n "$SECRETS_MAP" ]] && ARGS+=(--set-secrets="$SECRETS_MAP")
+
+          gcloud run deploy "${ARGS[@]}"
+
+      - name: Print service URL
+        run: |
+          NAME="${{ vars.MMS_SERVICE_NAME || format('mms-api-{0}', steps.env.outputs.name) }}"
+          URL=$(gcloud run services describe "$NAME" --region="${{ vars.GCP_REGION }}" --format="value(status.url)")
+          echo "::notice title=mms-api (${{ steps.env.outputs.name }})::$URL"
+          echo "**mms-api** deployed to \`${{ steps.env.outputs.name }}\`: $URL" >> "$GITHUB_STEP_SUMMARY"

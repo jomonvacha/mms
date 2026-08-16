@@ -1,0 +1,84 @@
+# Deploy the standalone mms-ui to Firebase Hosting.
+#
+# Triggered on pushes to develop (-> shared) / release (-> production).
+# firebase.json rewrites /api/** to the matching mms-api-* Cloud Run
+# service in the same GCP project, keeping UI + API same-origin.
+
+name: Deploy frontend
+
+on:
+  push:
+    branches: [develop, release]
+    paths:
+      - mms-ui/**
+      - .github/workflows/deploy-frontend.yml
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-mms-frontend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build + deploy mms-ui -> ${{ github.ref_name == 'release' && 'production' || 'shared' }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'release' && 'production' || 'shared' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: env
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            develop) echo "name=shared"     >> "$GITHUB_OUTPUT" ;;
+            release) echo "name=production" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::Unsupported branch ${GITHUB_REF_NAME} — this workflow only deploys develop/release"; exit 1 ;;
+          esac
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mms-ui/package-lock.json
+
+      - name: Write Vite .env.production
+        working-directory: mms-ui
+        env:
+          # Relative paths — same-origin via the Firebase rewrite, no
+          # VITE_API_BASE_URL needed. Signin/register paths must be set
+          # explicitly or the UI hides the local sign-in form (social-only).
+          MMS_UI_ENV: ${{ vars.MMS_UI_ENV }}
+        run: |
+          if [[ -n "$MMS_UI_ENV" ]]; then
+            printf '%s\n' "$MMS_UI_ENV" > .env.production
+          else
+            cat > .env.production <<'EOF'
+          VITE_SIGNIN_PATH=/api/auth/signin
+          VITE_SIGNOUT_PATH=/api/auth/signout
+          VITE_REGISTER_PATH=/api/auth/signup
+          EOF
+          fi
+
+      - name: Install dependencies
+        working-directory: mms-ui
+        run: npm ci
+
+      - name: Build
+        working-directory: mms-ui
+        run: npm run build
+
+      - name: Authenticate to Google Cloud (OIDC / WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase Hosting
+        working-directory: mms-ui
+        run: npx --yes firebase-tools@13 deploy --only hosting:${{ steps.env.outputs.name }} --project idfy-platform-prod --non-interactive
+
+      - name: Step summary
+        run: echo "**mms-ui** deployed to \`${{ steps.env.outputs.name }}\` via Firebase Hosting target \`${{ steps.env.outputs.name }}\`" >> "$GITHUB_STEP_SUMMARY"
