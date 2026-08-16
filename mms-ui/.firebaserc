@@ -5,9 +5,14 @@
   "targets": {
     "idfy-platform": {
       "hosting": {
-        "shared": ["mms-shared"],
-        "production": ["mms"]
+        "shared": [
+          "exyon-mms-shared"
+        ],
+        "production": [
+          "exyon-mms"
+        ]
       }
     }
-  }
+  },
+  "etags": {}
 }
