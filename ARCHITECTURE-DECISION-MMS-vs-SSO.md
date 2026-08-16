@@ -2,7 +2,9 @@
 
 *Status: DECISIONS MADE, implementation not yet approved. No code has been
 changed as part of this analysis. Written 2026-08-13, updated 2026-08-13
-with resolved decisions + SSO readiness audit.*
+with resolved decisions + SSO readiness audit, updated 2026-08-14 revising
+the tenant model from one shared `Organization` to configurable
+per-product grouping (§7 item 1).*
 
 ## TL;DR
 
@@ -291,29 +293,78 @@ elsewhere, plus a third integration pattern worth reusing:
 
 All open questions from the original draft are now answered:
 
-1. **Tenant model — single `Organization`, `ClientApp`-level separation**
-   (not one org per product). Reasoning, checked directly against `sso`'s
-   schema:
+1. **Tenant model — configurable per-product, isolate by default;
+   `ClientApp`-level separation within any group that shares an org.**
+   Reasoning, checked directly against `sso`'s schema:
    - `UserAccount` is hard-scoped 1:1 to `Organization`
-     (`domain/UserAccount.java`) — separate orgs per product means fully
-     separate, non-federated user pools. That defeats the point of SSO for
-     the population that needs it most: MMS's own login already says
-     *"Admin access only. End users sign up in the IDFY app"* — admin staff
-     already manage governance across products from one place today, and
-     per-product orgs would force them into 3+ separate logins.
+     (`domain/UserAccount.java`) — a user can only belong to one org, so
+     "shared identity" and "isolated" are mutually exclusive per pairing of
+     products, not a spectrum you can partially pick.
+   - `Role` is per-`Organization`, `AccessPolicy` (MFA-on-new-device, geo
+     allow/block) is 1:1 per `Organization`, and admin visibility is
+     enforced at the org boundary (`tenantGuard.requireSameOrg`, checked in
+     every `AdminController` endpoint) — there is no `ClientApp`-level
+     admin scoping today. Sharing an `Organization` therefore means sharing
+     identity, role namespace, security policy, *and* admin visibility all
+     at once; there is no mechanism to share just one of those.
    - `ClientApp.allowedRoles` (a `@ManyToMany` join to `Role`) is the
-     built-in mechanism for population separation *without* separate orgs —
-     register `idfy`, `tradecue`, `familytree`, and `mms-admin` as four
-     `ClientApp`s under one org, and gate which roles can authenticate to
-     which client. End users stay separated per product; staff can hold one
-     identity across all of them.
-   - The one caveat: `AccessPolicy` (MFA-on-new-device, geo allow/block) is
-     also 1:1 per `Organization`, not per `ClientApp` — a single-org model
-     means all products share one adaptive-auth policy today. Revisit
-     separate orgs only if a product needs a genuinely different security
-     policy (e.g., TradeCue handling money wanting stricter rules than
-     familytree) — that would currently require extending `sso`'s schema to
-     make `AccessPolicy` per-`ClientApp` rather than per-`Organization`.
+     mechanism for separating populations *within* a shared org — it
+     restricts which roles a token minted for that client can carry,
+     without touching identity, policy, or admin visibility.
+
+   **Decision rule**: default every new product to its own `Organization`.
+   Only put two products in the same `Organization` when there's an
+   explicit, deliberate reason, gated by:
+   1. Does this product need its own security posture (MFA/geo policy)? →
+      isolate.
+   2. Should its users be invisible to another product's admins? →
+      isolate.
+   3. Do the *same humans* genuinely need one login across both products? →
+      only then, share.
+
+   **Current grouping**, per this rule:
+
+   | Product | Organization | Rationale |
+   |---|---|---|
+   | MMS | `shared-org` | shared identity with TradeCue — real product need, same users work across both |
+   | TradeCue | `shared-org` | shared identity with MMS |
+   | IDFY | own org | no cross-identity requirement with MMS/TradeCue |
+   | familytree/roots | own org | no cross-identity requirement with any other product |
+
+   **Why not strict one-org-per-product everywhere** (the safer default):
+   it would remove all the risk below (no role collisions, no
+   admin-visibility leakage, no shared-policy constraint, zero judgment
+   calls for future products) — but it also removes the one reason
+   MMS/TradeCue are being merged in the first place: a real person
+   shouldn't need two separate accounts/passwords/MFA enrollments for two
+   products they both use. Strict 1:1 is the right *default*; it stops
+   being right the moment there's a genuine identity-sharing need, which is
+   why this is a per-pairing decision, not a single global policy in
+   either direction.
+
+   **Consequences of the MMS/TradeCue exception, to manage deliberately**:
+   - *Role-namespace collision risk* — mitigate with a naming convention:
+     prefix roles per product (`MMS_MEMBER`, `TRADECUE_ADMIN`) even inside
+     the shared org, so `ClientApp.allowedRoles` can still express
+     per-product role restriction despite the shared user pool.
+   - *Shared `AccessPolicy`* — MMS and TradeCue are locked to identical
+     MFA/geo rules for as long as they share the org. Revisit only if one
+     product needs genuinely different security rules than the other
+     (e.g., TradeCue handling money wanting stricter rules) — that would
+     require extending `sso`'s schema to make `AccessPolicy` per-`ClientApp`
+     rather than per-`Organization`.
+   - *Shared admin visibility* — an admin with access to `shared-org` can
+     see both MMS's and TradeCue's users; there is no code today to scope
+     an admin to "MMS users only" within a shared org.
+   - *Reversibility is asymmetric* — splitting `shared-org` later is a real
+     migration whose cost scales with how much actual cross-usage
+     happened, not with the code (see Phase 1). *Merging* two
+     currently-isolated orgs later (if IDFY or familytree/roots ever needed
+     shared identity) is comparably harder in the other direction — there
+     is no way to auto-link two independently-created accounts as "the
+     same person" without a deliberate account-linking flow. Neither
+     direction is free; treat each grouping decision as a real product
+     commitment, not a provisional default.
 2. **User migration** — confirmed: one-time backfill of MMS `User` rows
    into `sso`'s `UserAccount`, with forced password reset and TOTP
    re-enrollment. No requirement to preserve credentials bit-for-bit.
@@ -322,10 +373,11 @@ All open questions from the original draft are now answered:
    models/entitlements; just needs the embedded copy removed).
 4. **Timeline** — confirmed: this is a planned migration, not a response to
    a live incident. No pressure to skip the readiness work in §9.
-5. **Familytree/roots** — confirmed: included in the same wave. Audited
-   (§6) — same vendored-copy staleness as IDFY, plus a cleaner
-   token-introspection pattern in `roots-service` worth using as the
-   reference for Phase 4.
+5. **Familytree/roots** — confirmed: included in the same wave, and
+   isolated to its own `Organization` (§7 item 1) — no cross-identity
+   requirement with any other product. Audited (§6) — same vendored-copy
+   staleness as IDFY, plus a cleaner token-introspection pattern in
+   `roots-service` worth using as the reference for Phase 4.
 6. **`sso` production readiness** — confirmed requirement: `sso` must reach
    enterprise-grade, deploy-ready status *before* it becomes a hard
    dependency for any product's login. Full gap list in §9 — this is not
@@ -499,10 +551,15 @@ Phase 1 onward should start against a non-hardened `sso`.
    actually need (their whole current story is "end users sign up in the
    product," not "each signup creates a new tenant company"). This needs
    new work in `sso` — either a client-scoped public signup endpoint
-   (looks up the calling `client_id`, assigns the right default `Role`
-   under the existing shared `Organization`), or a service-to-service
-   admin API that each product's own signup UI calls server-side. Treat
-   this as a required Phase 0 deliverable, not a Phase 3 surprise.
+   (looks up the calling `client_id`, resolves which `Organization` that
+   client belongs to per §7 item 1's grouping — `shared-org` for MMS/
+   TradeCue, its own org for IDFY/familytree — and assigns the right
+   default `Role` within it), or a service-to-service admin API that each
+   product's own signup UI calls server-side. The same endpoint design
+   works for both shared and isolated groupings without per-product
+   branching, since it's parameterized by `client_id`, not hardcoded to one
+   org. Treat this as a required Phase 0 deliverable, not a Phase 3
+   surprise.
 
 **Deliverables**: KMS/Vault integration merged; WebAuthn + adaptive-auth
 test suites merged and passing; ZAP scan either fixed or removed; staging
@@ -523,39 +580,48 @@ cost paid before multiple products depend on it, not after.
 
 ### Phase 1 — Tenant + client setup (config only, in `sso`)
 
-**Goal**: model the agreed tenant structure (§7 item 1: one shared
-`Organization`, `ClientApp`-level separation) in a hardened `sso` instance.
+**Goal**: model the agreed tenant structure (§7 item 1: configurable
+per-product grouping, isolate by default) in a hardened `sso` instance —
+three `Organization`s, not one.
 
 **Work items**:
-1. Create the single `Organization` record.
-2. Define the `Role` taxonomy for that org — map MMS's existing `ERole`
-   (ADMIN, MANAGER, MODERATOR, MEMBER) onto `sso` `Role`s, plus decide if
-   any product needs roles MMS doesn't currently have. Produce a written
-   role-mapping table as part of this phase's deliverables — this is the
-   thing Phase 2's user migration and Phase 3/4's authorization checks both
-   depend on.
-3. Register four `ClientApp`s: `mms-admin`, `idfy`, `tradecue`,
-   `familytree`. For each: redirect URIs, scopes, grant type
-   (authorization_code + PKCE for the browser-facing apps; consider
-   whether any need `client_credentials` for service-to-service calls).
-4. Set `allowedRoles` per `ClientApp` per the population-separation design
-   in §7 item 1 — e.g. `mms-admin` only allows ADMIN/MANAGER/MODERATOR,
-   not raw end-user accounts.
-5. Configure the org's single `AccessPolicy` (MFA-on-new-device/geo, country
-   allow/block) — one policy covers all four products under this tenant
-   model; document that explicitly so it's a known, deliberate tradeoff
-   (§7 item 1's caveat) and not a surprise later.
+1. Create three `Organization` records: `shared-org` (MMS + TradeCue),
+   `idfy-org`, `familytree-org`.
+2. Define the `Role` taxonomy per org — map MMS's existing `ERole`
+   (ADMIN, MANAGER, MODERATOR, MEMBER) onto `sso` `Role`s for `shared-org`,
+   using the `MMS_*`/`TRADECUE_*` naming convention from §7 item 1 to keep
+   the two products' roles distinguishable despite the shared table;
+   define independent taxonomies for `idfy-org` and `familytree-org` from
+   scratch (no clone/template mechanism exists in `sso` today). Produce a
+   written role-mapping table per org as part of this phase's
+   deliverables — this is the thing Phase 2's user migration and Phase
+   3/4's authorization checks both depend on.
+3. Register four `ClientApp`s, each parented to its group's org:
+   `mms-admin` + `tradecue` under `shared-org`; `idfy` under `idfy-org`;
+   `familytree` under `familytree-org`. For each: redirect URIs, scopes,
+   grant type (authorization_code + PKCE for the browser-facing apps;
+   consider whether any need `client_credentials` for service-to-service
+   calls).
+4. Set `allowedRoles` per `ClientApp` — e.g. `mms-admin` only allows
+   ADMIN/MANAGER/MODERATOR, not raw end-user accounts; within `shared-org`,
+   `mms-admin` and `tradecue` each allow only their own `MMS_*`/
+   `TRADECUE_*` roles despite sharing a user pool.
+5. Configure `AccessPolicy` per org — `shared-org` gets one policy covering
+   both MMS and TradeCue (document this as the known, deliberate tradeoff
+   from §7 item 1, not a surprise later); `idfy-org` and `familytree-org`
+   are each free to set independent MFA/geo rules from day one.
 6. Document how each product's deployment receives its `client_id`/
    `client_secret` (via each product's existing CI secret store — never
    committed).
 
-**Deliverables**: `sso` staging instance with org + 4 clients configured;
-written role-mapping table; documented `AccessPolicy` settings and the
-rationale for one shared policy.
+**Deliverables**: `sso` staging instance with 3 orgs + 4 clients
+configured; written per-org role-mapping tables; documented `AccessPolicy`
+settings per org and the rationale for `shared-org`'s single policy.
 
-**Exit criteria**: verified via `sso`'s own admin UI (`AdminOrganizationController`,
-client registration) that all four clients exist with correct
-`allowedRoles`; role-mapping table reviewed and approved.
+**Exit criteria**: verified via `sso`'s own admin UI (org switcher +
+client registration, `AdminLayout.js`'s `activeOrg` picker) that all four
+clients exist under the correct org with correct `allowedRoles`; role-
+mapping tables reviewed and approved.
 
 **Dependencies**: Phase 0 complete (don't configure real tenant structure
 against a non-hardened instance).
