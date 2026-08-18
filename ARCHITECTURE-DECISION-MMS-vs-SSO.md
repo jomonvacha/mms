@@ -653,27 +653,47 @@ Phase 1 onward should start against a non-hardened `sso`.
    works for both shared and isolated groupings without per-product
    branching, since it's parameterized by `client_id`, not hardcoded to one
    org. Treat this as a required Phase 0 deliverable, not a Phase 3
-   surprise. **Reconfirmed 2026-08-17, still missing**: `PublicController.java`
-   still has exactly one endpoint, `POST /api/public/signup`, and it still
-   only creates a brand-new `Organization`. No join-existing-org or
-   invite-based endpoint exists anywhere in `sso`'s `web/` package.
+   surprise. **Built 2026-08-18**: went with the service-to-service admin
+   API option — `POST /api/service/users`, a new
+   `ServiceProvisioningController`. Each product's own backend
+   authenticates as its registered `ClientApp` (HTTP Basic, `client_id`/
+   `client_secret` — verified manually against `clients.client_secret_hash`,
+   the same pattern `/api/public/**` already uses for non-JWT auth, not a
+   new Spring Security mechanism), and the endpoint resolves that client's
+   `Organization`, creates the user there, and assigns a new
+   `clients.default_role_id` (nullable, `V14__client_default_role.sql`;
+   settable via the existing `PUT /api/developer/clients/{id}` admin
+   endpoint — no new UI needed for that part). Deliberately rejects with a
+   clear `409 no_default_role` rather than silently creating roleless
+   users if a client hasn't had one configured yet. Returns tokens
+   immediately (same `TokenService.issue` path as `/api/auth/login`) so
+   the calling product's own signup flow doesn't need a second round trip.
+   Unit-tested (`ServiceProvisioningControllerTest`, 7 cases: success,
+   wrong secret, unknown client, missing auth header, no default role,
+   duplicate email, password policy violation) and confirmed the Flyway
+   migration applies cleanly. **Not yet done**: no real `ClientApp` exists
+   for IDFY/TradeCue/familytree yet (that's Phase 1, §8), so this hasn't
+   been exercised against a real caller — only unit-tested — and nobody's
+   set a `defaultRoleId` on a real client yet either.
 
-**Deliverables — status as of 2026-08-17**: KMS/Secret Manager integration
+**Deliverables — status as of 2026-08-18**: KMS/Secret Manager integration
 merged and live ✅; WebAuthn + adaptive-auth test suites merged and
 passing ✅; ZAP scan fixed ✅; a live lower environment (`shared`,
 serving as staging) up and reachable ✅; frontend coverage report
 showing the interim (auth-critical) target met ✅; load-test report
 showing rate-limiter and spike behavior 🟡 (run, real findings, but not
-yet a backend-capacity number — see item 6). **Still outstanding**: burn-in
-period completed with no unresolved P1/P2 incidents (in progress, ~2 of
-~14–28 days in); a multi-credential capacity baseline (item 6's remaining
-piece); new tenant-scoped signup capability built and tested (not started).
+yet a backend-capacity number — see item 6); tenant-scoped signup
+capability built and unit-tested ✅ (see item 8 — not yet exercised
+against a real product, since no real `ClientApp` exists for one until
+Phase 1). **Still outstanding**: burn-in period completed with no
+unresolved P1/P2 incidents (in progress, ~3 of ~14–28 days in); a
+multi-credential capacity baseline (item 6's remaining piece).
 
 **Exit criteria**: all eight items above closed, plus an explicit go/no-go
-review before Phase 1 starts. Five and a half of eight are effectively
+review before Phase 1 starts. Six and a half of eight are effectively
 closed as of this update; the remaining pieces (burn-in, a real capacity
-baseline, tenant-scoped signup) are the
-actual path to Phase 1 — see the "path forward" note after §9.
+baseline) are the actual path to Phase 1 — see the "path forward" note
+after §9.
 
 **Risk**: this is the phase most likely to face pressure to skip or
 shortcut, since nothing user-visible changes yet. It shouldn't be — this is
@@ -1032,23 +1052,18 @@ issues.
    "new device," with no way to receive the OTP in an automated harness
    without either real mail or a security-policy change that wasn't
    authorized in this session).
-6. **No tenant-scoped self-service signup — still true as of 2026-08-17,
-   reconfirmed directly against `PublicController.java`.**
-   `PublicController.signup` (`/api/public/signup`) only creates a
-   **brand-new `Organization` with its own first admin**; it remains the
-   *only* endpoint in `sso`'s `web/` package for account creation. There is
-   no endpoint for "add a regular end-user to an *existing* `Organization`'s
-   user pool," which is what IDFY, TradeCue, and familytree/roots actually
-   need for their current "users sign up in the product" flows. Every
-   one-org-per-signup call today would fragment the tenant model decided in
-   §7 item 1. This is missing functionality, not a config gap — it needs
-   real backend work in `sso` before Phase 3/4 can replace any product's
-   existing signup flow. Of the three genuinely open Phase 0 items, this is
-   the only one that's pure development work rather than "wait and
-   observe" (burn-in) or "run an existing script" (load testing) — it's
-   the one to actually schedule engineering time against first if the goal
-   is unblocking Phase 1 fastest, even though items 5 and 6 can run in
-   parallel with it.
+6. **No tenant-scoped self-service signup — built 2026-08-18, see §8 Phase
+   0 item 8 for the full writeup.** Short version: added
+   `POST /api/service/users`, authenticated via each product's own
+   `ClientApp` credentials (HTTP Basic), which adds a user to that
+   client's existing `Organization` and assigns a per-client configurable
+   default `Role` — instead of `/api/public/signup`'s "always create a
+   brand-new org" behavior. Unit-tested; not yet exercised against a real
+   caller, since no real `ClientApp` exists for IDFY/TradeCue/familytree
+   until Phase 1 registers one. This closes the item as *built*, with
+   "exercised end-to-end against a real product" as a natural Phase 1/4
+   follow-up rather than a Phase 0 blocker — the capability itself no
+   longer requires new backend work.
 7. **`mvn verify` did not complete on this development machine's JDK — fixed.**
    `mvn test` failed with `Tests run: 59, Errors: 55` even on an *untouched*
    checkout (verified via `git stash` before/after the secret-management
@@ -1096,9 +1111,10 @@ Five of eight are done. What's left, in the order to actually work them:
    backend-capacity baseline is the one piece still open, and feeding a
    number into the SLO recording rules should wait for that real capacity
    figure rather than the rate-limiter-bound one.
-8. **Build tenant-scoped self-service signup** (gap 6 above) — real
-   backend work, can run in parallel with item 9 and the burn-in clock,
-   but must land before Phase 3/4 cutover regardless.
+8. ~~Build tenant-scoped self-service signup.~~ **Done, 2026-08-18** — see
+   §8 Phase 0 item 8: `POST /api/service/users`, service-to-service via
+   `ClientApp` credentials. Unit-tested; not yet exercised against a real
+   product, since Phase 1 hasn't registered a real `ClientApp` yet.
 9. **Extend load testing to a real multi-credential capacity baseline** —
    spread concurrent load across many distinct test accounts (not one
    fixed credential) so the rate limiter isn't the bottleneck being
@@ -1107,7 +1123,7 @@ Five of eight are done. What's left, in the order to actually work them:
     2026-08-15, targeting a 2–4 week window; don't gate Phase 1 on this
     alone, but don't skip it either.
 
-Once 8 and 9 land and the burn-in window closes with no unresolved P1/P2
+Once 9 lands and the burn-in window closes with no unresolved P1/P2
 incidents, Phase 0's exit criteria are met and Phase 1 (tenant/client
 config, §8) can start for real.
 
@@ -1139,16 +1155,17 @@ eventually make MMS a resource server on this same infrastructure.
    §8 Phase 0 item 6. What's left: spread load across many test credentials
    instead of one, so the number that goes into the SLO recording rules
    reflects backend capacity, not the (correctly configured) rate limiter.
-2. **Scope and build tenant-scoped self-service signup.** This is the one
-   remaining item that's real engineering work, and it's on the critical
-   path to Phase 3/4 (no product can cut over its signup flow without it).
-   Start from §8 Phase 0 item 8's two design options (client-scoped public
-   endpoint vs. service-to-service admin API) and pick one — that's a
-   decision this doc deliberately left open, not an oversight.
+2. ~~Scope and build tenant-scoped self-service signup.~~ **Done,
+   2026-08-18.** Went with the service-to-service admin API design (not
+   the client-scoped public endpoint) — see §8 Phase 0 item 8.
+   `POST /api/service/users`, unit-tested. Real next step here isn't more
+   sso-side work: it's registering a real `ClientApp` in Phase 1 and
+   having one product actually call this endpoint, since nothing has
+   exercised it end-to-end yet.
 3. **Let the `shared` burn-in clock run out** (targeting ~2026-08-29 to
-   ~2026-09-12, i.e. 2–4 weeks from 2026-08-15) while 1 and 2 happen. This
-   doesn't block engineering work, just the go/no-go call.
-4. **Once 1–3 close, hold the explicit Phase 0 go/no-go review** this doc
+   ~2026-09-12, i.e. 2–4 weeks from 2026-08-15). This doesn't block
+   engineering work, just the go/no-go call.
+4. **Once 1 and 3 close, hold the explicit Phase 0 go/no-go review** this doc
    already calls for, then start Phase 1 (§8): create the three
    `Organization`s (`shared-org`, `idfy-org`, `familytree-org`), register
    the four `ClientApp`s, and configure `allowedRoles`/`AccessPolicy` per
