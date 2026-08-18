@@ -547,13 +547,76 @@ Phase 1 onward should start against a non-hardened `sso`.
    under normal use for the remainder of a 2–4 week window from
    2026-08-15, watched via the existing Prometheus/Grafana stack, before
    treating Phase 0 exit criteria as met on this item.
-6. **Load testing — still not done, unchanged since 2026-08-14.** The
-   `loadtest/scripts` k6 scripts still haven't been run against anything.
-   The difference now is there's a real, live target to point them at —
-   `sso-shared.exyon.com` — instead of a hypothetical staging cluster.
-   Nothing else about this item has changed; it's still open and is now
-   the single most actionable remaining Phase 0 gap, since the blocker
-   ("nothing to point the load test at") no longer exists.
+6. **Load testing — run for the first time 2026-08-17, against
+   `sso-shared.exyon.com`. Two real findings, one important limitation
+   discovered.** Installed k6, fixed the scripts (see below), and ran
+   `login-flow.js`, `spike-test.js`, and `mfa-flow.js` for real. Skipped
+   `token-refresh.js` for this pass (see below).
+   - **Script bugs found and fixed, not just worked around**: none of the
+     four scripts sent an `org` field, so every login attempt resolved to
+     the default `acme.local` org regardless of `TEST_ORG`/`TEST_EMAIL` —
+     against a real multi-tenant instance this meant the scripts could
+     never have produced a valid result before. Added `org` to every login
+     payload in all four scripts. Separately, `token-refresh.js`'s
+     `setup()` fetched one refresh token and shared it across all 30 VUs —
+     but `sso`'s refresh tokens are single-use with family-wide reuse
+     detection (`AuthController#refresh`), so the first successful refresh
+     from any VU would have revoked the whole family and failed every other
+     VU for the rest of the run. Rewrote it so each VU logs in
+     independently and threads its own rotating token across its own
+     iterations (k6 gives each VU an isolated JS runtime, so per-VU module
+     state is safe here).
+   - **Real finding: the scripts as designed can't produce a backend-capacity
+     baseline, because they correctly trip the rate limiter first.** All
+     four scripts drive concurrent load against one fixed test credential.
+     `sso`'s rate limiting (`RL_CREDS_CAPACITY=20`/60s per credential,
+     `RL_IP_CAPACITY=60`/60s per IP) throttles that almost immediately —
+     confirmed directly (`curl` loop of 30 concurrent requests against the
+     same credential returned a mix of `200`/`429`, not `200` throughout).
+     `login-flow.js` at 50 VUs: 98.9% of requests failed, essentially all
+     `429`s, not errors — `p(95)` latency on the *successful* requests was
+     a healthy 180ms. `mfa-flow.js` at 20 VUs showed the same pattern
+     (96.6% `429`). This is the rate limiter doing exactly its job, not a
+     capacity problem — but it means these specific scripts measure "how
+     fast does the per-credential limiter engage," not "how many logins/sec
+     can the backend actually handle." A real backend-capacity baseline
+     would need load spread across many distinct test credentials so no
+     single one trips the limiter; that's more fixture-building than this
+     pass covered.
+   - **Real finding, and a good one: `spike-test.js` (100 VUs, 50s) showed
+     the server handling a hard concurrency spike cleanly** — every request
+     returned either `200` or `429` (the script's own success condition),
+     none timed out or 5xx'd, and `p(95)` latency stayed at 123ms even
+     under the spike. That's a genuine, positive signal about the
+     deployment's resilience under burst load, independent of the
+     rate-limiter-baseline caveat above.
+   - **Minor consistency finding**: `401`/`429` responses from
+     `AuthController` return an empty body (`ResponseEntity.status(...).build()`),
+     not JSON — a few of the scripts' checks assumed a JSON error body and
+     failed on that basis specifically (not a real defect, just a
+     script-vs-actual-contract mismatch, now visible in the results above).
+   - **`token-refresh.js` — not run this pass.** Needs a non-MFA test
+     account to reach the refresh step, but the adaptive-policy engine
+     (`AdaptivePolicyService`, `requireMfaNewDevice`) correctly treats every
+     scripted request as a new device and forces an EMAIL_OTP step-up
+     regardless of the account's own MFA setting — and there's no way to
+     retrieve that OTP from a load-test harness without either receiving
+     real mail or disabling the org's adaptive policy, which is a
+     security-relevant setting not worth flipping even on a throwaway test
+     org without deliberately signing off on it first.
+   - **Test fixtures created for this pass** (harmless, isolated,
+     self-service-created — not customer data): an org
+     `loadtest-2026-08-17.example.com` ("Load Test Co") with two users, on
+     `sso-shared.exyon.com`. No org-delete endpoint exists in `sso` today,
+     so this can't be cleaned up via the API; low-risk to leave in place,
+     but flagging it so it isn't mistaken for real tenant data later.
+   - **Net status**: load testing is no longer "never run" — it's run, and
+     it produced a real (if partial) picture: the rate limiter works as
+     configured and the server is resilient under a concurrency spike. What
+     it hasn't produced yet is a true backend-capacity number, since that
+     needs a multi-credential test fixture the existing scripts don't have.
+     That's the honest remaining scope of this item, not a re-run of what
+     was just done.
 7. **Frontend coverage — partially done, scope-limited by design.** Raised
    from 21.27% to 34.38% statements (228 → 309 passing tests), by covering
    every auth-critical file the original 50% target actually cared about:
@@ -599,14 +662,17 @@ Phase 1 onward should start against a non-hardened `sso`.
 merged and live ✅; WebAuthn + adaptive-auth test suites merged and
 passing ✅; ZAP scan fixed ✅; a live lower environment (`shared`,
 serving as staging) up and reachable ✅; frontend coverage report
-showing the interim (auth-critical) target met ✅. **Still outstanding**:
-burn-in period completed with no unresolved P1/P2 incidents (in progress,
-~2 of ~14–28 days in); load-test baseline report (not started); new
-tenant-scoped signup capability built and tested (not started).
+showing the interim (auth-critical) target met ✅; load-test report
+showing rate-limiter and spike behavior 🟡 (run, real findings, but not
+yet a backend-capacity number — see item 6). **Still outstanding**: burn-in
+period completed with no unresolved P1/P2 incidents (in progress, ~2 of
+~14–28 days in); a multi-credential capacity baseline (item 6's remaining
+piece); new tenant-scoped signup capability built and tested (not started).
 
 **Exit criteria**: all eight items above closed, plus an explicit go/no-go
-review before Phase 1 starts. Five of eight are closed as of this update;
-the remaining three (burn-in, load testing, tenant-scoped signup) are the
+review before Phase 1 starts. Five and a half of eight are effectively
+closed as of this update; the remaining pieces (burn-in, a real capacity
+baseline, tenant-scoped signup) are the
 actual path to Phase 1 — see the "path forward" note after §9.
 
 **Risk**: this is the phase most likely to face pressure to skip or
@@ -948,14 +1014,24 @@ issues.
    open**: the E2E suite (3 spec files, no MFA/WebAuthn/admin-CRUD coverage,
    hardcoded `admin`/`AdminPass123!` credentials instead of a seeded
    fixture) — not touched by this pass, still a real gap.
-5. **Load testing has never been run — still true as of 2026-08-17.**
-   `loadtest/scripts` has 4 well-structured k6 scripts, but no results are
-   committed anywhere — nobody has run them against a real target. What
-   changed: a real target now exists (`sso-shared.exyon.com`, live on
-   Cloud Run), so this gap no longer has an infrastructure blocker, only
-   an "hasn't been done yet" status. No latency/throughput baseline exists
-   for a system about to become a hard dependency for every product's
-   login. This is now the most actionable open item in the whole gap list.
+5. **Load testing — run 2026-08-17, partial baseline established, see §8
+   Phase 0 item 6 for the full writeup.** Short version: the four
+   `loadtest/scripts` k6 scripts had never actually been runnable against
+   a real multi-tenant instance (none sent the `org` field the login
+   endpoint requires), and one (`token-refresh.js`) had a design flaw that
+   would have broken under any real concurrency (a single shared refresh
+   token across all VUs, which `sso`'s single-use rotating-token reuse
+   detection would revoke on first use). Fixed both, then ran three of the
+   four against `sso-shared.exyon.com`. Results: the rate limiter
+   (20 req/credential/min, 60 req/IP/min) engages correctly and the server
+   stays fast and stable under a 100-VU spike (p95 123ms, no 5xx/timeouts).
+   **Still open**: a true backend-capacity number, since a single-credential
+   test structurally can't produce one — that needs load spread across many
+   test credentials, which wasn't built this pass. `token-refresh.js`
+   itself wasn't run (blocked on adaptive-policy MFA step-up for any
+   "new device," with no way to receive the OTP in an automated harness
+   without either real mail or a security-policy change that wasn't
+   authorized in this session).
 6. **No tenant-scoped self-service signup — still true as of 2026-08-17,
    reconfirmed directly against `PublicController.java`.**
    `PublicController.signup` (`/api/public/signup`) only creates a
@@ -1014,17 +1090,24 @@ Five of eight are done. What's left, in the order to actually work them:
    item 7: every auth-critical file covered (21.27% → 34.38% overall),
    admin CRUD pages deliberately left uncovered. Revisit only if a hard
    50% number is explicitly wanted regardless of what it covers.
-7. **Run the load tests against the live `shared` environment**, record a
-   baseline, feed it into the existing SLO recording rules. No longer
-   blocked — just needs doing.
+7. ~~Run the load tests against the live `shared` environment.~~ **Done
+   (partially), 2026-08-17** — see §8 Phase 0 item 6: rate limiter and
+   spike resilience confirmed with real numbers; a true multi-credential
+   backend-capacity baseline is the one piece still open, and feeding a
+   number into the SLO recording rules should wait for that real capacity
+   figure rather than the rate-limiter-bound one.
 8. **Build tenant-scoped self-service signup** (gap 6 above) — real
-   backend work, can run in parallel with items 7 and the burn-in clock,
+   backend work, can run in parallel with item 9 and the burn-in clock,
    but must land before Phase 3/4 cutover regardless.
-9. **Let the `shared` environment's burn-in clock finish** — started
-   2026-08-15, targeting a 2–4 week window; don't gate Phase 1 on this
-   alone, but don't skip it either.
+9. **Extend load testing to a real multi-credential capacity baseline** —
+   spread concurrent load across many distinct test accounts (not one
+   fixed credential) so the rate limiter isn't the bottleneck being
+   measured, then feed that number into the SLO recording rules.
+10. **Let the `shared` environment's burn-in clock finish** — started
+    2026-08-15, targeting a 2–4 week window; don't gate Phase 1 on this
+    alone, but don't skip it either.
 
-Once 7 and 8 land and the burn-in window closes with no unresolved P1/P2
+Once 8 and 9 land and the burn-in window closes with no unresolved P1/P2
 incidents, Phase 0's exit criteria are met and Phase 1 (tenant/client
 config, §8) can start for real.
 
@@ -1047,10 +1130,15 @@ eventually make MMS a resource server on this same infrastructure.
 
 **Concrete next steps, in order:**
 
-1. **Run the k6 load tests against `sso-shared.exyon.com` now.** This is
-   pure execution, not design — the scripts exist, the target exists, the
-   SLO recording rules to feed the results into exist. Nothing is blocking
-   this; it's the highest-leverage single action available.
+1. **Load testing — done as far as one credential can take it (2026-08-17);
+   extend to a real capacity number next.** Ran three of the four k6
+   scripts against `sso-shared.exyon.com` this pass, fixing two real script
+   bugs along the way (missing `org` field; a refresh-token test that would
+   have broken under any real concurrency). Confirmed the rate limiter
+   engages correctly and the server survives a 100-VU spike cleanly — see
+   §8 Phase 0 item 6. What's left: spread load across many test credentials
+   instead of one, so the number that goes into the SLO recording rules
+   reflects backend capacity, not the (correctly configured) rate limiter.
 2. **Scope and build tenant-scoped self-service signup.** This is the one
    remaining item that's real engineering work, and it's on the critical
    path to Phase 3/4 (no product can cut over its signup flow without it).
@@ -1068,7 +1156,11 @@ eventually make MMS a resource server on this same infrastructure.
    in this update — only Phase 0's status did.
 5. **Minor cleanup, not blocking**: delete or clearly mark `sso/k8s/` as
    dead scaffolding so a future reader doesn't repeat this document's
-   original mistake of treating it as the live deployment path.
+   original mistake of treating it as the live deployment path. Also:
+   the `loadtest-2026-08-17.example.com` test org created on
+   `sso-shared.exyon.com` during item 1 has no cleanup path today (no
+   org-delete endpoint) — harmless, but worth remembering it's test data
+   if it turns up in an org list later.
 
 **What did not change**: the Option C decision (§5), the tenant model
 (§7 item 1), the phase sequencing (§8), and the fact that no product has
