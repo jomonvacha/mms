@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -47,6 +48,7 @@ public class TokenCleanupJob {
 
     /** Every hour at :05 past the hour. */
     @Scheduled(cron = "0 5 * * * *")
+    @Transactional
     public void sweepExpiredTokens() {
         Instant cutoff = Instant.now();
         int removed = runTimer.record(() -> tokens.deleteAllByExpiresAtBefore(cutoff));
