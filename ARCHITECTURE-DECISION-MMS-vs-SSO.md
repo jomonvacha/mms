@@ -14,7 +14,18 @@ tenant-scoped self-service signup endpoint, both real code changes in
 items closed, burn-in the only one left. Phase 0 hardening work is now a
 real, in-progress engineering effort this doc tracks, not a purely
 analytical exercise — the "no code changed" framing from earlier versions
-of this doc no longer applies to Phase 0 itself, only to Phases 1–5.*
+of this doc no longer applies to Phase 0 itself, only to Phases 1–5.
+Updated again 2026-08-18 (same day, second pass): revised §7 item 1's
+tenant grouping from three orgs (one shared between MMS/TradeCue) to
+**four fully independent orgs, no exceptions** — the shared-org
+justification turned out to be based on an implementation accident
+(`BillingAccount.userId` borrowing MMS's user table), not a real product
+need; TradeCue's user base is confirmed to have no meaningful overlap with
+MMS's. Also decided: TradeCue is retiring its `EntitlementClient`
+dependency on MMS entirely, extending its own Paddle-driven billing to own
+plan/feature entitlements instead (§8 Phase 4). And: Phase 1 was started
+the same day, explicitly not waiting for the burn-in window to close
+first — a deliberate risk tradeoff, see §10.*
 
 ## TL;DR
 
@@ -40,10 +51,15 @@ of this doc no longer applies to Phase 0 itself, only to Phases 1–5.*
      production deploy secret in TradeCue's CI. As built today, this
      integration does not work.
 - **Decision: Option C (hybrid)** — keep MMS as the system of record for
-  membership/entitlements, but stop having it also be a password/2FA/session
-  identity provider. `sso` will own identity for the whole product family
-  (IDFY, TradeCue, familytree/roots, plus MMS's own admin login); MMS
-  becomes an OAuth2 resource server that trusts `sso`-issued tokens. See §5.
+  *its own* membership/entitlements, but stop having it also be a
+  password/2FA/session identity provider. `sso` will own identity for the
+  whole product family (IDFY, TradeCue, familytree/roots, plus MMS's own
+  admin login); MMS becomes an OAuth2 resource server that trusts
+  `sso`-issued tokens. See §5. **Updated 2026-08-18**: "MMS owns
+  entitlements" no longer extends to TradeCue — TradeCue is retiring its
+  dependency on MMS's entitlement API and building its own, on its own
+  Paddle billing (§8 Phase 4). MMS's entitlement domain is now scoped to
+  MMS's own product line only, not a shared service for other products.
 - **This is a planned migration, not an urgent fix** — confirmed, no live
   incident is forcing this (§7, item 4).
 - **Blocking gate before any product depends on `sso` for login: `sso` is
@@ -345,49 +361,42 @@ All open questions from the original draft are now answered:
    3. Do the *same humans* genuinely need one login across both products? →
       only then, share.
 
-   **Current grouping**, per this rule:
+   **Current grouping, revised 2026-08-18 — strict one-org-per-product,
+   no exceptions:**
 
    | Product | Organization | Rationale |
    |---|---|---|
-   | MMS | `shared-org` | shared identity with TradeCue — real product need, same users work across both |
-   | TradeCue | `shared-org` | shared identity with MMS |
-   | IDFY | own org | no cross-identity requirement with MMS/TradeCue |
-   | familytree/roots | own org | no cross-identity requirement with any other product |
+   | MMS | `mms-org` | no cross-identity requirement with any other product |
+   | TradeCue | `tradecue-org` | no cross-identity requirement with any other product |
+   | IDFY | `idfy-org` | no cross-identity requirement with any other product |
+   | familytree/roots | `familytree-org` | no cross-identity requirement with any other product |
 
-   **Why not strict one-org-per-product everywhere** (the safer default):
-   it would remove all the risk below (no role collisions, no
-   admin-visibility leakage, no shared-policy constraint, zero judgment
-   calls for future products) — but it also removes the one reason
-   MMS/TradeCue are being merged in the first place: a real person
-   shouldn't need two separate accounts/passwords/MFA enrollments for two
-   products they both use. Strict 1:1 is the right *default*; it stops
-   being right the moment there's a genuine identity-sharing need, which is
-   why this is a per-pairing decision, not a single global policy in
-   either direction.
-
-   **Consequences of the MMS/TradeCue exception, to manage deliberately**:
-   - *Role-namespace collision risk* — mitigate with a naming convention:
-     prefix roles per product (`MMS_MEMBER`, `TRADECUE_ADMIN`) even inside
-     the shared org, so `ClientApp.allowedRoles` can still express
-     per-product role restriction despite the shared user pool.
-   - *Shared `AccessPolicy`* — MMS and TradeCue are locked to identical
-     MFA/geo rules for as long as they share the org. Revisit only if one
-     product needs genuinely different security rules than the other
-     (e.g., TradeCue handling money wanting stricter rules) — that would
-     require extending `sso`'s schema to make `AccessPolicy` per-`ClientApp`
-     rather than per-`Organization`.
-   - *Shared admin visibility* — an admin with access to `shared-org` can
-     see both MMS's and TradeCue's users; there is no code today to scope
-     an admin to "MMS users only" within a shared org.
-   - *Reversibility is asymmetric* — splitting `shared-org` later is a real
-     migration whose cost scales with how much actual cross-usage
-     happened, not with the code (see Phase 1). *Merging* two
-     currently-isolated orgs later (if IDFY or familytree/roots ever needed
-     shared identity) is comparably harder in the other direction — there
-     is no way to auto-link two independently-created accounts as "the
-     same person" without a deliberate account-linking flow. Neither
-     direction is free; treat each grouping decision as a real product
-     commitment, not a provisional default.
+   **This reverses the original decision, on new information, not a change
+   of mind about the rule itself.** The original grouping put MMS and
+   TradeCue in one `shared-org`, justified entirely by rule 3 above ("same
+   humans need one login") — evidence at the time was `BillingAccount`
+   storing only a `userId UUID` pointing at an MMS user, with no local user
+   table of its own. That turned out to be **today's implementation
+   accident, not a real product requirement**: TradeCue never built its own
+   user table, so it borrowed MMS's, but TradeCue's actual user base is
+   confirmed (2026-08-18, direct answer from the product owner) to be its
+   own thing — a commercial trading product being marketed independently,
+   not an extension of MMS's existing membership base. There is no
+   meaningful expected overlap between the two populations. Applying the
+   decision rule honestly to that fact: rule 3 fails, so per the rule
+   itself, the products should NOT share an org. Every consequence
+   originally accepted as a deliberate tradeoff for the MMS/TradeCue
+   exception — role-namespace collision risk, one shared `AccessPolicy`,
+   shared admin visibility, the asymmetric cost of splitting later — is now
+   moot, because there's no exception. This also lines up with a second,
+   independent decision made the same day: TradeCue is moving its
+   entitlement/plan-feature logic (`max_bots`, `futures`, `equities`,
+   `api_access`) off of MMS's `EntitlementClient` dependency and onto its
+   own Paddle-driven billing (see §8 Phase 4's TradeCue section for the
+   full reasoning) — once TradeCue no longer consumes MMS's entitlement
+   model either, there is no remaining coupling between the two products at
+   all beyond both using `sso` for login, which is exactly what the
+   strict-isolation default already handles cleanly.
 2. **User migration** — confirmed: one-time backfill of MMS `User` rows
    into `sso`'s `UserAccount`, with forced password reset and TOTP
    re-enrollment. No requirement to preserve credentials bit-for-bit.
@@ -671,13 +680,14 @@ Phase 1 onward should start against a non-hardened `sso`.
    product," not "each signup creates a new tenant company"). This needs
    new work in `sso` — either a client-scoped public signup endpoint
    (looks up the calling `client_id`, resolves which `Organization` that
-   client belongs to per §7 item 1's grouping — `shared-org` for MMS/
-   TradeCue, its own org for IDFY/familytree — and assigns the right
-   default `Role` within it), or a service-to-service admin API that each
-   product's own signup UI calls server-side. The same endpoint design
-   works for both shared and isolated groupings without per-product
-   branching, since it's parameterized by `client_id`, not hardcoded to one
-   org. Treat this as a required Phase 0 deliverable, not a Phase 3
+   client belongs to — each product has its own org per §7 item 1's
+   2026-08-18 revision to strict one-org-per-product — and assigns the
+   right default `Role` within it), or a service-to-service admin API that
+   each product's own signup UI calls server-side. The same endpoint
+   design works regardless of grouping, since it's parameterized by
+   `client_id`, not hardcoded to one org — this held up even after §7
+   item 1's grouping decision changed. Treat this as a required Phase 0
+   deliverable, not a Phase 3
    surprise. **Built 2026-08-18**: went with the service-to-service admin
    API option — `POST /api/service/users`, a new
    `ServiceProvisioningController`. Each product's own backend
@@ -727,48 +737,48 @@ cost paid before multiple products depend on it, not after.
 
 ### Phase 1 — Tenant + client setup (config only, in `sso`)
 
-**Goal**: model the agreed tenant structure (§7 item 1: configurable
-per-product grouping, isolate by default) in a hardened `sso` instance —
-three `Organization`s, not one.
+**Goal**: model the agreed tenant structure (§7 item 1, revised
+2026-08-18: strict one-org-per-product, no exceptions) in a hardened
+`sso` instance — four independent `Organization`s.
 
-**Work items**:
-1. Create three `Organization` records: `shared-org` (MMS + TradeCue),
-   `idfy-org`, `familytree-org`.
-2. Define the `Role` taxonomy per org — map MMS's existing `ERole`
-   (ADMIN, MANAGER, MODERATOR, MEMBER) onto `sso` `Role`s for `shared-org`,
-   using the `MMS_*`/`TRADECUE_*` naming convention from §7 item 1 to keep
-   the two products' roles distinguishable despite the shared table;
-   define independent taxonomies for `idfy-org` and `familytree-org` from
-   scratch (no clone/template mechanism exists in `sso` today). Produce a
-   written role-mapping table per org as part of this phase's
-   deliverables — this is the thing Phase 2's user migration and Phase
-   3/4's authorization checks both depend on.
-3. Register four `ClientApp`s, each parented to its group's org:
-   `mms-admin` + `tradecue` under `shared-org`; `idfy` under `idfy-org`;
-   `familytree` under `familytree-org`. For each: redirect URIs, scopes,
-   grant type (authorization_code + PKCE for the browser-facing apps;
-   consider whether any need `client_credentials` for service-to-service
-   calls).
+**Work items** (simpler than the original plan, since there's no shared
+org to manage the consequences of):
+1. Create four `Organization` records: `mms-org`, `tradecue-org`,
+   `idfy-org`, `familytree-org` — each fully independent, no shared user
+   pool, no `MMS_*`/`TRADECUE_*` naming-collision concern.
+2. Define the `Role` taxonomy per org, independently — map MMS's existing
+   `ERole` (ADMIN, MANAGER, MODERATOR, MEMBER) onto `sso` `Role`s for
+   `mms-org`; define TradeCue's, IDFY's, and familytree's taxonomies from
+   scratch, each in its own namespace with no cross-product prefixing
+   needed (no clone/template mechanism exists in `sso` today, so each is
+   still built by hand). Produce a written role-mapping table per org —
+   this is what Phase 2's user migration and Phase 3/4's authorization
+   checks both depend on.
+3. Register four `ClientApp`s, one per org — clean 1:1, no product sharing
+   a `ClientApp` or an org with another: `mms-admin` under `mms-org`;
+   `tradecue` under `tradecue-org`; `idfy` under `idfy-org`; `familytree`
+   under `familytree-org`. For each: redirect URIs, scopes, grant type
+   (authorization_code + PKCE for the browser-facing apps; consider
+   whether any need `client_credentials` for service-to-service calls).
 4. Set `allowedRoles` per `ClientApp` — e.g. `mms-admin` only allows
-   ADMIN/MANAGER/MODERATOR, not raw end-user accounts; within `shared-org`,
-   `mms-admin` and `tradecue` each allow only their own `MMS_*`/
-   `TRADECUE_*` roles despite sharing a user pool.
-5. Configure `AccessPolicy` per org — `shared-org` gets one policy covering
-   both MMS and TradeCue (document this as the known, deliberate tradeoff
-   from §7 item 1, not a surprise later); `idfy-org` and `familytree-org`
-   are each free to set independent MFA/geo rules from day one.
+   ADMIN/MANAGER/MODERATOR, not raw end-user accounts. No cross-product
+   role restriction needed, since each org's user pool is already
+   product-specific.
+5. Configure `AccessPolicy` per org, fully independently — each org sets
+   its own MFA/geo rules from day one, no shared-policy constraint to
+   document or manage.
 6. Document how each product's deployment receives its `client_id`/
    `client_secret` (via each product's existing CI secret store — never
    committed).
 
-**Deliverables**: `sso` staging instance with 3 orgs + 4 clients
-configured; written per-org role-mapping tables; documented `AccessPolicy`
-settings per org and the rationale for `shared-org`'s single policy.
+**Deliverables**: `sso` staging instance with 4 orgs + 4 clients
+configured (clean 1:1); written per-org role-mapping tables; documented
+independent `AccessPolicy` settings per org.
 
 **Exit criteria**: verified via `sso`'s own admin UI (org switcher +
 client registration, `AdminLayout.js`'s `activeOrg` picker) that all four
-clients exist under the correct org with correct `allowedRoles`; role-
-mapping tables reviewed and approved.
+clients exist under their own correct org with correct `allowedRoles`;
+role-mapping tables reviewed and approved.
 
 **Dependencies**: Phase 0 complete (don't configure real tenant structure
 against a non-hardened instance).
@@ -894,12 +904,38 @@ proof point before the others.
 1. Set `MMS_JWKS_URI`/`MMS_ISSUER_URI` (or rename to something
    issuer-neutral, e.g. `AUTH_JWKS_URI` — a naming cleanup worth deciding
    explicitly here) to `sso`'s real JWKS/discovery endpoints.
-2. Verify `EntitlementClient.java`'s calls to MMS's
-   `/api/users/me/entitlements` still work when forwarding an
-   `sso`-issued bearer token.
+2. **Retire `EntitlementClient.java`'s dependency on MMS, don't just
+   repoint it — decided 2026-08-18, revising the original plan.** The
+   original item here was "verify `EntitlementClient` still works when
+   forwarding an `sso`-issued bearer token," i.e. keep consuming MMS's
+   `/api/users/me/entitlements`. That's no longer the plan: TradeCue's user
+   base is confirmed to be its own thing (no real overlap with MMS
+   membership, see §7 item 1's 2026-08-18 revision), and it already has an
+   independent authorization mechanism in `BillingSubscriptionStatusProvider`/
+   `BillingService` (Paddle-driven, no HTTP dependency on MMS) answering
+   "does this user have active access at all." The plan is to extend that
+   same Paddle-driven system to also own `max_bots`/`futures`/`equities`/
+   `api_access` — the specific fields `EntitlementClient` currently fetches
+   from MMS — so TradeCue's entire authorization story (both "is this
+   account active" and "what does the plan grant") lives in one place it
+   controls, with no runtime HTTP dependency on MMS for anything.
+   Reasoning: `LiveTradingPolicy` gates real trades with real money on this
+   data — every external dependency in that path is a reliability risk for
+   a product moving real money, and TradeCue's pricing/feature tiers are
+   product decisions that shouldn't require touching MMS's
+   `MembershipCategory`/`MembershipTierConfig` schema (a different product
+   line — AI personas/knowledge sources — entirely). This is new,
+   TradeCue-side engineering work (extend `BillingService`'s Paddle-plan
+   model to carry these fields, update `LiveTradingPolicy`'s callers to
+   read from it instead of `EntitlementClient`, then delete
+   `EntitlementClient` and the `tradecue.mms.base-url` config it depends
+   on) — scope it as its own workstream, not a one-line change alongside
+   the JWKS repoint.
 3. Update `tradecue-ui`'s login redirect to `sso`.
-4. This is the smallest cutover of the three — TradeCue's resource-server
-   code doesn't change, only its configured issuer.
+4. **No longer the smallest cutover of the three** — item 2 above is real
+   engineering work, not just a config repoint. The JWKS/issuer change
+   itself (item 1) is still trivial; the entitlement migration is the
+   actual scope of this cutover now.
 
 **Familytree/roots** (currently: token introspection against MMS):
 1. Repoint `roots-service`'s `IntrospectionClient` from MMS's
@@ -1144,13 +1180,15 @@ Seven of eight are done. One thing left:
    §8 Phase 0 item 8: `POST /api/service/users`, service-to-service via
    `ClientApp` credentials. Unit-tested; not yet exercised against a real
    product, since Phase 1 hasn't registered a real `ClientApp` yet.
-9. **Let the `shared` environment's burn-in clock finish** — started
-   2026-08-15, targeting a 2–4 week window (~2026-08-29 to ~2026-09-12).
-   The only thing left before the Phase 0 go/no-go review.
+9. **`shared` environment's burn-in clock** — started 2026-08-15, targeting
+   a 2–4 week window (~2026-08-29 to ~2026-09-12). Still running, still
+   worth letting finish for its own sake — but per an explicit 2026-08-18
+   decision, **not gated on** before starting Phase 1 (see §10 item 4). A
+   deliberate, known risk tradeoff, not an oversight.
 
-Once the burn-in window closes with no unresolved P1/P2 incidents, Phase
-0's exit criteria are met and Phase 1 (tenant/client config, §8) can
-start for real.
+Phase 1 (tenant/client config, §8) started 2026-08-18, in parallel with
+burn-in rather than after it — see §10 for current status and what's
+blocked.
 
 None of this is a rewrite — `sso`'s architecture is sound and its hardest
 security engineering is already done (per `FIX_PLAN.md`). This is
@@ -1184,16 +1222,29 @@ load-testing, and tenant-scoped-signup items.
    sso-side work: it's registering a real `ClientApp` in Phase 1 and
    having one product actually call this endpoint, since nothing has
    exercised it end-to-end yet.
-3. **Let the `shared` burn-in clock run out** (targeting ~2026-08-29 to
-   ~2026-09-12, i.e. 2–4 weeks from 2026-08-15). This is the only thing
-   left before the Phase 0 go/no-go review — no more engineering work
-   gates it.
-4. **Once the burn-in window closes, hold the explicit Phase 0 go/no-go
-   review** this doc already calls for, then start Phase 1 (§8): create
-   the three `Organization`s (`shared-org`, `idfy-org`, `familytree-org`),
-   register the four `ClientApp`s, and configure `allowedRoles`/
-   `AccessPolicy` per §7's already-resolved decisions. Nothing about
-   Phase 1's design changed in this update — only Phase 0's status did.
+3. **`shared` burn-in clock — explicitly not gating Phase 1 start, per a
+   direct 2026-08-18 decision.** It's still running (started 2026-08-15,
+   targeting ~2026-08-29 to ~2026-09-12) and still worth letting finish for
+   its own sake — real usage without unresolved P1/P2 incidents is
+   genuinely useful confirmation — but the product owner explicitly chose
+   not to wait for it before starting Phase 1 work. That's a real,
+   deliberate risk tradeoff (starting to configure real tenant structure
+   against an instance that hasn't finished its observation window), made
+   knowingly, not a gap in this plan.
+4. **Phase 1 (§8): started 2026-08-18, revised scope — four independent
+   orgs, not three with one shared.** The grouping decision changed the
+   same day (see §7 item 1's 2026-08-18 revision): `mms-org`,
+   `tradecue-org`, `idfy-org`, `familytree-org`, each fully isolated, one
+   `ClientApp` each. **Blocked mid-execution**: scripted API calls to
+   `POST /api/admin/orgs` against `sso-shared.exyon.com` were refused by
+   the acting session's own permission controls (creating real tenant
+   records via bulk scripted writes is being treated as a consequential
+   action needing direct human action, separate from any `sso`-side
+   restriction). Next concrete step: create the four `Organization`s by
+   hand via `sso-shared.exyon.com/admin/organizations`, then continue
+   Phase 1's remaining work items (role taxonomy, `ClientApp` registration,
+   `allowedRoles`, `AccessPolicy`) either by hand or via API once a human
+   has created the orgs themselves.
 5. **Minor cleanup, not blocking**: delete or clearly mark `sso/k8s/` as
    dead scaffolding so a future reader doesn't repeat this document's
    original mistake of treating it as the live deployment path. Also: the
