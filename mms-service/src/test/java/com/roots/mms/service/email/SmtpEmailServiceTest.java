@@ -8,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -71,13 +71,15 @@ class SmtpEmailServiceTest {
     }
 
     @Test
-    void send_mailSenderThrows_propagatesException() {
+    void send_mailSenderThrows_isSwallowedNotPropagated() {
+        // send() is called from fire-and-forget flows (signup, forgot-password)
+        // that must not fail the caller's request just because SMTP is down —
+        // the failure is logged with the SMTP root cause instead of thrown.
         doThrow(new org.springframework.mail.MailSendException("SMTP unavailable"))
                 .when(mailSender).send((SimpleMailMessage) org.mockito.ArgumentMatchers.any());
         OutgoingEmail email = OutgoingEmail.of("user@example.com", "Sub", "Body");
 
-        assertThatThrownBy(() -> service.send(email))
-                .isInstanceOf(org.springframework.mail.MailException.class);
+        assertThatCode(() -> service.send(email)).doesNotThrowAnyException();
     }
 
     @Test

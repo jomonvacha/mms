@@ -58,6 +58,17 @@ spring:
     problemdetails:
       enabled: true
 
+  # SMTP client timeouts. Without these the JavaMail default is "block
+  # indefinitely," which turns a dead/unreachable mail host into a hung
+  # request thread instead of a fast, loggable failure. Same defaults as sso.
+  mail:
+    properties:
+      mail:
+        smtp:
+          connectiontimeout: ${MAIL_SMTP_CONNECT_TIMEOUT_MS:5000}
+          timeout: ${MAIL_SMTP_READ_TIMEOUT_MS:5000}
+          writetimeout: ${MAIL_SMTP_WRITE_TIMEOUT_MS:5000}
+
 # OAuth2 client registration is omitted here intentionally.
 # Spring Boot's ClientsConfiguredCondition skips ClientRegistrationRepository
 # creation when no registrations are present, avoiding startup failure when
@@ -121,6 +132,12 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+  health:
+    mail:
+      # Off by default — a slow/unreachable SMTP host would otherwise fail
+      # the whole /actuator/health check. Enable per-environment once SMTP
+      # is actually configured there.
+      enabled: ${MANAGEMENT_HEALTH_MAIL_ENABLED:false}
 
 info:
   app:
