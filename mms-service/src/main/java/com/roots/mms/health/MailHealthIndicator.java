@@ -1,14 +1,19 @@
 package com.roots.mms.health;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.health.contributor.Health;
 import org.springframework.boot.health.contributor.HealthIndicator;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
+// Gated on the spring.mail.host property (not @ConditionalOnBean(JavaMailSender.class)):
+// that condition is evaluated during component scanning, which runs before Spring Boot's
+// deferred auto-configuration registers the JavaMailSender bean, so it's always false in
+// practice. spring.mail.host is the same property MailSenderAutoConfiguration itself keys
+// off of to create that bean, so this fires exactly when the bean actually exists.
 @Component("mail")
-@ConditionalOnBean(JavaMailSender.class)
+@ConditionalOnProperty(prefix = "spring.mail", name = "host")
 public class MailHealthIndicator implements HealthIndicator {
     private final JavaMailSender sender;
 
