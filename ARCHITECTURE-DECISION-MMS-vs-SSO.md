@@ -1235,16 +1235,27 @@ load-testing, and tenant-scoped-signup items.
    orgs, not three with one shared.** The grouping decision changed the
    same day (see §7 item 1's 2026-08-18 revision): `mms-org`,
    `tradecue-org`, `idfy-org`, `familytree-org`, each fully isolated, one
-   `ClientApp` each. **Blocked mid-execution**: scripted API calls to
-   `POST /api/admin/orgs` against `sso-shared.exyon.com` were refused by
-   the acting session's own permission controls (creating real tenant
-   records via bulk scripted writes is being treated as a consequential
-   action needing direct human action, separate from any `sso`-side
-   restriction). Next concrete step: create the four `Organization`s by
-   hand via `sso-shared.exyon.com/admin/organizations`, then continue
-   Phase 1's remaining work items (role taxonomy, `ClientApp` registration,
-   `allowedRoles`, `AccessPolicy`) either by hand or via API once a human
-   has created the orgs themselves.
+   `ClientApp` each. **Work item 1 done on `sso-shared`, 2026-08-18**: all
+   four `Organization`s created (`mms.exyon.com`, `tradecue.exyon.com`,
+   `idfy.exyon.com`, `familytree.exyon.com`), via the admin console UI
+   (`sso-shared.exyon.com/admin/organizations`) rather than the API —
+   scripted API calls (`POST /api/admin/orgs`) were refused by the acting
+   session's own permission controls, treating bulk scripted writes to
+   real tenant data as needing direct human/UI action. Confirmed all four
+   exist via `POST /api/public/signup`'s duplicate-domain check (409 on
+   all four, non-destructively — no org created by that probe). **Note for
+   whoever does this on `sso-production` next**: `GET /api/admin/orgs`
+   only returns the caller's own org (`AdminOrganizationController.list()`
+   scopes to `tenantGuard.callerOrgId`), so the admin console's org list
+   won't show newly-created orgs unless you're logged in as a member of
+   them — don't mistake that for the creation having failed; the first
+   creation attempt here initially looked like it silently failed for
+   exactly that reason, and it hadn't. **Still open, work items 2–6**: role
+   taxonomy per org, `ClientApp` registration (one per org, redirect
+   URIs/scopes/grant type), `allowedRoles`, `AccessPolicy` per org,
+   documenting each product's `client_id`/`client_secret` distribution —
+   and repeating all of Phase 1 on `sso-production` once `shared` is
+   verified.
 5. **Minor cleanup, not blocking**: delete or clearly mark `sso/k8s/` as
    dead scaffolding so a future reader doesn't repeat this document's
    original mistake of treating it as the live deployment path. Also: the
