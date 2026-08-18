@@ -4,7 +4,12 @@
 changed as part of this analysis. Written 2026-08-13, updated 2026-08-13
 with resolved decisions + SSO readiness audit, updated 2026-08-14 revising
 the tenant model from one shared `Organization` to configurable
-per-product grouping (§7 item 1).*
+per-product grouping (§7 item 1), updated 2026-08-17 to correct §8/§9
+against verified current state: `sso` is now genuinely live in production
+(Google Cloud Run, not the GKE/k8s path this doc originally assumed — see
+§8 Phase 0 items 1 and 4, and §9 gaps 1–2). This is a real, material
+correction, not a status bump — it changes how close Phase 0 actually is
+to done.*
 
 ## TL;DR
 
@@ -13,9 +18,13 @@ per-product grouping (§7 item 1).*
   (identity only). `mms` is a single-tenant member-management backend that
   bundles identity *and* product-specific business logic (membership tiers,
   entitlements, AI model governance) behind one JWT.
-- **`sso` is currently unused** — no code in `mms`, `IDFY`, or `TradeCue`
-  references it. This is a green-field decision, not a migration of an
-  existing plan.
+- **`sso` is currently unused by any other product** — no code in `mms`,
+  `IDFY`, or `TradeCue` references it as an identity provider. This is
+  still a green-field decision, not a migration of an existing plan.
+  (`sso` itself, however, is no longer a dev-machine-only project — it now
+  runs live in two real Cloud Run environments with real traffic; see
+  below and §9. Nobody depends on it for login yet, but it is not
+  hypothetical infrastructure anymore.)
 - Two real problems exist in the **current** MMS-centered architecture,
   independent of any SSO decision:
   1. **IDFY embeds a stale, drifted fork of `mms-service`** (13 files
@@ -32,14 +41,23 @@ per-product grouping (§7 item 1).*
   becomes an OAuth2 resource server that trusts `sso`-issued tokens. See §5.
 - **This is a planned migration, not an urgent fix** — confirmed, no live
   incident is forcing this (§7, item 4).
-- **Blocking gate before any product depends on `sso` for login: `sso`
-  itself is not production-ready today.** §9 has the full gap list. Fixed
-  so far: secret management (Cloud KMS + Secret Manager, replacing the
-  literal `REPLACE_ME` k8s secrets) and `mvn verify` (was cascading to 55
-  test errors on this JDK, now passes clean). Still open: thin test
-  coverage (21% frontend, no WebAuthn/adaptive-auth tests), a ZAP security
-  scan that scans nothing in CI, and zero evidence `sso` has ever run
-  outside a dev machine. This has to close before Phase 1 of §8 starts.
+- **Blocking gate before any product depends on `sso` for login: `sso` is
+  further along than this doc previously gave it credit for, but Phase 0
+  isn't done.** §9 has the full gap list; as of 2026-08-17 five of eight
+  Phase 0 items are closed: secret management (Cloud KMS + Secret Manager,
+  live in production — the `k8s`/External Secrets Operator path this doc
+  originally described was abandoned in favor of Cloud Run, see §8 item 1),
+  a real CD pipeline with two live environments (`shared` and `production`
+  on Google Cloud Run — this reverses the previous "never deployed outside
+  a dev machine" finding, see §8 item 4 and §9 gap 2), WebAuthn/
+  adaptive-auth test coverage, the ZAP scan, and `mvn verify`. Frontend
+  coverage is raised but deliberately not at a hard 50% (auth-critical
+  files only). **Still open**: a real load-test baseline against the now-live
+  `shared` environment, a completed burn-in period (traffic only started
+  2026-08-15 — a couple of days in, not the proposed 2–4 weeks), and
+  tenant-scoped self-service signup (confirmed still missing as of
+  2026-08-17 — `PublicController.signup` still only creates brand-new
+  `Organization`s). These three close out Phase 0.
 
 ---
 
@@ -400,86 +418,68 @@ takes a hard dependency on it for login. This is the gate — nothing in
 Phase 1 onward should start against a non-hardened `sso`.
 
 **Work items** (priority order, from the §9 gap list):
-1. **Secret management — in progress, rotation problem fully solved.**
-   Confirmed: `gcloud` is already authenticated to GCP project
-   `idfy-platform` (the same project TradeCue's deploy pipeline uses), so
-   GCP Secret Manager (+ Cloud KMS, see below) was chosen over Vault/AWS
-   for consistency with the rest of the platform. Done so far, in the `sso`
-   repo:
-   - `k8s/base/secret.yml` (the static `REPLACE_ME` file) deleted, replaced
-     with `k8s/base/secretstore.yml` + `k8s/base/external-secret.yml` — an
-     External Secrets Operator `SecretStore`/`ExternalSecret` pair that
-     syncs `DB_USERNAME`, `DB_PASSWORD`, `SPRING_MAIL_USERNAME`,
-     `SPRING_MAIL_PASSWORD` from GCP Secret Manager into a k8s `Secret`
-     with the shape the Deployment already consumes via
-     `envFrom.secretRef`.
-   - **`DATA_ENC_KEY` eliminated entirely, not just relocated.** Original
-     plan was to move the raw AES key into Secret Manager, but investigating
-     *why* it couldn't be safely rotated (see below) led to a better fix:
-     `EncryptingStringConverter` now supports a Cloud KMS backend
-     (`DATA_ENC_KMS_KEY`, a non-secret key *resource name* in
-     `k8s/base/configmap.yml` — the key material itself never leaves KMS).
-     The app calls KMS's `Encrypt`/`Decrypt` RPCs instead of holding a raw
-     symmetric key; KMS handles key-version bookkeeping internally, so
-     rotation is now either automatic (90-day period, matching the
-     existing `KEY_ROTATION_DAYS` precedent for JWK signing keys) or one
-     command (`gcloud kms keys versions create`) — no app-side migration,
-     no downtime. Local dev is unaffected: it still uses the pre-existing
-     ephemeral-key fallback, no live GCP dependency for `mvn spring-boot:run`.
-     Full reasoning for choosing KMS over app-level key-versioning is in
-     the conversation that produced this — the short version: less code to
-     maintain, and it reuses the same Workload Identity auth already being
-     set up for Secret Manager access.
-   - `k8s/base/serviceaccount.yml` annotated for Workload Identity
-     (`iam.gke.io/gcp-service-account: sso-backend@idfy-platform.iam.gserviceaccount.com`)
-     — now used for both Secret Manager and Cloud KMS access.
-   - `k8s/setup-gcp-secrets.sh` updated: creates the 4 remaining Secret
-     Manager secrets, the KMS keyring + key (with automatic rotation
-     configured), the GCP service account, and least-privilege IAM
-     bindings scoped to exactly these resources (not project- or
-     keyring-wide). **Not yet run** — needs a GKE cluster to exist first
-     (confirmed: none does yet, this is greenfield) and a fresh
-     `gcloud auth login` (the current session's token needs interactive
-     re-auth). Cluster provisioning itself is out of scope for this item —
-     it's a prerequisite, tracked separately.
-   - `docs/runbooks/secret-rotation.md` rewritten — all secrets, including
-     the encryption key, are now routine to rotate. Kept the explanation of
-     *why* the old `DATA_ENC_KEY` approach was unsafe (one static key, no
-     per-row version tracking, `DataEncryptionBackfillRunner` is a
-     one-time legacy-plaintext migration guarded by a permanent completion
-     marker — not a rotation tool, despite looking like one) so the same
-     mistake doesn't get reintroduced for some future encrypted field.
-   - Fixed a stale doc reference in `CLAUDE.md` (`DATA_ENCRYPTION_KEY` →
-     the actually-used `DATA_ENC_KEY`) found while verifying the env var
-     name.
-   - New test coverage: `EncryptingStringConverterTest` gained a KMS-backend
-     round-trip test. Deliberately **not** using Mockito for it — doing so
-     surfaced a real, separate, pre-existing problem, see the new §9 item
-     below.
-   - **Peer-reviewed before commit** (8-angle review: line-by-line,
-     removed-behavior, cross-file, reuse, simplification, efficiency,
-     altitude, conventions). Found and fixed 10 real issues before this
-     landed, the most severe being: `KmsBackend` could leak a gRPC
-     client + shutdown-hook thread on every request if `DATA_ENC_KMS_KEY`
-     were malformed (directly exploitable by the placeholder value that
-     was, at the time, still sitting in `configmap.yml`); `setup-gcp-secrets.sh`
-     created the mail secrets without ever adding a version, which — combined
-     with External Secrets Operator's all-or-nothing sync — would have
-     blocked the entire `sso-backend-secrets` object (including valid DB
-     credentials) from ever materializing; and `DataEncryptionBackfillRunner`
-     never checked the new `DATA_ENC_KMS_KEY` path, so it would have
-     silently skipped legacy-plaintext migration forever in exactly the
-     k8s topology this change introduces. All 10 fixed and verified —
-     including a live end-to-end check against a real local Postgres
-     (login + JWK-signing flows both exercised the modified encryption
-     path successfully). Committed as `a8ec7b7` in the `sso` repo.
-   **Still open**: kustomize build validated locally
-   (`kubectl kustomize k8s/base` renders correctly), but nothing has been
-   applied to a real cluster — there isn't one yet. Remaining before this
-   item is fully closed: provision the GKE cluster, run
-   `setup-gcp-secrets.sh`, install External Secrets Operator, fill in the
-   cluster name/region placeholders in `secretstore.yml` and
-   `configmap.yml`, and verify `SecretSynced=True`.
+1. **Secret management — done, and live in production. The originally
+   planned mechanism (GKE + External Secrets Operator) was abandoned in
+   favor of Cloud Run; this item closes via a different, simpler path than
+   first written here, updated 2026-08-17.**
+   `gcloud` is authenticated to GCP project `idfy-platform` (the same
+   project TradeCue's deploy pipeline uses), so GCP Secret Manager (+ Cloud
+   KMS) was chosen over Vault/AWS for consistency with the rest of the
+   platform — that part of the original plan held. What changed is the
+   delivery mechanism:
+   - **No Kubernetes cluster was ever provisioned, and none is coming** —
+     see the cross-cutting `/Users/jomonvacha/Projects/CLOUD-DEPLOYMENT-PLAN.md`,
+     which governs `sso`'s (and `mms`'s) real deployment across all five
+     apps in this product family. `sso` deploys straight to **Google Cloud
+     Run** via `.github/workflows/deploy-backend.yml`, with secrets
+     injected at deploy time through `gcloud run deploy --set-secrets`,
+     driven by a per-GitHub-Environment `SSO_SECRETS_MAPPING` variable
+     (`shared`/`production` environments, one mapping each) that references
+     Secret Manager secrets directly — `DB_URL`/`DB_USERNAME`/`DB_PASSWORD`,
+     `SPRING_MAIL_USERNAME`/`SPRING_MAIL_PASSWORD`, all versioned in Secret
+     Manager, none committed anywhere.
+   - **`k8s/base/` and `k8s/setup-gcp-secrets.sh` still exist in the repo
+     but are stale, abandoned scaffolding** — written for the GKE path that
+     was never built. Do not treat them as the real deployment story;
+     nothing applies them. Worth a follow-up cleanup pass to delete them so
+     a future reader doesn't mistake them for live infrastructure (this doc
+     made exactly that mistake until this 2026-08-17 pass).
+   - **`DATA_ENC_KEY` elimination in favor of Cloud KMS is live, not just
+     coded.** `EncryptingStringConverter`'s `KmsBackend` is wired via the
+     `DATA_ENC_KMS_KEY` env var, set per environment through
+     `SSO_EXTRA_ENV_VARS` (e.g.
+     `DATA_ENC_KMS_KEY=projects/idfy-platform/locations/us-central1/keyRings/sso/cryptoKeys/sso-data-enc-key-production`),
+     with `roles/cloudkms.cryptoKeyEncrypterDecrypter` granted to the Cloud
+     Run runtime service account. No Workload Identity/GKE machinery needed
+     — Cloud Run's own runtime SA plus IAM is sufficient. Local dev is
+     unaffected: still the ephemeral-key fallback.
+   - **Peer-reviewed and committed** as `a8ec7b7` in the `sso` repo (10
+     issues found and fixed pre-merge — see the original review notes
+     preserved below for the record).
+   - **Original pre-commit review notes (still accurate, preserved for
+     context)**: 8-angle review (line-by-line, removed-behavior,
+     cross-file, reuse, simplification, efficiency, altitude, conventions)
+     found and fixed 10 real issues before this landed, the most severe
+     being: `KmsBackend` could leak a gRPC client + shutdown-hook thread on
+     every request if `DATA_ENC_KMS_KEY` were malformed; the secrets-setup
+     script created the mail secrets without ever adding a version, which
+     would have blocked secret materialization; and
+     `DataEncryptionBackfillRunner` never checked the new
+     `DATA_ENC_KMS_KEY` path, so it would have silently skipped
+     legacy-plaintext migration forever. All fixed and verified, including
+     a live end-to-end check against a real local Postgres (login +
+     JWK-signing flows both exercised the modified encryption path
+     successfully).
+   - `docs/runbooks/secret-rotation.md` describes routine rotation for all
+     secrets including the encryption key — still accurate, since KMS
+     rotation doesn't depend on which compute platform calls it.
+   **Closed.** No further work needed on this item — Secret Manager +
+   Cloud KMS are both live in `shared` and `production`, confirmed via
+   real deploys and hands-on testing directly against
+   `https://sso-shared.exyon.com` this session (admin sign-in, MFA/TOTP
+   flows, session and group management all exercised against the live
+   Cloud Run instance, which stores its JWK private keys and MFA seeds
+   through the KMS-backed `EncryptingStringConverter` path).
 2. **WebAuthn + adaptive-auth test coverage — done.** 55 new tests added
    (`AdaptivePolicyServiceTest`, `WebAuthnServiceTest`,
    `WebAuthnControllerTest`), 115/115 passing, coverage gate met.
@@ -513,16 +513,47 @@ Phase 1 onward should start against a non-hardened `sso`.
    before wiring into CI — not just YAML syntax, but the actual
    build→boot→health-check→real-HTTP-response sequence. Committed and
    pushed as `sso@bbf40ba`.
-4. **Real deploy pipeline + staging environment.** A CD job that applies
-   `k8s/base` manifests to an actual staging cluster, secrets sourced from
-   the KMS/Vault set up in item 1 — not `REPLACE_ME`.
-5. **Staging burn-in.** Run `sso` in staging for a defined minimum period
-   (proposed: 2–4 weeks) with synthetic smoke traffic, watched via the
-   existing Prometheus/Grafana stack (already solid, per §9).
-6. **Load testing.** Run the existing `loadtest/scripts` k6 scripts against
-   staging; record a real latency/throughput baseline; feed it into the
-   existing SLO recording rules (`monitoring/prometheus/recording-rules.yml`)
-   so the 99.9%-availability target has a real number behind it.
+4. **Real deploy pipeline + staging environment — done, updated 2026-08-17.**
+   The GKE/`k8s/base`-manifest plan in the original version of this item
+   was superseded, not completed as written. What's actually live: a
+   GitHub Actions CD pipeline (`deploy-backend.yml` + `deploy-frontend.yml`
+   in the `sso` repo, `cd4bc8d` onward) that pushes to **Google Cloud Run**
+   + Firebase Hosting on every push to `develop` (→ `shared` environment)
+   and `release` (→ `production` environment). Two real, distinct
+   environments exist today — `sso-shared.exyon.com` (backend
+   `sso-api-shared`) and the production tier (backend `sso-api-production`)
+   — each independently verified this session with real traffic: sign-in,
+   MFA, session revocation, and the full admin console all exercised
+   end-to-end against `sso-shared.exyon.com`, with fixes (DataInitializer
+   startup crash, dropped roles claim on token refresh, group-endpoint
+   500s, SMTP-based OTP delivery, a UI redesign) found via that live
+   testing and then promoted through to `production` the same way a real
+   release would be. `shared` functions as the staging tier this item
+   originally asked for. **Closed** — a "staging environment" now exists
+   in substance (a lower environment you can break safely before
+   promoting), even though it's named `shared` rather than `staging` and
+   runs on Cloud Run rather than GKE.
+5. **Burn-in period — clock has started, not yet complete.** The `shared`
+   environment has been carrying real interactive traffic (this session's
+   own testing) since 2026-08-15; as of this update (2026-08-17) that's
+   roughly 2 days, not the 2–4 weeks originally proposed. Unlike the
+   original plan, this isn't synthetic smoke traffic on an idle
+   cluster — it's genuine hands-on usage across auth, MFA, sessions, and
+   admin flows, which arguably counts for more per day than synthetic
+   traffic would, but it's still short of a real burn-in window and has
+   surfaced real bugs during the window itself (see item 4) rather than
+   after a clean settling period. **Recommendation**: don't reset the
+   clock, but don't call this done either — let `shared` keep running
+   under normal use for the remainder of a 2–4 week window from
+   2026-08-15, watched via the existing Prometheus/Grafana stack, before
+   treating Phase 0 exit criteria as met on this item.
+6. **Load testing — still not done, unchanged since 2026-08-14.** The
+   `loadtest/scripts` k6 scripts still haven't been run against anything.
+   The difference now is there's a real, live target to point them at —
+   `sso-shared.exyon.com` — instead of a hypothetical staging cluster.
+   Nothing else about this item has changed; it's still open and is now
+   the single most actionable remaining Phase 0 gap, since the blocker
+   ("nothing to point the load test at") no longer exists.
 7. **Frontend coverage — partially done, scope-limited by design.** Raised
    from 21.27% to 34.38% statements (228 → 309 passing tests), by covering
    every auth-critical file the original 50% target actually cared about:
@@ -559,17 +590,24 @@ Phase 1 onward should start against a non-hardened `sso`.
    works for both shared and isolated groupings without per-product
    branching, since it's parameterized by `client_id`, not hardcoded to one
    org. Treat this as a required Phase 0 deliverable, not a Phase 3
-   surprise.
+   surprise. **Reconfirmed 2026-08-17, still missing**: `PublicController.java`
+   still has exactly one endpoint, `POST /api/public/signup`, and it still
+   only creates a brand-new `Organization`. No join-existing-org or
+   invite-based endpoint exists anywhere in `sso`'s `web/` package.
 
-**Deliverables**: KMS/Vault integration merged; WebAuthn + adaptive-auth
-test suites merged and passing; ZAP scan either fixed or removed; staging
-environment live and reachable; burn-in period completed with no
-unresolved P1/P2 incidents; load-test baseline report; frontend coverage
-report showing the interim target met; new tenant-scoped signup capability
-built and tested.
+**Deliverables — status as of 2026-08-17**: KMS/Secret Manager integration
+merged and live ✅; WebAuthn + adaptive-auth test suites merged and
+passing ✅; ZAP scan fixed ✅; a live lower environment (`shared`,
+serving as staging) up and reachable ✅; frontend coverage report
+showing the interim (auth-critical) target met ✅. **Still outstanding**:
+burn-in period completed with no unresolved P1/P2 incidents (in progress,
+~2 of ~14–28 days in); load-test baseline report (not started); new
+tenant-scoped signup capability built and tested (not started).
 
 **Exit criteria**: all eight items above closed, plus an explicit go/no-go
-review before Phase 1 starts.
+review before Phase 1 starts. Five of eight are closed as of this update;
+the remaining three (burn-in, load testing, tenant-scoped signup) are the
+actual path to Phase 1 — see the "path forward" note after §9.
 
 **Risk**: this is the phase most likely to face pressure to skip or
 shortcut, since nothing user-visible changes yet. It shouldn't be — this is
@@ -819,16 +857,24 @@ large PR. Phase 0 is the gate: no product should take a hard dependency on
 
 ## 9. `sso` production-readiness gap list (blocking Phase 0)
 
-Audited directly against the code, not the README. Bottom line: **solid
-security engineering and strong observability config, undermined by thin
-test coverage, decorative security scanning, and zero evidence of ever
-running outside a developer's laptop. Not enterprise-grade yet — closer to
-"well-architected side project with real security work started."** Secret
-management (including encryption-key rotation) is now solved in code and
-config, pending only cluster application (§8 Phase 0 item 1). `mvn verify`
-now runs clean (item 7, fixed) — the most severe *remaining* gap is thin
-WebAuthn/adaptive-auth test coverage (item 2 below), now that the suite
-enforcing it actually completes.
+Audited directly against the code, not the README. Originally (through
+2026-08-14): **solid security engineering and strong observability config,
+undermined by thin test coverage, decorative security scanning, and zero
+evidence of ever running outside a developer's laptop.** That last part is
+no longer true, and the correction is substantial enough to change the
+overall picture. **As of 2026-08-17: real security engineering, real
+observability, real test coverage on the security-critical paths, and a
+real deployed system carrying real traffic in two environments. What's
+left is proving it under load and closing one missing product-integration
+capability — this reads much closer to "genuinely production-hardening,
+mid-rollout" than "side project" now.** Secret management (including
+encryption-key rotation) is done and live (§8 Phase 0 item 1) — the
+originally-planned GKE/cluster-application step was dropped, not
+completed, because the deployment strategy changed to Cloud Run. `mvn
+verify` runs clean (item 7). The most severe genuinely remaining gaps are
+the missing load-test baseline (item 5) and missing tenant-scoped signup
+(item 6) — both blockers for Phase 3/4, not Phase 0-internal quality
+issues.
 
 ### What's genuinely solid already
 - **Observability**: `monitoring/prometheus/alerts.yml` has real alerts
@@ -850,22 +896,47 @@ enforcing it actually completes.
   rotation.
 
 ### Gaps that must close before Phase 0 is done
-1. **No secret management for production — in progress, see §8 Phase 0
-   item 1.** `k8s/base/secret.yml` used to ship literal
-   `DATA_ENC_KEY: "REPLACE_ME"` and `DB_PASSWORD: "REPLACE_ME"`; it's been
-   replaced with GCP Secret Manager + External Secrets Operator config for
-   DB/mail creds, not yet applied to a real cluster (none exists yet).
-   **Rotation itself is now fully solved, not just deferred**: `DATA_ENC_KEY`
-   was eliminated in favor of Cloud KMS-backed encryption
-   (`EncryptingStringConverter`'s new `KmsBackend`) — KMS handles key
-   versioning internally, so rotation no longer needs an app-side migration
-   at all. See the rotation runbook and §8 Phase 0 item 1 for the full
-   story.
-2. **No deploy pipeline.** CI (`ci.yml`) builds, tests, and pushes images to
-   `ghcr.io` — there is no job that applies the `k8s/base` manifests
-   anywhere. Confirmed: `sso` has never been deployed outside a dev
-   machine (no git history, workflow run, or manifest referencing a real
-   cluster/domain).
+1. **No secret management for production — RESOLVED, corrected 2026-08-17.**
+   Originally: `k8s/base/secret.yml` shipped literal
+   `DATA_ENC_KEY: "REPLACE_ME"` and `DB_PASSWORD: "REPLACE_ME"`, and the
+   planned fix (External Secrets Operator syncing GCP Secret Manager into a
+   GKE cluster) hadn't been applied because no cluster existed. **What
+   actually happened**: the GKE/ESO plan was abandoned when the deployment
+   strategy moved to Cloud Run (see `CLOUD-DEPLOYMENT-PLAN.md`). Cloud Run
+   reads secrets directly from GCP Secret Manager at deploy time via
+   `gcloud run deploy --set-secrets` — no cluster, no operator, no synced
+   `Secret` object needed. This is live today in both `shared` and
+   `production`. `k8s/base/secret.yml`'s literal placeholders are gone from
+   the real deployment path entirely (the file may still exist in the repo
+   as dead scaffolding — see §8 item 1). **Rotation is fully solved**:
+   `DATA_ENC_KEY` was eliminated in favor of Cloud KMS-backed encryption
+   (`EncryptingStringConverter`'s `KmsBackend`), live via `DATA_ENC_KMS_KEY`
+   in both environments' env vars, with the Cloud Run runtime SA granted
+   `roles/cloudkms.cryptoKeyEncrypterDecrypter`.
+2. **No deploy pipeline — RESOLVED, this was the doc's most significant
+   error, corrected 2026-08-17.** This item previously stated `sso` "has
+   never been deployed outside a dev machine." That's no longer accurate,
+   and — checking dates — it's not clear it was ever verified rather than
+   inferred from an absent k8s deploy job; the actual pipeline
+   (`deploy-backend.yml`/`deploy-frontend.yml`, Cloud Run + Firebase
+   Hosting) was added to the `sso` repo the same day this doc's §7 tenant
+   model was last revised (`cd4bc8d`, 2026-08-15). **Current, directly
+   observed reality**: `sso` runs live on Google Cloud Run in two
+   environments — `shared` (`sso-shared.exyon.com`, service
+   `sso-api-shared`) and `production` (service `sso-api-production`) —
+   deployed via GitHub Actions on push to `develop`/`release`
+   respectively, with Firebase Hosting serving the frontend and rewriting
+   `/api/**` to the backend. This session used the `shared` environment
+   directly and extensively: signed in as admin, walked the full admin
+   console, found and fixed a startup-crashing bug
+   (`DataInitializer`), a dropped-roles-on-refresh bug, group-endpoint
+   500s, and non-functional SMTP delivery, then promoted every fix through
+   to `production` the same way a real release would be. This is not
+   "evidence of a workflow file" — it's confirmed via real HTTP responses
+   (real `401`s from live Spring Security, not routing errors) and hands-on
+   use over multiple sessions. The `k8s/base` manifests referenced by the
+   original version of this gap were never the real path and should be
+   treated as stale (see §8 item 1).
 3. **Security scanning was decorative — fixed.** See §8 Phase 0 item 3.
 4. **Test coverage had a critical blind spot — backend fixed, frontend
    partially fixed by design.** Backend: `WebAuthnService`/`WebAuthnController`/
@@ -877,22 +948,31 @@ enforcing it actually completes.
    open**: the E2E suite (3 spec files, no MFA/WebAuthn/admin-CRUD coverage,
    hardcoded `admin`/`AdminPass123!` credentials instead of a seeded
    fixture) — not touched by this pass, still a real gap.
-5. **Load testing has never been run.** `loadtest/scripts` has 4
-   well-structured k6 scripts, but no results are committed anywhere —
-   nobody has run them against a real target. No latency/throughput
-   baseline exists for a system about to become a hard dependency for
-   every product's login.
-6. **No tenant-scoped self-service signup.** Discovered while drafting the
-   phase plan (§8, Phase 0 item 8) — `PublicController.signup`
-   (`/api/public/signup`) only creates a **brand-new `Organization` with
-   its own first admin**. There is no endpoint for "add a regular end-user
-   to an *existing* `Organization`'s user pool," which is what IDFY,
-   TradeCue, and familytree/roots actually need for their current "users
-   sign up in the product" flows. Every one-org-per-signup call today would
-   fragment the single-`Organization` tenant model decided in §7 item 1.
-   This is missing functionality, not a config gap — it needs real backend
-   work in `sso` before Phase 3/4 can replace any product's existing signup
-   flow.
+5. **Load testing has never been run — still true as of 2026-08-17.**
+   `loadtest/scripts` has 4 well-structured k6 scripts, but no results are
+   committed anywhere — nobody has run them against a real target. What
+   changed: a real target now exists (`sso-shared.exyon.com`, live on
+   Cloud Run), so this gap no longer has an infrastructure blocker, only
+   an "hasn't been done yet" status. No latency/throughput baseline exists
+   for a system about to become a hard dependency for every product's
+   login. This is now the most actionable open item in the whole gap list.
+6. **No tenant-scoped self-service signup — still true as of 2026-08-17,
+   reconfirmed directly against `PublicController.java`.**
+   `PublicController.signup` (`/api/public/signup`) only creates a
+   **brand-new `Organization` with its own first admin**; it remains the
+   *only* endpoint in `sso`'s `web/` package for account creation. There is
+   no endpoint for "add a regular end-user to an *existing* `Organization`'s
+   user pool," which is what IDFY, TradeCue, and familytree/roots actually
+   need for their current "users sign up in the product" flows. Every
+   one-org-per-signup call today would fragment the tenant model decided in
+   §7 item 1. This is missing functionality, not a config gap — it needs
+   real backend work in `sso` before Phase 3/4 can replace any product's
+   existing signup flow. Of the three genuinely open Phase 0 items, this is
+   the only one that's pure development work rather than "wait and
+   observe" (burn-in) or "run an existing script" (load testing) — it's
+   the one to actually schedule engineering time against first if the goal
+   is unblocking Phase 1 fastest, even though items 5 and 6 can run in
+   parallel with it.
 7. **`mvn verify` did not complete on this development machine's JDK — fixed.**
    `mvn test` failed with `Tests run: 59, Errors: 55` even on an *untouched*
    checkout (verified via `git stash` before/after the secret-management
@@ -915,27 +995,83 @@ enforcing it actually completes.
    code touched. Confirmed: `mvn verify` now passes clean — 60/60 tests,
    coverage gate met. Committed as `9e0ccf0` in the `sso` repo.
 
-### Suggested Phase 0 priority order
-1. Secret management — done except cluster application, see §8 Phase 0
-   item 1 (now includes Cloud KMS-backed rotation, not just Secret Manager
-   storage).
+### Suggested Phase 0 priority order — updated 2026-08-17
+
+Five of eight are done. What's left, in the order to actually work them:
+
+1. ~~Secret management.~~ **Done** — see §8 Phase 0 item 1 above (Cloud
+   KMS + Secret Manager, live via Cloud Run, not the originally-planned
+   GKE path).
 2. ~~Fix `mvn verify` on the CI/dev JDK (gap 7).~~ **Done** — see gap 7 above.
 3. ~~WebAuthn + adaptive-auth test coverage.~~ **Done** — see §8 Phase 0
    item 2 above.
 4. ~~Fix or remove the ZAP scan.~~ **Done** — see §8 Phase 0 item 3 above.
-5. Stand up a real deploy pipeline + a staging environment; run it there
-   for a meaningful burn-in period before any product points at it.
-6. Run the load tests against staging, record a baseline, feed it into the
-   existing SLO recording rules.
-7. ~~Raise frontend coverage off 21%.~~ **Partially done** — see §8 Phase 0
+5. ~~Stand up a real deploy pipeline + a staging environment.~~ **Done** —
+   see §8 Phase 0 item 4 above: live on Cloud Run in `shared` +
+   `production`, verified with real traffic, not the originally-planned
+   GKE/`k8s` path.
+6. ~~Raise frontend coverage off 21%.~~ **Partially done** — see §8 Phase 0
    item 7: every auth-critical file covered (21.27% → 34.38% overall),
    admin CRUD pages deliberately left uncovered. Revisit only if a hard
    50% number is explicitly wanted regardless of what it covers.
-8. Build tenant-scoped self-service signup (gap 6 above) — can happen in
-   parallel with items 3–7 since it's independent new functionality, but
-   must land before Phase 3/4 cutover regardless.
+7. **Run the load tests against the live `shared` environment**, record a
+   baseline, feed it into the existing SLO recording rules. No longer
+   blocked — just needs doing.
+8. **Build tenant-scoped self-service signup** (gap 6 above) — real
+   backend work, can run in parallel with items 7 and the burn-in clock,
+   but must land before Phase 3/4 cutover regardless.
+9. **Let the `shared` environment's burn-in clock finish** — started
+   2026-08-15, targeting a 2–4 week window; don't gate Phase 1 on this
+   alone, but don't skip it either.
+
+Once 7 and 8 land and the burn-in window closes with no unresolved P1/P2
+incidents, Phase 0's exit criteria are met and Phase 1 (tenant/client
+config, §8) can start for real.
 
 None of this is a rewrite — `sso`'s architecture is sound and its hardest
 security engineering is already done (per `FIX_PLAN.md`). This is
 operational maturity work: prove it in a real environment before three
 products' logins depend on it.
+
+## 10. Path forward — added 2026-08-17
+
+Phase 0 is materially closer to done than this document previously
+reflected — not because new work landed against the plan as originally
+written, but because a parallel deployment effort
+(`CLOUD-DEPLOYMENT-PLAN.md`) independently solved two of Phase 0's biggest
+items (real secret management, a real deploy pipeline + staging-equivalent
+environment) via Cloud Run instead of the GKE path this doc assumed. That
+plan also deployed the standalone `mms` repo the same way, to
+`mms.exyon.com`/`mms-shared.exyon.com` — worth knowing since Phase 3 will
+eventually make MMS a resource server on this same infrastructure.
+
+**Concrete next steps, in order:**
+
+1. **Run the k6 load tests against `sso-shared.exyon.com` now.** This is
+   pure execution, not design — the scripts exist, the target exists, the
+   SLO recording rules to feed the results into exist. Nothing is blocking
+   this; it's the highest-leverage single action available.
+2. **Scope and build tenant-scoped self-service signup.** This is the one
+   remaining item that's real engineering work, and it's on the critical
+   path to Phase 3/4 (no product can cut over its signup flow without it).
+   Start from §8 Phase 0 item 8's two design options (client-scoped public
+   endpoint vs. service-to-service admin API) and pick one — that's a
+   decision this doc deliberately left open, not an oversight.
+3. **Let the `shared` burn-in clock run out** (targeting ~2026-08-29 to
+   ~2026-09-12, i.e. 2–4 weeks from 2026-08-15) while 1 and 2 happen. This
+   doesn't block engineering work, just the go/no-go call.
+4. **Once 1–3 close, hold the explicit Phase 0 go/no-go review** this doc
+   already calls for, then start Phase 1 (§8): create the three
+   `Organization`s (`shared-org`, `idfy-org`, `familytree-org`), register
+   the four `ClientApp`s, and configure `allowedRoles`/`AccessPolicy` per
+   §7's already-resolved decisions. Nothing about Phase 1's design changed
+   in this update — only Phase 0's status did.
+5. **Minor cleanup, not blocking**: delete or clearly mark `sso/k8s/` as
+   dead scaffolding so a future reader doesn't repeat this document's
+   original mistake of treating it as the live deployment path.
+
+**What did not change**: the Option C decision (§5), the tenant model
+(§7 item 1), the phase sequencing (§8), and the fact that no product has
+started depending on `sso` yet. This update is entirely about correcting
+*how close Phase 0 is to done* — it does not reopen or revise any of the
+architectural decisions already made.
