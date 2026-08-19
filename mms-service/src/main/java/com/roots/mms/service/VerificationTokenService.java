@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -23,8 +24,11 @@ import java.util.Optional;
 /**
  * Issues, stores, and redeems short-lived one-time tokens for password resets
  * and email verification. Tokens are 256 bits, generated with {@link SecureRandom}
- * and transmitted in email links; they're stored in MongoDB with a TTL index so
- * expired tokens are reaped automatically.
+ * and transmitted in email links. They're stored in Postgres, which has no
+ * per-row TTL: expired rows are reaped by {@link com.roots.mms.scheduled.TokenCleanupJob}
+ * on an hourly schedule, not by the datastore. Issuing a token also invalidates
+ * the user's previous one of the same type, so redemption never depends on the
+ * sweep having run.
  *
  * <p>Forgot-password is intentionally non-enumerating: the caller always gets
  * a 200 response whether or not the email exists in the database, and we only
@@ -195,6 +199,7 @@ public class VerificationTokenService {
      * Throws BusinessRuleException if the token is unknown, expired, already
      * used, or the new password doesn't meet complexity rules.
      */
+    @Transactional
     public void redeemPasswordReset(String token, String newPassword) {
         VerificationToken t = loadValid(token, VerificationToken.TokenType.PASSWORD_RESET);
         validatePasswordComplexity(newPassword);
@@ -213,6 +218,7 @@ public class VerificationTokenService {
     /**
      * Consumes an email-verification token and marks the user's email as verified.
      */
+    @Transactional
     public void redeemEmailVerification(String token) {
         VerificationToken t = loadValid(token, VerificationToken.TokenType.EMAIL_VERIFICATION);
         User user = userRepository.findById(t.getUserId())
@@ -231,6 +237,7 @@ public class VerificationTokenService {
      * marking it verified. Re-checks uniqueness at redeem time in case the
      * address was taken between request and confirmation.
      */
+    @Transactional
     public void redeemEmailChange(String token) {
         VerificationToken t = loadValid(token, VerificationToken.TokenType.EMAIL_CHANGE);
         String newEmail = t.getNewEmail();
